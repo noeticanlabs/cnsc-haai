@@ -18,7 +18,7 @@ from enum import Enum
 import uuid
 
 from src.haai.governance import (
-    CGLGovernance, PolicyEngine, EnforcementPoint, 
+    CGLGovernance, CPLPolicyEngine, EnforcementPoint, 
     SafetyMonitor, AuditTrail, IdentityAccessManager
 )
 from tests.test_framework import TestFramework, measure_async_performance

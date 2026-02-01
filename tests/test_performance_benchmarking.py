@@ -23,7 +23,7 @@ import tracemalloc
 
 from src.haai.agent import create_integrated_haai_agent
 from src.haai.core import CoherenceEngine, HierarchicalAbstraction
-from src.haai.nsc import GLLLProcessor, GHLLProcessor, GMLProcessor
+from src.haai.nsc import GLLLEncoder, GHLLProcessor, GMLMemory
 from tests.test_framework import TestFramework, measure_async_performance
 
 

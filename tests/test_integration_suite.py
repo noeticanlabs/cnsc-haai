@@ -18,7 +18,7 @@ import logging
 
 from src.haai.agent import create_integrated_haai_agent, IntegratedHAAIAgent
 from src.haai.core import CoherenceEngine, HierarchicalAbstraction
-from src.haai.nsc import GLLLProcessor, GHLLProcessor, GMLProcessor
+from src.haai.nsc import GLLLEncoder, GHLLProcessor, GMLMemory
 from src.haai.governance import CGLGovernance, Policy
 from tests.test_framework import TestFramework
 

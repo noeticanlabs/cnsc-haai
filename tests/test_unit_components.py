@@ -16,10 +16,10 @@ import uuid
 from typing import Dict, Any, List
 import numpy as np
 
-from src.haai.core import CoherenceEngine, HierarchicalAbstraction, ResidualProcessor, GateController
-from src.haai.nsc import GLLLProcessor, GHLLProcessor, GMLProcessor, NSCCore
+from src.haai.core import CoherenceEngine, HierarchicalAbstraction, ResidualCalculator, GateSystem, RailSystem
+from src.haai.nsc import GLLLEncoder, GHLLProcessor, GMLMemory, NSCProcessor
 from src.haai.agent import ReasoningEngine, AttentionSystem, LearningSystem, ToolFramework
-from src.haai.governance import CGLGovernance, PolicyEngine, EnforcementPoint
+from src.haai.governance import CGLGovernance, CPLPolicyEngine, EnforcementPoint
 
 from tests.test_framework import (
     TestFramework, TestConfiguration, PropertyBasedTestGenerator,

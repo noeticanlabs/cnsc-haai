@@ -3,7 +3,7 @@ Core coherence and hierarchical abstraction components.
 """
 
 from .coherence import CoherenceEngine, CoherenceSignals, EnvelopeManager
-from .abstraction import HierarchicalAbstraction, LevelManager, CrossLevelMaps
+from .abstraction import HierarchicalAbstraction, LevelManager, CrossLevelMap
 from .residuals import ResidualCalculator, CoherenceFunctional
 from .gates import GateSystem, RailSystem
 
@@ -13,7 +13,7 @@ __all__ = [
     "EnvelopeManager",
     "HierarchicalAbstraction",
     "LevelManager",
-    "CrossLevelMaps",
+    "CrossLevelMap",
     "ResidualCalculator",
     "CoherenceFunctional",
     "GateSystem",

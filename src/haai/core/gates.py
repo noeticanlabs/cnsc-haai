@@ -9,6 +9,7 @@ import numpy as np
 from typing import Dict, List, Optional, Any, Callable, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
+from abc import ABC, abstractmethod
 import time
 import logging
 
