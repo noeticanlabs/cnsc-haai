@@ -1,0 +1,31 @@
+site_name: Coherence Governance Layer (CGL)
+site_description: Governance, safety, and audit layer for coherence-first runtimes.
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Concepts:
+      - Glossary: glossary.md
+      - Coherence signals: coherence-signals.md
+  - Architecture:
+      - System context: system-context.md
+      - Architecture: architecture.md
+      - Data model: data-model.md
+  - Policy:
+      - Policy model: policy.md
+      - Policy language (CPL): policy-language.md
+      - Policy packaging & attestation: policy-packaging.md
+  - Runtime:
+      - Enforcement: enforcement.md
+      - APIs: api.md
+      - Event contracts: events.md
+  - Governance:
+      - Governance process: governance-process.md
+      - Identity & access: identity-access.md
+      - Audit & evidence: audit.md
+      - Incident response: incident-response.md
+  - Operations:
+      - Operations runbook: operations.md
+      - Security & threat model: security.md
+      - Testing & validation: testing.md
+      - Reference configuration: reference-config.md

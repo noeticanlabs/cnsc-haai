@@ -1,0 +1,33 @@
+{
+  "claim_id": "claim_tooluse_001",
+  "statement": "Enabling NSC-tag gated tool routing improves tool-use success rate versus baseline routing under equal latency budget.",
+  "kpi": {
+    "name": "tool_use_success_rate",
+    "direction": "increase",
+    "target": 0.85
+  },
+  "guardrails": [
+    {
+      "name": "hallucination_rate",
+      "limit": 0.03
+    },
+    {
+      "name": "p95_latency_ms",
+      "limit": 1800
+    }
+  ],
+  "conditions": {
+    "traffic": "offline_eval",
+    "suite": "TOOLUSE_V1",
+    "decode": "deterministic"
+  },
+  "evidence_refs": [
+    "artifacts/eval_run_claim_tooluse_001.json",
+    "runbooks/test_plan.yaml"
+  ],
+  "status": "tested",
+  "failure_modes": [
+    "Model routes to forbidden tools when tags are missing",
+    "Latency regressions under high concurrency"
+  ]
+}

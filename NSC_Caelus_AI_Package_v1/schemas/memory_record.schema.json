@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://caelus.ai/schemas/memory_record.schema.json",
+  "title": "MemoryRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "ts_utc",
+    "tier",
+    "key",
+    "value",
+    "provenance",
+    "privacy",
+    "retention"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{10,80}$"
+    },
+    "ts_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "L0_ephemeral",
+        "L1_working",
+        "L2_project",
+        "L3_canonical"
+      ]
+    },
+    "key": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 120
+    },
+    "value": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "artifact_refs"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "human",
+            "agent",
+            "tool",
+            "imported_dataset"
+          ]
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 240
+          }
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pii",
+        "allowed_scopes"
+      ],
+      "properties": {
+        "pii": {
+          "type": "string",
+          "enum": [
+            "none",
+            "low",
+            "moderate",
+            "high"
+          ]
+        },
+        "allowed_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          }
+        }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "expires_utc"
+      ],
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": [
+            "expire",
+            "compact",
+            "retain"
+          ]
+        },
+        "expires_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 64
+      }
+    }
+  }
+}

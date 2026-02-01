@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "event_id",
+    "type",
+    "created_at",
+    "payload",
+    "prev_hash",
+    "event_hash",
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v\\d+$"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "cgl.request.received",
+        "cgl.decision.made",
+        "cgl.enforcement.applied",
+        "cgl.runtime.started",
+        "cgl.runtime.telemetry",
+        "cgl.runtime.completed",
+        "cgl.runtime.quarantined",
+        "cgl.policy.bundle.proposed",
+        "cgl.policy.bundle.approved",
+        "cgl.policy.bundle.activated",
+        "cgl.override.invoked",
+        "cgl.incident.created"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "request_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "decision_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_bundle_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "prev_hash": {
+      "type": "string"
+    },
+    "event_hash": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "title": "cgl.audit.event.v1",
+  "description": "Canonical audit event envelope for CGL."
+}

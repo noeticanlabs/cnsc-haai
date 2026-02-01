@@ -1,0 +1,43 @@
+# NSC tag ontology (v1)
+# Design goals:
+# - Stable, composable tags
+# - Fast routing + safe gating decisions
+# - Human-readable without losing machine usability
+
+namespaces:
+  nsc:
+    description: "Core NSC tags for claims, evidence, and semantic routing."
+  gate:
+    description: "Gate/rail outcomes and enforcement states."
+  safety:
+    description: "Safety-relevant annotations (privacy, causality, uncertainty)."
+  memory:
+    description: "Memory tiering and lifecycle annotations."
+  eval:
+    description: "Evaluation suite and benchmark tags."
+
+tags:
+  - id: nsc:claim
+    meaning: "Marks content as a claim that must be supported by receipts."
+    allowed_on: ["TagEvent","ClaimNode","Receipt"]
+  - id: nsc:receipt
+    meaning: "Marks an artifact or record that is audit-grade evidence."
+    allowed_on: ["TagEvent","Receipt","EvalRun"]
+  - id: gate:verified
+    meaning: "Passed schema, hash, and invariants checks."
+    allowed_on: ["TagEvent","GateDecision"]
+  - id: safety:causality
+    meaning: "Temporal consistency and no-future-leak constraints apply."
+    allowed_on: ["GateDecision","Receipt"]
+  - id: safety:privacy
+    meaning: "Privacy policy constraints apply; PII classification required."
+    allowed_on: ["MemoryRecord","GateDecision"]
+  - id: memory:definition-ledger
+    meaning: "Definition ledger entry; source-of-truth for evaluation + interfaces."
+    allowed_on: ["MemoryRecord"]
+  - id: eval:offline
+    meaning: "Offline evaluation run (non-production)."
+    allowed_on: ["EvalRun"]
+  - id: eval:shadow
+    meaning: "Shadow-mode production comparison; not user-visible."
+    allowed_on: ["EvalRun"]

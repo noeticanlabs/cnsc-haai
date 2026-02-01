@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReceiptRecord",
+  "type": "object",
+  "required": [
+    "event_id",
+    "action",
+    "run_hash",
+    "prev_run_hash"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "t": {
+      "type": [
+        "integer",
+        "number"
+      ]
+    },
+    "thread": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "inputs_hash": {
+      "type": "string"
+    },
+    "outputs_hash": {
+      "type": "string"
+    },
+    "packet_hash": {
+      "type": "string"
+    },
+    "bytecode_hash": {
+      "type": "string"
+    },
+    "pc_before": {
+      "type": "integer"
+    },
+    "pc_after": {
+      "type": "integer"
+    },
+    "opcode": {
+      "type": "string"
+    },
+    "source_span": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "integer"
+        },
+        "end": {
+          "type": "integer"
+        }
+      }
+    },
+    "prev_run_hash": {
+      "type": "string"
+    },
+    "run_hash": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

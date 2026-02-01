@@ -1,0 +1,28 @@
+{
+  "decision_id": "gdec_X2m8pL0vZq9",
+  "ts_utc": "2026-02-01T16:30:00Z",
+  "gate_name": "gate_no_future_leak",
+  "input_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+  "decision": "allow",
+  "reasons": [
+    "All retrieval candidates are timestamped <= query timestamp",
+    "No tool outputs contain post-dated information relative to task context"
+  ],
+  "thresholds": {
+    "min_confidence": 0.7,
+    "max_risk": 0.25
+  },
+  "actions": [
+    {
+      "type": "log",
+      "payload": {
+        "level": "info",
+        "channel": "audit"
+      }
+    }
+  ],
+  "tags": [
+    "gate:temporal",
+    "safety:causality"
+  ]
+}

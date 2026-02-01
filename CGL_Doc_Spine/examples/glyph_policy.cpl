@@ -1,0 +1,56 @@
+package cgl.runtime.glyph
+
+defaults:
+  effect: deny
+  reason: "default_deny"
+
+envelopes:
+  glyph_stable_v1:
+    C_min: 0.93
+    grad_p99_max: 2.5
+    spr_max: 15
+    dE_dt_max: 0.08
+    telemetry_max_age_sec: 10
+
+budgets:
+  compile_only:
+    coherence_budget: 0.2
+    max_runtime_sec: 60
+  execute_sandbox:
+    coherence_budget: 0.8
+    max_runtime_sec: 300
+
+rules:
+  - id: allow_compile_researchers
+    when:
+      operation == "runtime.compile_glyph"
+      actor.role in ["researcher", "engineer"]
+      risk.level in ["GREEN", "YELLOW"]
+    then:
+      effect: allow_with_constraints
+      reason: "compile_allowed"
+      constraints:
+        envelope: glyph_stable_v1
+        budget: compile_only
+        clamps:
+          max_recursion_depth: 12
+          max_symbol_count: 2000
+          allow_external_io: false
+
+  - id: execute_only_in_sandbox
+    when:
+      operation == "runtime.execute_glyph"
+      actor.role == "researcher"
+      runtime.environment == "sandbox"
+      risk.level == "GREEN"
+    then:
+      effect: allow_with_constraints
+      reason: "sandbox_execute_only"
+      constraints:
+        envelope: glyph_stable_v1
+        budget: execute_sandbox
+        quarantine: true
+        clamps:
+          max_recursion_depth: 10
+          max_symbol_count: 1200
+          allow_external_io: false

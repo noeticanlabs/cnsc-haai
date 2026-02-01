@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cgl.incident.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "incident_id",
+    "severity",
+    "status",
+    "created_at",
+    "trigger",
+    "affected_runtimes",
+    "timeline"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v\\d+$"
+    },
+    "incident_id": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "SEV-1",
+        "SEV-2",
+        "SEV-3",
+        "SEV-4"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "contained",
+        "resolved",
+        "closed"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trigger": {
+      "type": "string"
+    },
+    "affected_runtimes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_decision_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "at",
+          "event"
+        ],
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "event": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

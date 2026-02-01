@@ -1,0 +1,13 @@
+# GLLL Examples — v1.0
+
+Program mirroring `φ⊕↻∆◯⊖φ`:
+
+BEGIN
+PUSH_THETA
+SRC_PLUS
+CURV_COUPLE
+CLOSE_EOM
+LAPLACE_THETA
+SRC_MINUS
+PUSH_THETA
+END

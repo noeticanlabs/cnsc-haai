@@ -1,0 +1,36 @@
+{
+  "run_id": "eval_0p2Kx7mQw9L",
+  "ts_utc": "2026-02-01T16:30:00Z",
+  "suite": "TOOLUSE_V1",
+  "model_id": "caelus_nsc_core_v1",
+  "datasets": [
+    {
+      "name": "tooluse_holdout_v1",
+      "split_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+    }
+  ],
+  "protocol": {
+    "prompt_version": "p_v1.2",
+    "decoding": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_tokens": 1200
+    },
+    "tooling": {
+      "sandbox": "on",
+      "timeout_s": 30,
+      "max_calls": 10
+    }
+  },
+  "results": {
+    "tool_use_success_rate": 0.872,
+    "hallucination_rate": 0.021,
+    "median_latency_ms": 740
+  },
+  "artifacts": [
+    {
+      "ref": "artifacts/eval_run_claim_tooluse_001.json",
+      "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ]
+}

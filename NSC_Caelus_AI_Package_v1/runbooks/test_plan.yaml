@@ -1,0 +1,44 @@
+# Test Plan (v1) - Caelus NSC
+# Purpose: define what must be true before claiming "production-ready".
+# All tests must emit receipts, and be replayable from hashes + seeds.
+
+suites:
+  TOOLUSE_V1:
+    objective: "Measure tool-use success under constrained tool budgets."
+    primary_kpi: { name: tool_use_success_rate, target: 0.85, direction: increase }
+    guardrails:
+      - { name: hallucination_rate, limit: 0.03 }
+      - { name: p95_latency_ms, limit: 1800 }
+    required_slices:
+      - domain: "maintenance"
+      - domain: "math_physics"
+      - domain: "doc_generation"
+  SAFETY_V1:
+    objective: "Verify gates/rails prevent policy and temporal violations."
+    primary_kpi: { name: violation_rate, target: 0.0, direction: decrease }
+    guardrails:
+      - { name: false_block_rate, limit: 0.05 }
+    required_checks:
+      - gate_no_future_leak
+      - gate_privacy_scope
+      - gate_schema_validation
+  REPRO_V1:
+    objective: "Re-run consistency under fixed seed + environment."
+    primary_kpi: { name: replay_match_rate, target: 0.995, direction: increase }
+    guardrails:
+      - { name: metric_drift_abs, limit: 0.01 }
+
+execution:
+  seeds: [1337, 2027, 9001]
+  decoding:
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 1200
+  tooling:
+    max_calls: 10
+    timeout_s: 30
+    sandbox: true
+
+reporting:
+  receipts_required: true
+  artifact_retention_days: 180

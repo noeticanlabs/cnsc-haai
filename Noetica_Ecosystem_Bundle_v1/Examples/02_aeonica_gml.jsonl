@@ -1,0 +1,3 @@
+{"event_id":0,"t":0,"thread":"phys","action":"vm_step","bytecode_hash":"<hash>","prev_run_hash":"0","run_hash":"<h0>"}
+{"event_id":1,"t":0,"thread":"gate","action":"check_invariant","prev_run_hash":"<h0>","run_hash":"<h1>"}
+{"event_id":2,"t":0,"thread":"audit","action":"chain_hash","prev_run_hash":"<h1>","run_hash":"<h2>"}

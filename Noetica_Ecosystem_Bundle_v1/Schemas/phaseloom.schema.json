@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PhaseLoom",
+  "type": "object",
+  "required": [
+    "threads",
+    "events",
+    "couplings"
+  ],
+  "properties": {
+    "threads": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "couplings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "cause",
+          "effect",
+          "type"
+        ],
+        "properties": {
+          "cause": {
+            "type": "integer"
+          },
+          "effect": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "strength": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

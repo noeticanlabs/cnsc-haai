@@ -1,0 +1,33 @@
+{
+  "record_id": "mem_3xk9Zp2Qb1r",
+  "ts_utc": "2026-02-01T16:30:00Z",
+  "tier": "L2_project",
+  "key": "definition_ledger.v1.primary_kpi",
+  "value": {
+    "kpi": "tool_use_success_rate",
+    "target": 0.85,
+    "window": "7d"
+  },
+  "provenance": {
+    "source": "human",
+    "artifact_refs": [
+      "docs/NSC_Caelus_AI_Specification_v1.docx"
+    ],
+    "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "privacy": {
+    "pii": "none",
+    "allowed_scopes": [
+      "project",
+      "audit"
+    ]
+  },
+  "retention": {
+    "policy": "retain",
+    "expires_utc": "2030-02-01T00:00:00Z"
+  },
+  "tags": [
+    "memory:definition-ledger",
+    "kpi:primary"
+  ]
+}

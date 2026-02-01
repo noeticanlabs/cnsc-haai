@@ -1,0 +1,16 @@
+{
+  "request_id": "req_01HXYEXAMPLE",
+  "actor_id": "user:mikey",
+  "operation": "runtime.execute_simulation",
+  "parameters": {
+    "solver": "rft_v4",
+    "max_steps": 80000,
+    "amplitude": 0.35,
+    "boundary_template": "closed_well_v2"
+  },
+  "inputs_ref": {
+    "dataset": "object_store://coh-data/baselines/sample_input.json#sha256=d6cc1251d3f039f4d87af2f2a114f83d4094f56c526cb97d760dbff2c49abff7"
+  },
+  "target_runtime": "sim-runtime-prod-3",
+  "submitted_at": "2026-02-01T01:00:00Z"
+}

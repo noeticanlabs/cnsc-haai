@@ -1,0 +1,35 @@
+{
+  "receipt_id": "rcpt_W8n2bQ7kLm4",
+  "ts_utc": "2026-02-01T16:30:00Z",
+  "claim_id": "claim_tooluse_001",
+  "inputs": {
+    "dataset_hashes": [
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ],
+    "code_commit": "9f2c7a1",
+    "config_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+    "seed": 1337
+  },
+  "outputs": {
+    "artifacts": [
+      {
+        "ref": "artifacts/eval_run_claim_tooluse_001.json",
+        "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      }
+    ]
+  },
+  "metrics": {
+    "tool_use_success_rate": 0.872,
+    "median_latency_ms": 740,
+    "hallucination_rate": 0.021
+  },
+  "reproducibility": {
+    "environment": {
+      "python": "3.11",
+      "os": "linux",
+      "cuda": "12.x"
+    },
+    "command": "python -m caelus.eval.run --suite TOOLUSE_V1 --seed 1337"
+  },
+  "notes": "Pass: primary KPI >= target. Guardrails within limits."
+}

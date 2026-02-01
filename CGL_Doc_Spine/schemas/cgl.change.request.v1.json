@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cgl.change.request.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "cr_id",
+    "class",
+    "title",
+    "description",
+    "created_at",
+    "author_id",
+    "targets",
+    "risk_analysis",
+    "test_evidence",
+    "rollback_bundle_hash",
+    "approvals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v\\d+$"
+    },
+    "cr_id": {
+      "type": "string"
+    },
+    "class": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_analysis": {
+      "type": "string"
+    },
+    "test_evidence": {
+      "type": "object",
+      "required": [
+        "policy_tests",
+        "replay_runs"
+      ],
+      "properties": {
+        "policy_tests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "replay_runs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rollback_bundle_hash": {
+      "type": "string"
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "approver_id",
+          "role",
+          "approved_at",
+          "key_id",
+          "signature"
+        ],
+        "properties": {
+          "approver_id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "key_id": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

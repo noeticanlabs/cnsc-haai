@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cgl.policy.bundle.v1",
+  "type": "object",
+  "required": [
+    "bundle_id",
+    "bundle_hash",
+    "version",
+    "created_at",
+    "policies",
+    "envelopes",
+    "budgets",
+    "signatures",
+    "metadata",
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v\\d+$"
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 6
+    },
+    "bundle_hash": {
+      "type": "string",
+      "minLength": 32
+    },
+    "version": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "environment",
+        "runtime_scope",
+        "change_request_id"
+      ],
+      "properties": {
+        "environment": {
+          "type": "string",
+          "enum": [
+            "sandbox",
+            "staging",
+            "production",
+            "mixed"
+          ]
+        },
+        "runtime_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "change_request_id": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "package",
+          "cpl_source",
+          "normalized"
+        ],
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "cpl_source": {
+            "type": "string"
+          },
+          "normalized": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "envelopes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "C_min": {
+            "type": "number"
+          },
+          "grad_p99_max": {
+            "type": "number"
+          },
+          "spr_max": {
+            "type": "number"
+          },
+          "dE_dt_max": {
+            "type": "number"
+          },
+          "telemetry_max_age_sec": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "coherence_budget": {
+            "type": "number",
+            "minimum": 0
+          },
+          "max_runtime_sec": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "signatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "signer_id",
+          "role",
+          "signed_at",
+          "key_id",
+          "signature"
+        ],
+        "properties": {
+          "signer_id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "signed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "key_id": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

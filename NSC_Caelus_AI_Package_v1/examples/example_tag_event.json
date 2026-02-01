@@ -1,0 +1,30 @@
+{
+  "event_id": "tev_7Gk2JmQp9aK",
+  "ts_utc": "2026-02-01T16:30:00Z",
+  "actor": {
+    "type": "system",
+    "id": "caelus.orchestrator"
+  },
+  "scope": {
+    "domain": "nsc",
+    "context_id": "proj_cae_001"
+  },
+  "tags": [
+    "nsc:claim",
+    "nsc:receipt",
+    "gate:verified"
+  ],
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "runbooks/receipts_ledger_template.jsonl",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "confidence": 0.86,
+  "ttl_policy": {
+    "class": "project",
+    "expires_utc": "2026-08-01T00:00:00Z"
+  },
+  "notes": "Tag applied automatically after receipt ledger entry was validated against schema + hash checks."
+}

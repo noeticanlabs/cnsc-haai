@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "n": 64,
+  "entries": [
+    {
+      "id": 0,
+      "name": "BEGIN",
+      "tags": [
+        "control"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "END",
+      "tags": [
+        "control"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "SYNC",
+      "tags": [
+        "control"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "CHECK",
+      "tags": [
+        "control"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "φ",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "PUSH_THETA"
+    },
+    {
+      "id": 17,
+      "name": "↻",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "CURV_COUPLE"
+    },
+    {
+      "id": 18,
+      "name": "⊕",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "SRC_PLUS"
+    },
+    {
+      "id": 19,
+      "name": "⊖",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "SRC_MINUS"
+    },
+    {
+      "id": 20,
+      "name": "◯",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "LAPLACE_THETA"
+    },
+    {
+      "id": 21,
+      "name": "∆",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "CLOSE_EOM"
+    },
+    {
+      "id": 22,
+      "name": "⇒",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "ADVANCE_T"
+    },
+    {
+      "id": 23,
+      "name": "□",
+      "tags": [
+        "field",
+        "phase1"
+      ],
+      "mirror": "BOUNDARY_SET"
+    }
+  ]
+}
