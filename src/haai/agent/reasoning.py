@@ -397,8 +397,24 @@ class ReasoningEngine:
         
         self.logger = logging.getLogger("haai.reasoning_engine")
     
+    def _resolve_mode(self, mode: Any) -> ReasoningMode:
+        """Convert string or ReasoningMode to ReasoningMode enum."""
+        if isinstance(mode, ReasoningMode):
+            return mode
+        if isinstance(mode, str):
+            mode_upper = mode.upper()
+            for enum_member in ReasoningMode:
+                if enum_member.name == mode_upper:
+                    return enum_member
+            # Also check value
+            for enum_member in ReasoningMode:
+                if enum_member.value == mode:
+                    return enum_member
+        return ReasoningMode.ADAPTIVE
+    
     async def reason(self, problem: Dict[str, Any], 
-                    context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                    context: Optional[Dict[str, Any]] = None,
+                    mode: Optional[Any] = None) -> Dict[str, Any]:
         """Main reasoning method that processes a problem and returns results."""
         start_time = time.time()
         
@@ -408,20 +424,20 @@ class ReasoningEngine:
             # Analyze problem complexity
             complexity = self._analyze_problem_complexity(problem)
             
-            # Select reasoning mode
-            mode = self._select_reasoning_mode(complexity, context)
+            # Select reasoning mode - use provided mode or auto-select
+            resolved_mode = self._resolve_mode(mode) if mode else self._select_reasoning_mode(complexity, context)
             
             # Select abstraction level
             level = self.level_selector.select_level(complexity, self.coherence_threshold)
             
             # Create initial reasoning plan
-            reasoning_plan = await self._create_reasoning_plan(problem, level, mode)
+            reasoning_plan = await self._create_reasoning_plan(problem, level, resolved_mode)
             
             # Optimize reasoning path
             optimized_plan = self.path_optimizer.optimize_path(reasoning_plan)
             
             # Execute reasoning
-            if mode == ReasoningMode.PARALLEL:
+            if resolved_mode == ReasoningMode.PARALLEL:
                 executed_steps = await self.parallel_manager.execute_parallel_steps(optimized_plan)
             else:
                 executed_steps = await self._execute_sequential(optimized_plan)

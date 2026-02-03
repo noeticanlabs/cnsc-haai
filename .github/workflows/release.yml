@@ -1,0 +1,233 @@
+name: Release and Version Management
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements.txt'
+  release:
+    types: [created]
+
+env:
+  PYTHON_VERSION: '3.11'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  version:
+    name: Version Check
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_new_release: ${{ steps.version.outputs.is_new_release }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current version
+        id: version
+        run: |
+          # Try to get version from git tags
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
+          echo "Current version: $VERSION"
+          
+          # Check if this is a new release
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            IS_NEW="true"
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            IS_NEW="false"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_new_release=$IS_NEW" >> $GITHUB_OUTPUT
+
+      - name: Show version info
+        run: |
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "New release: ${{ steps.version.outputs.is_new_release }}"
+
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: version
+    if: needs.version.outputs.is_new_release == 'true'
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install build tools
+        run: |
+          pip install --upgrade pip
+          pip install wheel setuptools twine build
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Verify package
+        run: |
+          pip install dist/*.whl --force-reinstall
+          python -c "import haai; print(f'HAAI version: {haai.__version__}')"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: haai-package
+          path: dist/
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name == 'release'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        if: github.event_name == 'release'
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ github.repository }}:${{ needs.version.outputs.version }} .
+          docker tag ${{ env.REGISTRY }}/${{ github.repository }}:${{ needs.version.outputs.version }} ${{ env.REGISTRY }}/${{ github.repository }}:latest
+
+      - name: Push Docker image
+        if: github.event_name == 'release'
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}:${{ needs.version.outputs.version }}
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}:latest
+
+  pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    if: needs.version.outputs.is_new_release == 'true' && github.event_name == 'release'
+    
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: haai-package
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: dist/
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    if: needs.version.outputs.is_new_release == 'true' && github.event_name == 'release'
+    
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: haai-package
+          path: dist/
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          name: Release ${{ github.event.release.tag_name }}
+          body: |
+            ## Changes
+            
+            See [CHANGELOG.md](./CHANGELOG.md) for details.
+            
+            ## Assets
+            
+            - Python package: haai-${{ github.event.release.tag_name }}.tar.gz
+          files: |
+            dist/*.tar.gz
+            dist/*.whl
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    if: needs.version.outputs.is_new_release == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate changelog
+        id: changelog
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { data: commits } = await github.request('GET /repos/{owner}/{repo}/commits', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              since: '2024-01-01'
+            });
+            
+            const changes = commits.map(c => {
+              return `- ${c.commit.message} (${c.sha.substring(0, 7)})`;
+            }).join('\n');
+            
+            return changes;
+
+      - name: Update CHANGELOG.md
+        run: |
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## ${{ needs.version.outputs.version }}" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "${{ steps.changelog.outputs.result }}" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          cat CHANGELOG.md
+
+      - name: Commit changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG for ${{ needs.version.outputs.version }}" || echo "No changes to commit"
+          git push || echo "Nothing to push"
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [version, build, pypi, github-release, create-changelog]
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [[ "${{ needs.build.result }}" == "failure" ]]; then
+            echo "❌ Build failed"
+            exit 1
+          fi
+          if [[ "${{ needs.pypi.result }}" == "failure" ]]; then
+            echo "❌ PyPI publish failed"
+            exit 1
+          fi
+          echo "✅ Release completed successfully"

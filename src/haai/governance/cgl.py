@@ -5,6 +5,7 @@ Provides policy-based governance and compliance checking for HAAI agents.
 """
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from datetime import datetime
@@ -43,8 +44,27 @@ class ComplianceChecker:
     
     def add_policy(self, policy: Policy) -> None:
         """Add a governance policy."""
-        self.policies[policy.policy_id] = policy
-        self.logger.info(f"Added policy: {policy.name}")
+        # Accept legacy dict or canonical policy-like objects
+        try:
+            pid = policy.policy_id
+        except Exception:
+            # Try to coerce from dict-like
+            if isinstance(policy, dict) and "policy_id" in policy:
+                pid = policy["policy_id"]
+            elif isinstance(policy, dict) and "id" in policy:
+                pid = policy["id"]
+            elif hasattr(policy, "to_dict"):
+                pdata = policy.to_dict()
+                pid = pdata.get("policy_id")
+            else:
+                raise TypeError("Unsupported policy type for add_policy")
+
+        self.policies[pid] = policy
+        try:
+            name = policy.name
+        except Exception:
+            name = getattr(policy, "name", str(pid))
+        self.logger.info(f"Added policy: {name}")
     
     def check_compliance(self, action: Dict[str, Any], 
                        context: Dict[str, Any]) -> Dict[str, Any]:
@@ -57,8 +77,14 @@ class ComplianceChecker:
         }
         
         for policy in self.policies.values():
+            # Handle both Policy objects and dict policies
+            if isinstance(policy, dict):
+                policy_id = policy.get("id", policy.get("policy_id", "unknown"))
+            else:
+                policy_id = policy.policy_id
+            
             policy_result = self._check_policy_compliance(policy, action, context)
-            compliance_results["applied_policies"].append(policy.policy_id)
+            compliance_results["applied_policies"].append(policy_id)
             
             if not policy_result["compliant"]:
                 compliance_results["compliant"] = False
@@ -68,31 +94,43 @@ class ComplianceChecker:
         
         return compliance_results
     
-    def _check_policy_compliance(self, policy: Policy, action: Dict[str, Any],
+    def _check_policy_compliance(self, policy, action: Dict[str, Any],
                                context: Dict[str, Any]) -> Dict[str, Any]:
         """Check compliance against a specific policy."""
+        # Handle both Policy objects and dict policies
+        if isinstance(policy, dict):
+            policy_rules = policy.get("rules", [])
+            policy_id = policy.get("id", "unknown")
+        else:
+            policy_rules = policy.rules
+            policy_id = policy.policy_id
+        
         result = {
             "compliant": True,
             "violations": [],
             "warnings": []
         }
         
-        for rule in policy.rules:
+        for rule in policy_rules:
             rule_result = self._evaluate_rule(rule, action, context)
             if not rule_result["satisfied"]:
                 result["compliant"] = False
                 result["violations"].append({
-                    "policy_id": policy.policy_id,
+                    "policy_id": policy_id,
                     "rule": rule,
                     "reason": rule_result.get("reason", "Rule violated")
                 })
         
         return result
     
-    def _evaluate_rule(self, rule: Dict[str, Any], action: Dict[str, Any],
-                     context: Dict[str, Any]) -> Dict[str, Any]:
+    def _evaluate_rule(self, rule, action: Dict[str, Any],
+                      context: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate a single rule."""
-        # Simplified rule evaluation
+        # Handle string rules from tests (e.g., "coherence_score < 0.7")
+        if isinstance(rule, str):
+            return self._evaluate_string_rule(rule, action, context)
+        
+        # Dict-based rule
         rule_type = rule.get("type", "condition")
         
         if rule_type == "condition":
@@ -104,9 +142,56 @@ class ComplianceChecker:
         
         return {"satisfied": True, "reason": "Unknown rule type"}
     
-    def _evaluate_condition(self, condition: Dict[str, Any], action: Dict[str, Any],
+    def _evaluate_string_rule(self, rule_str: str, action: Dict[str, Any],
+                              context: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate a string-based rule like 'coherence_score < 0.7'."""
+        # Parse string condition like "coherence_score < 0.7"
+        match = re.match(r'(\w+)\s*(<|>|<=|>=|==|!=)\s*([-\d.]+)', rule_str)
+        if not match:
+            return {"satisfied": True, "reason": f"Could not parse rule: {rule_str}"}
+        
+        field, operator, value_str = match.groups()
+        
+        # Convert value to appropriate type
+        try:
+            if '.' in value_str:
+                value = float(value_str)
+            else:
+                value = int(value_str)
+        except ValueError:
+            value = value_str
+        
+        # Get actual value from action
+        actual_value = action.get(field, context.get(field))
+        
+        # Evaluate
+        if operator == "<":
+            satisfied = actual_value < value
+        elif operator == ">":
+            satisfied = actual_value > value
+        elif operator == "<=":
+            satisfied = actual_value <= value
+        elif operator == ">=":
+            satisfied = actual_value >= value
+        elif operator == "==":
+            satisfied = actual_value == value
+        elif operator == "!=":
+            satisfied = actual_value != value
+        else:
+            satisfied = True
+        
+        return {
+            "satisfied": satisfied,
+            "reason": f"Field {field} {operator} {value}: {actual_value}"
+        }
+    
+    def _evaluate_condition(self, condition, action: Dict[str, Any],
                           context: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate a condition rule."""
+        # Handle string conditions from tests
+        if isinstance(condition, str):
+            return self._evaluate_string_rule(condition, action, context)
+        
         field = condition.get("field", "")
         operator = condition.get("operator", "equals")
         value = condition.get("value")
@@ -275,9 +360,22 @@ class CGLGovernance:
         
         return result
     
-    def add_policy(self, policy: Policy) -> None:
+    async def add_policy(self, policy: Policy) -> str:
         """Add a governance policy."""
         self.policy_engine.add_policy(policy)
+        # Return policy_id
+        try:
+            return policy.policy_id
+        except Exception:
+            return policy.get("id", str(policy))
+    
+    async def remove_policy(self, policy_id: str) -> bool:
+        """Remove a governance policy by ID."""
+        if policy_id in self.policy_engine.compliance_checker.policies:
+            del self.policy_engine.compliance_checker.policies[policy_id]
+            self.logger.info(f"Removed policy: {policy_id}")
+            return True
+        return False
     
     def get_governance_status(self) -> Dict[str, Any]:
         """Get governance system status."""

@@ -44,7 +44,7 @@ class NSCPacket:
         }
     
     def _calculate_hash(self) -> str:
-        """Calculate coherence CRC32 hash."""
+        """Calculate coherence hash using MD5."""
         content = f"{self.header}{self.body}"
         return hashlib.md5(content.encode()).hexdigest()
     
@@ -632,3 +632,17 @@ class NSCProcessor:
             'compilation_history_size': len(self.compiler.compilation_history),
             'execution_history_size': len(self.vm.execution_history)
         }
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize NSC processor (async for compatibility)."""
+        summary = self.get_processing_summary()
+        logger.info("NSC Processor initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown NSC processor."""
+        logger.info("NSC Processor shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup NSC processor resources."""
+        await self.shutdown()

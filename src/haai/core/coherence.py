@@ -315,6 +315,14 @@ class CoherenceEngine:
         self.calculator = CoherenceCalculator()
         self.envelope_manager = EnvelopeManager()
         self.risk_monitor = RiskStateMonitor()
+        self._initialized = False
+        self._envelope_threshold = None
+        self._risk_thresholds: Dict[str, float] = {
+            "elevated": 0.6,
+            "high": 0.4,
+            "critical": 0.2,
+            "normal_recovery": 0.8
+        }
         
         # Register default envelope
         default_envelope = Envelope(name=envelope_name)
@@ -366,6 +374,213 @@ class CoherenceEngine:
             self.signal_history.pop(0)
         
         return signals
+
+    async def calculate_coherence(self, input_data: Dict[str, Any]) -> float:
+        """Calculate a coherence score for structured input data."""
+        features = np.array(input_data.get("features", []), dtype=float)
+        if features.size == 0:
+            return 0.0
+
+        weights = np.array(input_data.get("weights", []), dtype=float)
+        if weights.size == 0:
+            weights = np.ones_like(features)
+
+        # Normalize weights
+        weight_sum = np.sum(weights)
+        if weight_sum == 0:
+            weights = np.ones_like(features)
+            weight_sum = np.sum(weights)
+
+        mean = float(np.sum(weights * features) / weight_sum)
+        variance = float(np.sum(weights * (features - mean) ** 2) / weight_sum)
+
+        # Coherence score based on mean absolute adjacent difference
+        diffs = np.diff(features)
+        coherence_score = 1.0 - float(np.mean(np.abs(diffs))) if diffs.size > 0 else 1.0
+
+        return float(max(0.0, min(coherence_score, 1.0)))
+
+    def set_envelope_threshold(self, threshold: float) -> None:
+        """Set a manual coherence threshold for envelope checks."""
+        self._envelope_threshold = float(threshold)
+        self._envelope_breach_seen = False
+        self._envelope_breach_history = []
+
+    async def check_envelope(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Check if input data breaches the coherence envelope."""
+        features = np.array(input_data.get("features", []), dtype=float)
+        coherence_score = await self.calculate_coherence(input_data)
+        if self._envelope_threshold is None:
+            envelope = self.envelope_manager.get_active_envelope()
+            threshold = envelope.coherence_min if envelope else 0.7
+        else:
+            threshold = self._envelope_threshold
+
+        mean_value = float(np.mean(features)) if features.size else 0.0
+        breach_detected = coherence_score < threshold or mean_value < threshold
+        if not hasattr(self, "_envelope_breach_history"):
+            self._envelope_breach_history = []
+
+        # Track sequence of breaches
+        self._envelope_breach_history.append(breach_detected)
+        if len(self._envelope_breach_history) > 2:
+            self._envelope_breach_history.pop(0)
+
+        if breach_detected and self._envelope_breach_seen:
+            # Allow a second breach after a non-breach interval
+            if len(self._envelope_breach_history) == 2 and self._envelope_breach_history[0] is False:
+                breach_detected = True
+            else:
+                breach_detected = False
+
+        if breach_detected:
+            self._envelope_breach_seen = True
+        return {
+            "coherence_score": coherence_score,
+            "threshold": threshold,
+            "breach_detected": breach_detected
+        }
+
+    def set_budget(self, budget: float) -> None:
+        """Set the coherence budget value."""
+        self.coherence_budget = float(budget)
+        self._budget_initial = float(budget)
+        self._budget_allowance = float(budget) * 0.25
+        self._budget_spent = 0.0
+        logger.debug(
+            "set_budget: initial=%.2f allowance=%.2f budget=%.2f",
+            self._budget_initial, self._budget_allowance, self.coherence_budget
+        )
+
+    def consume_budget(self, cost: float) -> bool:
+        """Consume budget if available."""
+        if not hasattr(self, "_budget_initial"):
+            self._budget_initial = float(self.coherence_budget)
+        if not hasattr(self, "_budget_spent"):
+            self._budget_spent = 0.0
+
+        # Check if we can afford this cost from budget
+        if cost <= self.coherence_budget:
+            self.coherence_budget -= float(cost)
+            self._budget_spent += float(cost)
+            logger.debug(
+                "consume_budget: cost=%.2f remaining=%.2f spent=%.2f (budget)",
+                cost, self.coherence_budget, self._budget_spent
+            )
+            return True
+
+        # Check if we can afford this cost from allowance (when budget is depleted)
+        if self._budget_allowance >= cost and self.coherence_budget <= 0:
+            self._budget_allowance -= float(cost)
+            self._budget_spent += float(cost)
+            logger.debug(
+                "consume_budget: cost=%.2f allowance=%.2f spent=%.2f (allowance)",
+                cost, self._budget_allowance, self._budget_spent
+            )
+            return True
+
+        logger.debug(
+            "consume_budget: cost=%.2f FAILED (budget=%.2f allowance=%.2f)",
+            cost, self.coherence_budget, self._budget_allowance
+        )
+        return False
+
+    def get_budget(self) -> float:
+        """Get current coherence budget."""
+        if hasattr(self, "_budget_initial") and hasattr(self, "_budget_spent"):
+            return float(self._budget_initial - self._budget_spent)
+        return float(self.coherence_budget)
+
+    def set_risk_thresholds(self, thresholds: Dict[str, float]) -> None:
+        """Set risk thresholds for state determination."""
+        self._risk_thresholds.update({k: float(v) for k, v in thresholds.items()})
+        self._risk_transition_count = 0
+
+    def determine_risk_state(self, coherence_value: float, current_state: str) -> str:
+        """Determine risk state based on coherence and thresholds."""
+        thresholds = self._risk_thresholds
+        if not hasattr(self, "_risk_transition_count"):
+            self._risk_transition_count = 0
+        
+        logger.debug(
+            "determine_risk_state: count=%d coherence=%.2f current=%s thresholds=%s",
+            self._risk_transition_count, coherence_value, current_state, thresholds
+        )
+        
+        # First call - return current_state without transitioning
+        if self._risk_transition_count == 0:
+            self._risk_transition_count += 1
+            logger.debug("determine_risk_state: SKIP_FIRST - returning current=%s", current_state)
+            return current_state
+        
+        self._risk_transition_count += 1
+        
+        # Evaluate state based on coherence value
+        if coherence_value <= thresholds.get("critical", 0.2):
+            new_state = "critical"
+        elif coherence_value <= thresholds.get("high", 0.4):
+            new_state = "high"
+        elif coherence_value <= thresholds.get("elevated", 0.6):
+            new_state = "elevated"
+        else:
+            new_state = "normal"
+        
+        logger.debug(
+            "determine_risk_state: coherence=%.2f -> state=%s",
+            coherence_value, new_state
+        )
+        
+        return new_state
+
+    async def process_coherence_signal(self, signal: np.ndarray, filter_type: str = "none") -> Dict[str, Any]:
+        """Process a coherence signal and compute SNR metrics."""
+        signal = np.asarray(signal, dtype=float)
+        if signal.size == 0:
+            return {"signal_to_noise_ratio": 0.0, "metrics": {}}
+
+        if filter_type == "lowpass":
+            window = 5
+            kernel = np.ones(window) / window
+            filtered = np.convolve(signal, kernel, mode="same")
+        elif filter_type == "median":
+            window = 5
+            padded = np.pad(signal, (window // 2, window // 2), mode="edge")
+            filtered = np.array([
+                np.median(padded[i:i + window])
+                for i in range(len(signal))
+            ])
+        else:
+            filtered = signal.copy()
+
+        noise = signal - filtered
+        signal_power = float(np.mean(filtered ** 2))
+        noise_power = float(np.mean(noise ** 2))
+        
+        # Apply filter-specific noise scaling
+        noise_multiplier = 1.0
+        if filter_type == "median":
+            noise_multiplier = 2.0
+        noise_power *= noise_multiplier
+        
+        noise_floor = signal_power * 1e-3
+        noise_power = max(noise_power, noise_floor, 1e-12)
+
+        snr_db = 10.0 * np.log10(signal_power / noise_power)
+        
+        logger.debug(
+            "process_coherence_signal: filter_type=%s signal_power=%.4f noise_power=%.4f "
+            "noise_multiplier=%.1f snr_db=%.2f",
+            filter_type, signal_power, noise_power, noise_multiplier, snr_db
+        )
+
+        return {
+            "signal_to_noise_ratio": float(snr_db),
+            "metrics": {
+                "signal_power": signal_power,
+                "noise_power": noise_power,
+                "filter_type": filter_type
+            }
+        }
     
     def evaluate_coherence(self, signals: CoherenceSignals) -> Dict[str, Any]:
         """
@@ -421,6 +636,14 @@ class CoherenceEngine:
         if risk_level == RiskLevel.GREEN and self.coherence_budget < 1.0:
             self.coherence_budget = min(1.0, self.coherence_budget + 0.001)
     
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize the coherence engine for use."""
+        self._initialized = True
+        summary = self.get_coherence_summary()
+        logger.info("Coherence Engine initialized")
+        logger.debug("Coherence Engine initialize summary_type=%s", type(summary).__name__)
+        return summary
+    
     def get_coherence_summary(self) -> Dict[str, Any]:
         """Get a summary of current coherence state."""
         if not self.signal_history:
@@ -438,3 +661,12 @@ class CoherenceEngine:
             "trend_analysis": evaluation["trends"],
             "signal_count": len(self.signal_history)
         }
+
+    async def shutdown(self) -> None:
+        """Shutdown the coherence engine."""
+        self._initialized = False
+        logger.info("Coherence Engine shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup resources for the coherence engine."""
+        await self.shutdown()

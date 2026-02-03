@@ -72,6 +72,11 @@ class GlyphEncoding:
             'category': self.category
         }
 
+    @property
+    def encoding(self) -> np.ndarray:
+        """Backward-compatible alias for feature_vector used by tests."""
+        return self.feature_vector
+
 
 class HadamardMatrix:
     """Hadamard matrix generator for maximal glyph separation."""
@@ -238,12 +243,60 @@ class GlyphDictionary:
 
 
 class GLLLEncoder:
-    """GLLL encoder with confidence scoring and error detection."""
-    
-    def __init__(self, dictionary: Optional[GlyphDictionary] = None):
-        self.dictionary = dictionary or GlyphDictionary()
+    """GLLL encoder with confidence scoring and error detection.
+
+    Accepts either an explicit GlyphDictionary or a hadamard_order to create
+    an internal dictionary. This provides backward-compatible constructor
+    parameters for tests that pass a hadamard_order kwarg.
+    """
+
+    def __init__(self, dictionary: Optional[GlyphDictionary] = None, hadamard_order: Optional[int] = None):
+        if dictionary is not None:
+            self.dictionary = dictionary
+        else:
+            order = int(hadamard_order) if hadamard_order is not None else 64
+            self.dictionary = GlyphDictionary(order)
+
         self.encoding_history: List[Dict[str, Any]] = []
         self.error_correction_enabled = True
+    
+    # Convenience properties/methods
+    @property
+    def hadamard_matrix(self) -> np.ndarray:
+        """Get the Hadamard matrix."""
+        return self.dictionary.hadamard.matrix
+    
+    @property
+    def glyph_dictionary(self) -> Dict[str, GlyphEncoding]:
+        """Get the glyph dictionary."""
+        return self.dictionary.glyphs
+    
+    @property
+    def hadamard_order(self) -> int:
+        """Get the Hadamard order."""
+        return self.dictionary.hadamard.order
+    
+    def encode_glyph(self, glyph: str) -> GlyphEncoding:
+        """Encode a single glyph."""
+        encoding = self.dictionary.get_encoding(glyph)
+        if encoding is None:
+            # Create encoding for unknown glyph
+            feature_vector = self.dictionary.hadamard.encode_glyph(glyph)
+            encoding = GlyphEncoding(
+                glyph=glyph,
+                feature_vector=feature_vector,
+                confidence_threshold=0.5,
+                category="unknown"
+            )
+        return encoding
+    
+    def get_all_glyphs(self) -> List[str]:
+        """Get all glyphs."""
+        return self.dictionary.get_all_glyphs()
+    
+    def get_encoding(self, glyph: str) -> Optional[GlyphEncoding]:
+        """Get encoding for a glyph."""
+        return self.dictionary.get_encoding(glyph)
     
     def encode_sequence(self, sequence: str) -> Dict[str, Any]:
         """
@@ -472,6 +525,20 @@ class GLLLEncoder:
             data = json.load(f)
         self.dictionary.from_dict(data)
         logger.info(f"Loaded glyph dictionary from {filepath}")
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize encoder (async for compatibility)."""
+        summary = self.get_encoding_statistics()
+        logger.info("GLLL Encoder initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown encoder."""
+        logger.info("GLLL Encoder shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup encoder resources."""
+        await self.shutdown()
 
 
 class GLLLProcessor:

@@ -10,6 +10,7 @@ import json
 import logging
 import time
 import uuid
+import inspect
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Any, Callable, Set
@@ -340,16 +341,44 @@ class HAAIAgent:
             self.logger.info(f"Initializing HAAI Agent {self.agent_id}")
             
             # Initialize core systems
-            await self.coherence_engine.initialize()
-            await self.hierarchical_abstraction.initialize()
-            await self.gate_system.initialize()
-            await self.rail_system.initialize()
+            self.logger.debug(
+                "coherence_engine.initialize coroutine=%s",
+                inspect.iscoroutinefunction(self.coherence_engine.initialize)
+            )
+            await self._maybe_await(
+                "coherence_engine.initialize",
+                self.coherence_engine.initialize()
+            )
+            await self._maybe_await(
+                "hierarchical_abstraction.initialize",
+                self.hierarchical_abstraction.initialize()
+            )
+            await self._maybe_await(
+                "gate_system.initialize",
+                self.gate_system.initialize()
+            )
+            await self._maybe_await(
+                "rail_system.initialize",
+                self.rail_system.initialize()
+            )
             
             # Initialize NSC systems
-            await self.nsc_processor.initialize()
-            await self.glll_encoder.initialize()
-            await self.ghll_processor.initialize()
-            await self.gml_memory.initialize()
+            await self._maybe_await(
+                "nsc_processor.initialize",
+                self.nsc_processor.initialize()
+            )
+            await self._maybe_await(
+                "glll_encoder.initialize",
+                self.glll_encoder.initialize()
+            )
+            await self._maybe_await(
+                "ghll_processor.initialize",
+                self.ghll_processor.initialize()
+            )
+            await self._maybe_await(
+                "gml_memory.initialize",
+                self.gml_memory.initialize()
+            )
             
             # Setup lifecycle handlers
             self._setup_lifecycle_handlers()
@@ -440,13 +469,38 @@ class HAAIAgent:
             self.current_tasks.discard(task_id)
         
         # Cleanup components
-        await self.coherence_engine.cleanup()
-        await self.hierarchical_abstraction.cleanup()
-        await self.gate_system.cleanup()
-        await self.rail_system.cleanup()
-        await self.nsc_processor.cleanup()
-        await self.glll_encoder.cleanup()
-        await self.ghll_processor.cleanup()
+        await self._maybe_await(
+            "coherence_engine.cleanup",
+            self.coherence_engine.cleanup()
+        )
+        await self._maybe_await(
+            "hierarchical_abstraction.cleanup",
+            self.hierarchical_abstraction.cleanup()
+        )
+        await self._maybe_await(
+            "gate_system.cleanup",
+            self.gate_system.cleanup()
+        )
+        await self._maybe_await(
+            "rail_system.cleanup",
+            self.rail_system.cleanup()
+        )
+        await self._maybe_await(
+            "nsc_processor.cleanup",
+            self.nsc_processor.cleanup()
+        )
+        await self._maybe_await(
+            "glll_encoder.cleanup",
+            self.glll_encoder.cleanup()
+        )
+        await self._maybe_await(
+            "ghll_processor.cleanup",
+            self.ghll_processor.cleanup()
+        )
+        await self._maybe_await(
+            "gml_memory.shutdown",
+            self.gml_memory.shutdown()
+        )
         
         # Unregister from coordinator if registered
         if self.coordinator:
@@ -488,11 +542,28 @@ class HAAIAgent:
                     await callback(data)
                 except Exception as e:
                     self.logger.error(f"Error in event callback: {e}")
+
+    async def _maybe_await(self, label: str, result: Any) -> Any:
+        """Await a result if needed and emit diagnostic logs."""
+        self.logger.debug(
+            "%s returned type=%s awaitable=%s",
+            label,
+            type(result).__name__,
+            inspect.isawaitable(result)
+        )
+        if inspect.isawaitable(result):
+            return await result
+        return result
     
     def get_state_snapshot(self) -> Dict[str, Any]:
         """Get current agent state snapshot."""
+        # Determine safety status based on agent state
+        agent_status = self.state.status.value if hasattr(self.state.status, 'value') else str(self.state.status)
+        safety_status = "active" if agent_status == "active" else "nominal"
+        
         return {
             "agent_state": self.state.to_dict(),
+            "safety_status": safety_status,
             "resource_usage": self.resource_monitor.get_average_usage(),
             "health": {
                 "score": self.health_checker.health_score,

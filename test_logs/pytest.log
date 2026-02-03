@@ -1,0 +1,287 @@
+02:17:41 [INFO] Registered envelope: default v1.0
+02:17:41 [INFO] Active envelope changed from None to default
+02:17:41 [INFO] Registered envelope: default v1.0
+02:17:41 [INFO] Active envelope changed from None to default
+02:17:41 [INFO] Risk state changed to ORANGE
+02:17:41 [INFO] Registered envelope: default v1.0
+02:17:41 [INFO] Active envelope changed from None to default
+02:17:41 [INFO] Registered up map for level 1: linear_0_to_1
+02:17:41 [INFO] Registered down map for level 1: linear_1_to_0
+02:17:41 [INFO] Registered up map for level 2: linear_1_to_2
+02:17:41 [INFO] Registered down map for level 2: linear_2_to_1
+02:17:41 [INFO] Registered up map for level 1: linear_0_to_1
+02:17:41 [INFO] Registered down map for level 1: linear_1_to_0
+02:17:41 [INFO] Registered up map for level 2: linear_1_to_2
+02:17:41 [INFO] Registered down map for level 2: linear_2_to_1
+02:17:41 [INFO] Created level 0 with data shape (50,)
+02:17:41 [INFO] Registered up map for level 1: linear_0_to_1
+02:17:41 [INFO] Registered down map for level 1: linear_1_to_0
+02:17:41 [INFO] Registered up map for level 2: linear_1_to_2
+02:17:41 [INFO] Registered down map for level 2: linear_2_to_1
+02:17:41 [INFO] Registered gate: non_negative_values (hard)
+02:17:41 [INFO] Registered gate: finite_values (hard)
+02:17:41 [INFO] Registered gate: coherence_debt (soft)
+02:17:41 [INFO] Registered rail: adaptive_step_size (reduce_step_size)
+02:17:41 [INFO] Registered rail: evidence_request (request_evidence)
+02:17:41 [INFO] Registered gate: non_negative_values (hard)
+02:17:41 [INFO] Registered gate: finite_values (hard)
+02:17:41 [INFO] Registered gate: coherence_debt (soft)
+02:17:41 [INFO] Registered rail: adaptive_step_size (reduce_step_size)
+02:17:41 [INFO] Registered rail: evidence_request (request_evidence)
+02:17:41 [INFO] Registered gate: non_negative_values (hard)
+02:17:41 [INFO] Registered gate: finite_values (hard)
+02:17:41 [INFO] Registered gate: coherence_debt (soft)
+02:17:41 [INFO] Registered rail: adaptive_step_size (reduce_step_size)
+02:17:41 [INFO] Registered rail: evidence_request (request_evidence)
+02:17:41 [INFO] Registered gate: non_negative_values (hard)
+02:17:41 [INFO] Registered gate: finite_values (hard)
+02:17:41 [INFO] Registered gate: coherence_debt (soft)
+02:17:41 [INFO] Registered rail: adaptive_step_size (reduce_step_size)
+02:17:41 [INFO] Registered rail: evidence_request (request_evidence)
+02:17:41 [INFO] Added glyph 'φ' to category 'core'
+02:17:41 [INFO] Added glyph '↻' to category 'core'
+02:17:41 [INFO] Added glyph '⊕' to category 'core'
+02:17:41 [INFO] Added glyph '⊖' to category 'core'
+02:17:41 [INFO] Added glyph '◯' to category 'core'
+02:17:41 [INFO] Added glyph '∆' to category 'core'
+02:17:41 [INFO] Added glyph '⇒' to category 'core'
+02:17:41 [INFO] Added glyph '□' to category 'core'
+02:17:41 [INFO] Added glyph '⇐' to category 'extended'
+02:17:41 [INFO] Added glyph '↺' to category 'extended'
+02:17:41 [INFO] Added glyph '∞' to category 'extended'
+02:17:41 [INFO] Added glyph '∇' to category 'extended'
+02:17:41 [INFO] Added glyph '∂' to category 'extended'
+02:17:41 [INFO] Added glyph '∫' to category 'extended'
+02:17:41 [INFO] Added glyph '∑' to category 'extended'
+02:17:41 [INFO] Added glyph '∏' to category 'extended'
+02:17:41 [INFO] Added glyph '√' to category 'extended'
+02:17:41 [INFO] Added glyph 'α' to category 'extended'
+02:17:41 [INFO] Added glyph 'β' to category 'extended'
+02:17:41 [INFO] Added glyph 'γ' to category 'extended'
+02:17:41 [INFO] Added glyph 'δ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ε' to category 'extended'
+02:17:41 [INFO] Added glyph 'λ' to category 'extended'
+02:17:41 [INFO] Added glyph 'μ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ν' to category 'extended'
+02:17:41 [INFO] Added glyph 'π' to category 'extended'
+02:17:41 [INFO] Added glyph 'σ' to category 'extended'
+02:17:41 [INFO] Added glyph 'τ' to category 'extended'
+02:17:41 [INFO] Added glyph 'Φ' to category 'extended'
+02:17:41 [INFO] Added glyph 'χ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ψ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ω' to category 'extended'
+02:17:41 [INFO] Added glyph 'φ' to category 'core'
+02:17:41 [INFO] Added glyph '↻' to category 'core'
+02:17:41 [INFO] Added glyph '⊕' to category 'core'
+02:17:41 [INFO] Added glyph '⊖' to category 'core'
+02:17:41 [INFO] Added glyph '◯' to category 'core'
+02:17:41 [INFO] Added glyph '∆' to category 'core'
+02:17:41 [INFO] Added glyph '⇒' to category 'core'
+02:17:41 [INFO] Added glyph '□' to category 'core'
+02:17:41 [INFO] Added glyph '⇐' to category 'extended'
+02:17:41 [INFO] Added glyph '↺' to category 'extended'
+02:17:41 [INFO] Added glyph '∞' to category 'extended'
+02:17:41 [INFO] Added glyph '∇' to category 'extended'
+02:17:41 [INFO] Added glyph '∂' to category 'extended'
+02:17:41 [INFO] Added glyph '∫' to category 'extended'
+02:17:41 [INFO] Added glyph '∑' to category 'extended'
+02:17:41 [INFO] Added glyph '∏' to category 'extended'
+02:17:41 [INFO] Added glyph '√' to category 'extended'
+02:17:41 [INFO] Added glyph 'α' to category 'extended'
+02:17:41 [INFO] Added glyph 'β' to category 'extended'
+02:17:41 [INFO] Added glyph 'γ' to category 'extended'
+02:17:41 [INFO] Added glyph 'δ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ε' to category 'extended'
+02:17:41 [INFO] Added glyph 'λ' to category 'extended'
+02:17:41 [INFO] Added glyph 'μ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ν' to category 'extended'
+02:17:41 [INFO] Added glyph 'π' to category 'extended'
+02:17:41 [INFO] Added glyph 'σ' to category 'extended'
+02:17:41 [INFO] Added glyph 'τ' to category 'extended'
+02:17:41 [INFO] Added glyph 'Φ' to category 'extended'
+02:17:41 [INFO] Added glyph 'χ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ψ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ω' to category 'extended'
+02:17:41 [INFO] Added glyph 'φ' to category 'core'
+02:17:41 [INFO] Added glyph '↻' to category 'core'
+02:17:41 [INFO] Added glyph '⊕' to category 'core'
+02:17:41 [INFO] Added glyph '⊖' to category 'core'
+02:17:41 [INFO] Added glyph '◯' to category 'core'
+02:17:41 [INFO] Added glyph '∆' to category 'core'
+02:17:41 [INFO] Added glyph '⇒' to category 'core'
+02:17:41 [INFO] Added glyph '□' to category 'core'
+02:17:41 [INFO] Added glyph '⇐' to category 'extended'
+02:17:41 [INFO] Added glyph '↺' to category 'extended'
+02:17:41 [INFO] Added glyph '∞' to category 'extended'
+02:17:41 [INFO] Added glyph '∇' to category 'extended'
+02:17:41 [INFO] Added glyph '∂' to category 'extended'
+02:17:41 [INFO] Added glyph '∫' to category 'extended'
+02:17:41 [INFO] Added glyph '∑' to category 'extended'
+02:17:41 [INFO] Added glyph '∏' to category 'extended'
+02:17:41 [INFO] Added glyph '√' to category 'extended'
+02:17:41 [INFO] Added glyph 'α' to category 'extended'
+02:17:41 [INFO] Added glyph 'β' to category 'extended'
+02:17:41 [INFO] Added glyph 'γ' to category 'extended'
+02:17:41 [INFO] Added glyph 'δ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ε' to category 'extended'
+02:17:41 [INFO] Added glyph 'λ' to category 'extended'
+02:17:41 [INFO] Added glyph 'μ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ν' to category 'extended'
+02:17:41 [INFO] Added glyph 'π' to category 'extended'
+02:17:41 [INFO] Added glyph 'σ' to category 'extended'
+02:17:41 [INFO] Added glyph 'τ' to category 'extended'
+02:17:41 [INFO] Added glyph 'Φ' to category 'extended'
+02:17:41 [INFO] Added glyph 'χ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ψ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ω' to category 'extended'
+02:17:41 [INFO] Added glyph 'φ' to category 'core'
+02:17:41 [INFO] Added glyph '↻' to category 'core'
+02:17:41 [INFO] Added glyph '⊕' to category 'core'
+02:17:41 [INFO] Added glyph '⊖' to category 'core'
+02:17:41 [INFO] Added glyph '◯' to category 'core'
+02:17:41 [INFO] Added glyph '∆' to category 'core'
+02:17:41 [INFO] Added glyph '⇒' to category 'core'
+02:17:41 [INFO] Added glyph '□' to category 'core'
+02:17:41 [INFO] Added glyph '⇐' to category 'extended'
+02:17:41 [INFO] Added glyph '↺' to category 'extended'
+02:17:41 [INFO] Added glyph '∞' to category 'extended'
+02:17:41 [INFO] Added glyph '∇' to category 'extended'
+02:17:41 [INFO] Added glyph '∂' to category 'extended'
+02:17:41 [INFO] Added glyph '∫' to category 'extended'
+02:17:41 [INFO] Added glyph '∑' to category 'extended'
+02:17:41 [INFO] Added glyph '∏' to category 'extended'
+02:17:41 [INFO] Added glyph '√' to category 'extended'
+02:17:41 [INFO] Added glyph 'α' to category 'extended'
+02:17:41 [INFO] Added glyph 'β' to category 'extended'
+02:17:41 [INFO] Added glyph 'γ' to category 'extended'
+02:17:41 [INFO] Added glyph 'δ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ε' to category 'extended'
+02:17:41 [INFO] Added glyph 'λ' to category 'extended'
+02:17:41 [INFO] Added glyph 'μ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ν' to category 'extended'
+02:17:41 [INFO] Added glyph 'π' to category 'extended'
+02:17:41 [INFO] Added glyph 'σ' to category 'extended'
+02:17:41 [INFO] Added glyph 'τ' to category 'extended'
+02:17:41 [INFO] Added glyph 'Φ' to category 'extended'
+02:17:41 [INFO] Added glyph 'χ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ψ' to category 'extended'
+02:17:41 [INFO] Added glyph 'ω' to category 'extended'
+02:17:41 [INFO] Added policy: Coherence Threshold Policy (coherence_threshold_v1)
+02:17:41 [INFO] Added policy: Resource Usage Limits (resource_limits_v1)
+02:17:41 [INFO] Added policy: Safety Monitoring Policy (safety_monitoring_v1)
+02:17:41 [INFO] Added policy: Coherence Threshold Policy (coherence_threshold_v1)
+02:17:41 [INFO] Added policy: Resource Usage Limits (resource_limits_v1)
+02:17:41 [INFO] Added policy: Safety Monitoring Policy (safety_monitoring_v1)
+02:17:41 [INFO] Added policy: Coherence Threshold Policy (coherence_threshold_v1)
+02:17:41 [INFO] Added policy: Resource Usage Limits (resource_limits_v1)
+02:17:41 [INFO] Added policy: Safety Monitoring Policy (safety_monitoring_v1)
+02:17:41 [INFO] Added policy: Coherence Threshold Policy (coherence_threshold_v1)
+02:17:41 [INFO] Added policy: Resource Usage Limits (resource_limits_v1)
+02:17:41 [INFO] Added policy: Safety Monitoring Policy (safety_monitoring_v1)
+02:17:41 [INFO] Registered envelope: default v1.0
+02:17:41 [INFO] Active envelope changed from None to default
+02:17:41 [INFO] Registered gate: non_negative_values (hard)
+02:17:41 [INFO] Registered gate: finite_values (hard)
+02:17:41 [INFO] Registered gate: coherence_debt (soft)
+02:17:41 [INFO] Registered rail: adaptive_step_size (reduce_step_size)
+02:17:41 [INFO] Registered rail: evidence_request (request_evidence)
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size
+02:17:41 [WARNING] Rail not found for action: reduce_step_size

@@ -22,11 +22,16 @@ import os
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from tests.test_framework import TestFramework, TestConfiguration
-from tests.test_unit_components import (
-    TestCoherenceEngine, TestHierarchicalAbstraction, TestNSCStack,
-    TestAgentComponents, TestGovernanceSystem, TestPropertyBasedValidation,
-    TestPerformanceRegression
-)
+try:
+    from tests.test_unit_components import (
+        TestCoherenceEngine, TestHierarchicalAbstraction, TestNSCStack,
+        TestAgentComponents, TestGovernanceSystem, TestPropertyBasedValidation,
+        TestPerformanceRegression
+    )
+except Exception:
+    # Fall back to importing everything from the unit components module to
+    # avoid hard import errors when test class names have been refactored.
+    from tests.test_unit_components import *  # noqa: F401,F403
 from tests.test_coherence_validation import TestCoherenceValidation
 from tests.test_hierarchical_reasoning_benchmarks import TestHierarchicalReasoningBenchmarks
 from tests.test_safety_governance import TestSafetyGovernance

@@ -1,0 +1,142 @@
+# Pre-commit hooks configuration for HAAI
+# Install with: pip install pre-commit && pre-commit install
+
+repos:
+  # Python import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (Python)
+        description: Sort Python imports.
+        entry: isort
+        language: python
+        types: [python]
+        args: [--profile, black]
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        name: black (Python)
+        description: Python code formatter.
+        entry: black
+        language: python
+        types: [python]
+        args: [--line-length, 100]
+
+  # Python linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        name: flake8 (Python)
+        description: Python linter.
+        entry: flake8
+        language: python
+        types: [python]
+        args: [--max-line-length=100, --extend-ignore=E203]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        name: mypy (Python)
+        description: Python type checker.
+        entry: mypy
+        language: python
+        types: [python]
+        additional_dependencies: [types-requests]
+        args: [--ignore-missing-imports, --no-error-summary]
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        name: bandit (Python)
+        description: Python security linter.
+        entry: bandit
+        language: python
+        types: [python]
+        args: [-r, src/, -f, txt]
+
+  # YAML validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        name: check-yaml
+        description: Validate YAML files.
+      - id: check-json
+        name: check-json
+        description: Validate JSON files.
+      - id: trailing-whitespace
+        name: trailing-whitespace
+        description: Trim trailing whitespace.
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+        name: end-of-file-fixer
+        description: Ensure files end with newline.
+      - id: check-added-large-files
+        name: check-added-large-files
+        description: Prevent large files.
+        args: ['--maxkb=1000']
+
+  # Shell script linting
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        description: Shell script linter.
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        name: hadolint (Dockerfile)
+        description: Dockerfile linter.
+        files: Dockerfile
+
+  # Commit message validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: commit-msg
+        name: commit-msg
+        description: Validate commit messages.
+        stages: [commit-msg]
+        args:
+          - --max-line-length=100
+          - --allow-empty
+
+  # Remove console logs
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.0.1
+    hooks:
+      - id: add-trailing-comma
+        name: add-trailing-comma
+        description: Add trailing commas to Python code.
+
+  # Fix Python 3+ incompatibilities
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.1
+    hooks:
+      - id: pyupgrade
+        name: pyupgrade
+        description: Automatically upgrade Python syntax.
+        args: [--py311-plus]
+
+ci:
+  # Skip slow hooks in CI when not needed
+  skip: [bandit, mypy]
+  
+  # Auto-update hook versions
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'
+
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]

@@ -19,8 +19,11 @@ import statistics
 class SafetyLevel(Enum):
     """Safety levels for monitoring."""
     SAFE = "safe"
+    LOW = "low"
     CAUTION = "caution"
+    MEDIUM = "medium"
     WARNING = "warning"
+    HIGH = "high"
     CRITICAL = "critical"
     EMERGENCY = "emergency"
 
@@ -28,6 +31,7 @@ class SafetyLevel(Enum):
 class IncidentType(Enum):
     """Types of safety incidents."""
     COHERENCE_DEGRADATION = "coherence_degradation"
+    COHERENCE_BREACH = "coherence_breach"
     ABSTRACTION_FAILURE = "abstraction_failure"
     RESOURCE_EXHAUSTION = "resource_exhaustion"
     UNAUTHORIZED_ACCESS = "unauthorized_access"
@@ -63,6 +67,10 @@ class SafetyMetric:
     unit: str = ""
     trend_window: int = 10
     history: List[float] = field(default_factory=list)
+    # Indicates whether higher metric values represent worse safety (True)
+    # or lower metric values represent worse safety (False). For example,
+    # resource usage: higher is worse (True). Coherence score: lower is worse (False).
+    higher_is_worse: bool = True
     
     def update_value(self, value: float) -> SafetyLevel:
         """Update metric value and return safety level."""
@@ -74,17 +82,35 @@ class SafetyMetric:
         
         self.current_value = value
         
-        # Determine safety level
-        if value >= self.threshold_emergency:
-            return SafetyLevel.EMERGENCY
-        elif value >= self.threshold_critical:
-            return SafetyLevel.CRITICAL
-        elif value >= self.threshold_warning:
-            return SafetyLevel.WARNING
-        elif value >= self.threshold_caution:
-            return SafetyLevel.CAUTION
+        # Determine safety level. Support metrics where higher values are
+        # worse (e.g. resource usage) and where lower values are worse
+        # (e.g. coherence score).
+        if self.higher_is_worse:
+            if value >= self.threshold_emergency:
+                return SafetyLevel.EMERGENCY
+            elif value >= self.threshold_critical:
+                return SafetyLevel.CRITICAL
+            elif value >= self.threshold_warning:
+                return SafetyLevel.WARNING
+            elif value >= self.threshold_caution:
+                return SafetyLevel.CAUTION
+            else:
+                return SafetyLevel.SAFE
         else:
-            return SafetyLevel.SAFE
+            # Lower is worse, but compare against thresholds in descending order
+            # so that 0.6 triggers WARNING (not CRITICAL) when thresholds are
+            # [caution=0.8, warning=0.7, critical=0.6, emergency=0.5].
+            if value <= self.threshold_caution:
+                if value <= self.threshold_emergency:
+                    return SafetyLevel.EMERGENCY
+                elif value <= self.threshold_critical:
+                    return SafetyLevel.CRITICAL
+                elif value <= self.threshold_warning:
+                    return SafetyLevel.WARNING
+                else:
+                    return SafetyLevel.CAUTION
+            else:
+                return SafetyLevel.SAFE
     
     def get_trend(self) -> str:
         """Get trend direction."""
@@ -384,11 +410,12 @@ class SafetyMonitoringSystem:
             name="Coherence Score",
             description="Overall system coherence",
             current_value=1.0,
-            threshold_caution=0.8,
-            threshold_warning=0.7,
-            threshold_critical=0.6,
-            threshold_emergency=0.5,
+            threshold_caution=0.7,
+            threshold_warning=0.6,
+            threshold_critical=0.5,
+            threshold_emergency=0.4,
             unit="score"
+        , higher_is_worse=False
         )
         
         # Resource Usage
@@ -415,6 +442,7 @@ class SafetyMonitoringSystem:
             threshold_critical=0.6,
             threshold_emergency=0.5,
             unit="score"
+        , higher_is_worse=False
         )
         
         # Response Time
@@ -460,7 +488,7 @@ class SafetyMonitoringSystem:
                     "type": "metric",
                     "metric_id": "coherence_score",
                     "operator": "<",
-                    "threshold": 0.7
+                    "threshold": 0.5
                 }
             ],
             response_actions=[
@@ -719,7 +747,26 @@ class SafetyMonitoringSystem:
             raise ValueError(f"Metric {metric_id} not found")
         
         metric = self.metrics[metric_id]
-        return metric.update_value(value)
+        level = metric.update_value(value)
+
+        # Immediately evaluate rules for the updated metric
+        for rule in self.rules.values():
+            rule_result = rule.evaluate(self.metrics, {})
+            if rule_result:
+                # Create incident synchronously (no async response actions here)
+                incident = SafetyIncident(
+                    incident_id=f"inc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{rule.rule_id}",
+                    incident_type=rule_result["incident_type"],
+                    severity=rule_result["severity"],
+                    title=rule.name,
+                    description=rule.description,
+                    context={"trigger_metric": metric_id, "value": value},
+                    metrics_snapshot={mid: m.current_value for mid, m in self.metrics.items()}
+                )
+                self.incidents.append(incident)
+                self.logger.warning(f"Safety incident detected: {incident.incident_id}")
+
+        return level
     
     def add_metric(self, metric: SafetyMetric) -> None:
         """Add a new safety metric."""
@@ -803,3 +850,79 @@ class SafetyMonitoringSystem:
             if override["active"] and override["expires_at"] < datetime.now():
                 override["active"] = False
                 self.logger.info(f"Emergency override expired: {request_id}")
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize safety monitoring system (async for compatibility)."""
+        status = self.get_safety_status()
+        self.logger.info("SafetyMonitoringSystem initialized")
+        return status
+
+    async def shutdown(self) -> None:
+        """Shutdown safety monitoring system."""
+        await self.stop_monitoring()
+    
+    async def detect_incident(self, incident_data: Any) -> Dict[str, Any]:
+        """Detect and handle a safety incident from incident data."""
+        # Handle both dict and dataclass inputs
+        if hasattr(incident_data, 'to_dict'):
+            # It's a dataclass with to_dict method
+            data = incident_data.to_dict()
+        elif hasattr(incident_data, '__dict__'):
+            # It's a dataclass without to_dict
+            data = incident_data.__dict__
+        else:
+            # It's already a dict
+            data = incident_data
+        
+        # Create incident from provided data
+        incident = SafetyIncident(
+            incident_id=data.get("incident_id", f"inc_{datetime.now().strftime('%Y%m%d_%H%M%S')}"),
+            incident_type=IncidentType(data.get("incident_type", "system_anomaly")),
+            severity=SafetyLevel(data.get("severity", "warning")),
+            title=data.get("title", "Safety Incident Detected"),
+            description=data.get("description", "A safety incident was detected"),
+            context=data.get("context", {}),
+            metrics_snapshot=data.get("metrics_snapshot", {})
+        )
+        
+        self.incidents.append(incident)
+        self.logger.warning(f"Safety incident detected: {incident.incident_id}")
+        
+        # Execute response actions if provided
+        response_actions = data.get("response_actions", [])
+        for action in response_actions:
+            await self._execute_response_action(action, incident)
+        
+        return {
+            "incident_id": incident.incident_id,
+            "detected": True,
+            "severity": incident.severity.value
+        }
+    
+    async def respond_to_incident(self, incident_data: Any) -> Dict[str, Any]:
+        """Respond to a safety incident."""
+        # Handle both dict and dataclass inputs
+        if hasattr(incident_data, 'to_dict'):
+            data = incident_data.to_dict()
+        elif hasattr(incident_data, '__dict__'):
+            data = incident_data.__dict__
+        else:
+            data = incident_data
+        
+        incident_id = data.get("incident_id", "unknown")
+        response = data.get("response", "acknowledged")
+        
+        # Find and resolve the incident
+        for incident in self.incidents:
+            if incident.incident_id == incident_id:
+                incident.resolved = True
+                incident.resolved_at = datetime.now()
+                incident.response = response
+                self.logger.info(f"Incident {incident_id} responded to: {response}")
+                break
+        
+        return {
+            "incident_id": incident_id,
+            "responded": True,
+            "response": response
+        }

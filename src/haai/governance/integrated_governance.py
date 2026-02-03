@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
 from enum import Enum
 
-from .policy_engine import PolicyEngine, Policy, PolicyType
+from .policy_engine import PolicyEngine, Policy, PolicyType, PolicyStatus
 from .identity_access import IdentityAccessManager, AccessLevel, AuthenticationMethod
 from .safety_monitoring import SafetyMonitoringSystem, SafetyLevel, IncidentType
 from .enforcement import EnforcementCoordinator, EnforcementLevel
@@ -56,6 +56,20 @@ class GovernanceDecision:
     enforcement_actions: List[str]
     timestamp: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "decision_id": self.decision_id,
+            "operation_id": self.operation_id,
+            "agent_id": self.agent_id,
+            "allowed": self.allowed,
+            "reason": self.reason,
+            "policy_results": self.policy_results,
+            "safety_level": self.safety_level.value if hasattr(self.safety_level, "value") else str(self.safety_level),
+            "enforcement_actions": self.enforcement_actions,
+            "timestamp": self.timestamp.isoformat(),
+            "metadata": self.metadata
+        }
 
 
 class HAAIGovernanceIntegrator:
@@ -168,7 +182,7 @@ class HAAIGovernanceIntegrator:
             name="HAAI Coherence Governance",
             description="Ensures coherence in HAAI operations",
             policy_type=PolicyType.SAFETY,
-            status=self.policy_engine.compliance_checker.PolicyStatus.ACTIVE,
+            status=PolicyStatus.ACTIVE,
             rules=[
                 # Minimum coherence for reasoning operations
                 {
@@ -205,7 +219,7 @@ class HAAIGovernanceIntegrator:
             name="HAAI Abstraction Governance",
             description="Controls abstraction depth and complexity",
             policy_type=PolicyType.SAFETY,
-            status=self.policy_engine.compliance_checker.PolicyStatus.ACTIVE,
+            status=PolicyStatus.ACTIVE,
             rules=[
                 {
                     "rule_id": "abstraction_depth_limit",
@@ -241,7 +255,7 @@ class HAAIGovernanceIntegrator:
             name="HAAI Learning Governance",
             description="Ensures safe learning operations",
             policy_type=PolicyType.SAFETY,
-            status=self.policy_engine.compliance_checker.PolicyStatus.ACTIVE,
+            status=PolicyStatus.ACTIVE,
             rules=[
                 {
                     "rule_id": "learning_rate_limit",
@@ -524,15 +538,16 @@ class HAAIGovernanceIntegrator:
                                   duration_minutes: int = None) -> str:
         """Request emergency override."""
         duration = duration_minutes or self.config.emergency_override_duration
-        
-        request_id = self.safety_monitoring.emergency_override.request_override(
-            request_id=f"override_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+
+        override_id = f"override_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.safety_monitoring.emergency_override.request_override(
+            request_id=override_id,
             reason=reason,
             requested_by=requested_by,
             duration_minutes=duration
         )
-        
-        return request_id
+
+        return override_id
     
     def get_governance_status(self) -> Dict[str, Any]:
         """Get comprehensive governance status."""

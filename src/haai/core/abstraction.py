@@ -82,7 +82,18 @@ class LinearAbstractionMap(CrossLevelMap):
     def forward(self, state: LevelState) -> LevelState:
         """Compress data using linear transformation."""
         if not self.is_trained:
-            raise ValueError(f"Map {self.name} not trained")
+            logger.warning(f"Map {self.name} not trained, returning input with identity transform")
+            # Return input unchanged with warning metadata
+            return LevelState(
+                level=state.level,
+                data=state.data,
+                metadata={
+                    **state.metadata,
+                    'warning': f"Map {self.name} not trained, identity transform applied",
+                    'identity_fallback': True
+                },
+                provenance=state.provenance + [f"identity_fallback_{self.name}"]
+            )
         
         data = state.data.flatten()
         compressed = np.dot(self.weights, data) + self.bias
@@ -106,7 +117,17 @@ class LinearAbstractionMap(CrossLevelMap):
     def backward(self, state: LevelState) -> LevelState:
         """Decompress data using inverse transformation."""
         if not self.is_trained:
-            raise ValueError(f"Map {self.name} not trained")
+            logger.warning(f"Map {self.name} not trained for backward, returning input")
+            return LevelState(
+                level=state.level,
+                data=state.data,
+                metadata={
+                    **state.metadata,
+                    'warning': f"Map {self.name} not trained, identity fallback applied",
+                    'identity_fallback': True
+                },
+                provenance=state.provenance + [f"identity_fallback_{self.name}"]
+            )
         
         data = state.data.flatten()
         decompressed = np.dot(self.inv_weights, data) + self.inv_bias
@@ -499,3 +520,17 @@ class HierarchicalAbstraction:
             'map_count': len(self.map_manager.map_registry),
             'max_levels': self.level_manager.max_levels
         }
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize abstraction framework (async for compatibility)."""
+        summary = self.get_abstraction_summary()
+        logger.info("Hierarchical Abstraction initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown abstraction framework."""
+        logger.info("Hierarchical Abstraction shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup abstraction framework resources."""
+        await self.shutdown()

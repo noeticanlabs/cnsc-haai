@@ -62,6 +62,24 @@ pip install -r requirements.txt
 python demo_haai_system.py
 ```
 
+### Docker Installation
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Start all services
+docker-compose up -d
+
+# Run tests in container
+docker-compose exec haai python -m pytest tests/ -v
+
+# View logs
+docker-compose logs -f haai
+
+# Stop services
+docker-compose down
+```
+
 ### Basic Usage
 ```python
 import asyncio
@@ -225,6 +243,21 @@ python -m pytest tests/ --cov=haai
 # Run linting
 flake8 src/haai/
 mypy src/haai/
+```
+
+### Docker Development
+```bash
+# Build the image
+docker-compose build haai
+
+# Run tests
+docker-compose run haai python -m pytest tests/ -v
+
+# Access shell
+docker-compose run --rm haai /bin/bash
+
+# View logs
+docker-compose logs -f haai
 ```
 
 ### Code Style

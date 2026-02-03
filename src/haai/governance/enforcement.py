@@ -801,3 +801,17 @@ class EnforcementCoordinator:
             "resource_allocations": len(self.scheduler.active_allocations),
             "enforcement_history_size": len(self.enforcement_history)
         }
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize enforcement coordinator (async for compatibility)."""
+        status = self.get_enforcement_status()
+        self.logger.info("EnforcementCoordinator initialized")
+        return status
+
+    async def shutdown(self) -> None:
+        """Shutdown enforcement coordinator."""
+        self.logger.info("EnforcementCoordinator shutdown")
+    
+    async def enforce(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        """Enforce an action (alias for enforce_request for test compatibility)."""
+        return await self.enforce_request(action)

@@ -1,0 +1,232 @@
+name: Security Scanning
+
+on:
+  schedule:
+    # Run weekly security scan
+    - cron: '0 0 * * 0'
+  push:
+    branches: [main]
+    paths:
+      - 'requirements.txt'
+      - 'src/**/*.py'
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  dependency-security:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install safety
+        run: |
+          pip install --upgrade pip
+          pip install safety
+
+      - name: Create requirements file
+        run: |
+          pip freeze > current-requirements.txt
+
+      - name: Run safety check
+        uses: pyupio/safety@0.3.0
+        with:
+          file: current-requirements.txt
+          format: json
+          output: safety-report.json
+          continue-on-error: true
+
+      - name: Display safety results
+        run: |
+          if [ -f safety-report.json ]; then
+            cat safety-report.json | python -m json.tool || true
+          else
+            echo "No security issues found"
+          fi
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if [ -f safety-report.json ]; then
+            CRITICAL=$(cat safety-report.json | python -c "import sys, json; data = json.load(sys.stdin); print(len([v for v in data.get('vulnerabilities', []) if v.get('severity', '').lower() == 'critical']))" 2>/dev/null || echo "0")
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "❌ Found $CRITICAL critical vulnerabilities"
+              cat safety-report.json
+              exit 1
+            fi
+            echo "✅ No critical vulnerabilities found"
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: safety-report
+          path: safety-report.json
+
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install security tools
+        run: |
+          pip install --upgrade pip
+          pip install bandit pylint-bandit
+
+      - name: Run bandit
+        run: |
+          bandit -r src/ -f json -o bandit-report.json || true
+
+      - name: Display bandit results
+        run: |
+          if [ -f bandit-report.json ]; then
+            ISSUES=$(cat bandit-report.json | python -c "import sys, json; data = json.load(sys.stdin); print(len(data.get('results', [])))" 2>/dev/null || echo "0")
+            echo "Found $ISSUES potential security issues"
+          fi
+
+      - name: Check for high severity issues
+        run: |
+          if [ -f bandit-report.json ]; then
+            HIGH=$(cat bandit-report.json | python -c "import sys, json; data = json.load(sys.stdin); print(len([i for i in data.get('results', []) if i.get('issue_severity', '') == 'HIGH']))" 2>/dev/null || echo "0")
+            if [ "$HIGH" -gt 0 ]; then
+              echo "⚠️ Found $HIGH high severity security issues"
+              cat bandit-report.json | python -m json.tool | grep -A5 "HIGH" || true
+            else
+              echo "✅ No high severity issues found"
+            fi
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_AUDIT_LOG: true
+        continue-on-error: true
+
+      - name: Check for leaked secrets
+        run: |
+          # Simple grep patterns for common secrets
+          echo "Checking for potential secrets..."
+          
+          # Check for potential API keys
+          grep -rE "(api_key|apikey|secret|token|password)" src/ --include="*.py" \
+            | grep -v "TODO\|FIXME\|#.*#" \
+            | head -20 || echo "No obvious secrets found"
+
+  dependency-analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Analyze dependencies
+        run: |
+          pip install --upgrade pip
+          pip install piprot
+            
+      - name: Check for outdated dependencies
+        run: |
+          pip freeze > current.txt
+          echo "Checking for outdated packages..."
+          # Basic check - in production use piprot or pip-tools
+          pip list --outdated || echo "No outdated packages detected"
+
+      - name: License check
+        run: |
+          echo "Checking license compatibility..."
+          # Check for GPL licenses which may not be compatible
+          if grep -r "GNU General Public License" requirements.txt; then
+            echo "⚠️  GPL dependencies found - review license compatibility"
+          else
+            echo "✅ No GPL dependencies detected"
+          fi
+
+  comprehensive-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-security, code-security, secrets-detection, dependency-analysis]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # Dependency check
+          echo "### Dependency Security" >> security-summary.md
+          if [ -f safety-report.json ]; then
+            VULNS=$(cat safety-report.json | python -c "import sys, json; print(len(json.load(sys.stdin).get('vulnerabilities', [])))" 2>/dev/null || echo "0")
+            echo "- Vulnerabilities found: $VULNS" >> security-summary.md
+          else
+            echo "- Scan completed (no issues)" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+          
+          # Code security
+          echo "### Code Security" >> security-summary.md
+          if [ -f bandit-report.json ]; then
+            ISSUES=$(cat bandit-report.json | python -c "import sys, json; print(len(json.load(sys.stdin).get('results', [])))" 2>/dev/null || echo "0")
+            echo "- Potential issues: $ISSUES" >> security-summary.md
+          else
+            echo "- Scan completed (no issues)" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+          
+          cat security-summary.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: security-summary.md
+
+      - name: Final status
+        run: |
+          if echo "${{ needs.dependency-security.result }}" | grep -q "failure"; then
+            echo "❌ Security scan failed"
+            exit 1
+          fi
+          echo "✅ Security scan completed"

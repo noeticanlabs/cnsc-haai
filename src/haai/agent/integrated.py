@@ -47,10 +47,32 @@ class IntegratedHAAIAgent(HAAIAgent):
         
         # Integration state
         self.is_fully_initialized = False
+        self._initialization_complete = asyncio.Event()
+        self._initialization_started = asyncio.Event()
         self.integration_metrics: Dict[str, Any] = {}
         
-        # Override initialization to include all components
-        asyncio.create_task(self._integrated_initialize())
+        # Start initialization in background but ensure proper sequencing
+        self._init_task = asyncio.create_task(self._integrated_initialize())
+    
+    async def wait_for_initialization(self, timeout: float = 30.0) -> bool:
+        """Wait for agent to be fully initialized.
+        
+        Args:
+            timeout: Maximum time to wait in seconds
+            
+        Returns:
+            True if initialization completed successfully, False on timeout
+        """
+        try:
+            await asyncio.wait_for(self._initialization_complete.wait(), timeout=timeout)
+            return True
+        except asyncio.TimeoutError:
+            self.logger.error(f"Agent initialization timed out after {timeout}s")
+            return False
+    
+    def is_ready(self) -> bool:
+        """Check if agent is ready to accept requests."""
+        return self.is_fully_initialized and self.state.status == AgentStatus.ACTIVE
     
     async def _integrated_initialize(self) -> None:
         """Initialize all integrated components."""
@@ -90,6 +112,7 @@ class IntegratedHAAIAgent(HAAIAgent):
             
             # Mark as fully initialized
             self.is_fully_initialized = True
+            self._initialization_complete.set()
             
             self.logger.info("Integrated HAAI Agent fully initialized")
             await self._trigger_event("integrated_agent_ready", {
@@ -100,18 +123,30 @@ class IntegratedHAAIAgent(HAAIAgent):
         except Exception as e:
             self.logger.error(f"Failed to initialize integrated agent: {e}")
             self.state.error_log.append(f"Integration error|{datetime.now().isoformat()}|{str(e)}")
+            # Signal completion even on failure to prevent hangs
+            self._initialization_complete.set()
     
     def _setup_integration_callbacks(self) -> None:
         """Setup callbacks for component integration."""
-        # Reasoning completion callback
+        # Register callbacks on subsystems when they expose a registration API,
+        # otherwise fallback to agent-level event registration.
+        def _register_or_agent(obj, event_name, cb):
+            try:
+                if hasattr(obj, "add_event_callback") and callable(getattr(obj, "add_event_callback")):
+                    obj.add_event_callback(event_name, cb)
+                    return
+            except Exception:
+                # Ignore and fallback
+                pass
+
+            # Fallback registration at agent-level
+            self.add_event_callback(event_name, cb)
+
         if self.reasoning_engine:
-            self.reasoning_engine.add_event_callback("reasoning_completed", 
-                                                self._on_reasoning_completed)
-        
-        # Learning recommendations callback
+            _register_or_agent(self.reasoning_engine, "reasoning_completed", self._on_reasoning_completed)
+
         if self.learning_system:
-            self.learning_system.add_event_callback("learning_updated",
-                                                self._on_learning_updated)
+            _register_or_agent(self.learning_system, "learning_updated", self._on_learning_updated)
     
     async def _on_reasoning_completed(self, data: Dict[str, Any]) -> None:
         """Handle reasoning completion event."""

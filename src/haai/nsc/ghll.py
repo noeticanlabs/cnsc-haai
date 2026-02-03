@@ -799,3 +799,17 @@ class GHLLProcessor:
             'contracts_defined': len(self.semantic_analyzer.contracts),
             'symbols_defined': len(self.semantic_analyzer.symbol_table)
         }
+
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize GHLL processor (async for compatibility)."""
+        summary = self.get_processor_summary()
+        logger.info("GHLL Processor initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown GHLL processor."""
+        logger.info("GHLL Processor shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup GHLL processor resources."""
+        await self.shutdown()

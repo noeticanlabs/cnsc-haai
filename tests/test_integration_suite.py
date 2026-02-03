@@ -694,7 +694,7 @@ class StressTestingFramework:
         # For demo, just verify state is consistent
         
         state = agent.get_state_snapshot()
-        state_consistent = "agent_id" in state and "resource_usage" in state
+        state_consistent = "agent_id" in state.get("agent_state", {}) and "resource_usage" in state
         
         recovery_time = time.time() - start_time
         results["recovery_times"].append(recovery_time)
@@ -721,11 +721,11 @@ class StressTestingFramework:
         # Simulate state restoration
         state = agent.get_state_snapshot()
         
-        # Check state can be restored
+        # Check state can be restored - look for nested agent_state with agent_id
         state_restorable = (
-            "agent_id" in state and
+            "agent_id" in state.get("agent_state", {}) and
             "resource_usage" in state and
-            "state" in state
+            "agent_state" in state
         )
         
         recovery_time = time.time() - start_time
@@ -750,8 +750,8 @@ class StressTestingFramework:
         
         start_time = time.time()
         
-        # Get initial coherence
-        initial_coherence = agent.get_state_snapshot().get("resource_usage", {}).get("coherence_score", 0.8)
+        # Get initial coherence from agent_state (not resource_usage)
+        initial_coherence = agent.get_state_snapshot().get("agent_state", {}).get("coherence_score", 0.8)
         
         # Perform operations to potentially degrade coherence
         for i in range(3):
@@ -760,8 +760,8 @@ class StressTestingFramework:
                 "data": f"Recovery test {i}"
             })
         
-        # Check coherence recovery
-        final_coherence = agent.get_state_snapshot().get("resource_usage", {}).get("coherence_score", 0.75)
+        # Check coherence recovery - from agent_state
+        final_coherence = agent.get_state_snapshot().get("agent_state", {}).get("coherence_score", 0.75)
         
         recovery_time = time.time() - start_time
         results["recovery_times"].append(recovery_time)

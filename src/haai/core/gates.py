@@ -452,6 +452,20 @@ class GateSystem:
             'evaluation_count': len(self.evaluation_history)
         }
 
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize gate system (async for compatibility)."""
+        summary = self.get_gate_summary()
+        logger.info("GateSystem initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown gate system."""
+        logger.info("GateSystem shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup gate system resources."""
+        await self.shutdown()
+
 
 class RailSystem:
     """Manages and coordinates all rails in the system."""
@@ -526,6 +540,20 @@ class RailSystem:
             'action_history_count': len(self.action_history)
         }
 
+    async def initialize(self) -> Dict[str, Any]:
+        """Initialize rail system (async for compatibility)."""
+        summary = self.get_rail_summary()
+        logger.info("RailSystem initialized")
+        return summary
+
+    async def shutdown(self) -> None:
+        """Shutdown rail system."""
+        logger.info("RailSystem shutdown")
+
+    async def cleanup(self) -> None:
+        """Cleanup rail system resources."""
+        await self.shutdown()
+
 
 class GateRailCoordinator:
     """Coordinates gates and rails for complete governance."""
@@ -534,6 +562,8 @@ class GateRailCoordinator:
         self.gate_system = GateSystem()
         self.rail_system = RailSystem()
         self.coordinator_history: List[Dict[str, Any]] = []
+        # Auto-register default gates and rails for immediate usability
+        self.setup_default_gates_and_rails()
     
     def evaluate_and_act(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate gates and trigger appropriate rails."""
@@ -553,7 +583,9 @@ class GateRailCoordinator:
             'gate_decisions': [d.to_dict() for d in gate_decisions],
             'triggered_actions': [a.to_dict() for a in triggered_actions],
             'execution_results': execution_results,
-            'overall_success': all(execution_results) if execution_results else True
+            'overall_success': all(execution_results) if execution_results else True,
+            'failed_gates': [d.to_dict() for d in gate_decisions if not d.passed],
+            'successful_actions': sum(execution_results) if execution_results else 0
         })
         
         # Maintain history size
@@ -599,18 +631,23 @@ class GateRailCoordinator:
     
     def get_coordination_summary(self) -> Dict[str, Any]:
         """Get summary of coordinator state."""
-        if not self.coordinator_history:
-            return {"status": "no_history"}
-        
-        latest = self.coordinator_history[-1]
         gate_summary = self.gate_system.get_gate_summary()
         rail_summary = self.rail_system.get_rail_summary()
+        
+        if not self.coordinator_history:
+            return {
+                'status': 'no_history',
+                'gate_summary': gate_summary,
+                'rail_summary': rail_summary
+            }
+        
+        latest = self.coordinator_history[-1]
         
         return {
             'latest_evaluation': {
                 'timestamp': latest['timestamp'],
                 'overall_success': latest['overall_success'],
-                'failed_gates_count': len(latest['failed_gates']),
+                'failed_gates_count': len(latest.get('failed_gates', [])),
                 'triggered_actions_count': len(latest['triggered_actions']),
                 'successful_actions_count': latest['successful_actions']
             },

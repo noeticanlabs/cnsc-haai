@@ -89,6 +89,12 @@ class StandardResidualCalculator(ResidualCalculator):
         
         # Calculate L2 norm of difference
         diff = orig_flat - recon_flat
+        
+        # Handle edge case: empty arrays
+        if len(diff) == 0:
+            logger.warning("Empty array in residual calculation, returning 0.0")
+            return 0.0
+        
         residual = np.linalg.norm(diff) / (len(diff) ** 0.5)  # Normalized by sqrt(N)
         
         return float(residual * self.normalization_factors['reconstruction'])

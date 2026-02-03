@@ -1,0 +1,5 @@
+2026-02-03 02:17:19,793 - haai.crash_monitor.test_agent - INFO - Global exception handler installed successfully
+2026-02-03 02:17:19,794 - haai.crash_monitor.test_agent - INFO - Global exception handler installed
+2026-02-03 02:17:19,794 - haai.crash_monitor.test_agent - INFO - Crash monitoring started for agent test_agent
+2026-02-03 02:17:19,797 - haai.crash_monitor.test_agent - INFO - Exception handler uninstalled
+2026-02-03 02:17:19,797 - haai.crash_monitor.test_agent - INFO - Crash monitoring stopped for agent test_agent (uptime: 0.0s, crashes: 1)

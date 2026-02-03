@@ -1,0 +1,83 @@
+# HAAI Docker Ignore
+# ===================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation (keep for multi-stage build if needed)
+docs/
+CGL_Doc_Spine/
+Noetica_Ecosystem_Bundle_v1/
+NSC_Caelus_AI_Package_v1/
+*.md
+*.rst
+
+# Configuration (sensitive)
+.env
+.env.local
+*.pem
+*.key
+*.crt
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+test_logs/
+*.log
+
+# CI/CD
+.github/
+.github/workflows/*
+!.github/workflows/*
+
+# Development
+*.pyc
+*.pyo
+*.prof
+*.stats
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.bak
+*~

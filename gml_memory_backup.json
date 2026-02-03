@@ -1,0 +1,23 @@
+{
+  "export_timestamp": "2026-02-02T06:20:57.284416",
+  "threads": [
+    {
+      "thread_id": "root",
+      "name": "Root Thread",
+      "created_at": "2026-02-02T06:19:19.912504",
+      "state": "active",
+      "data": {
+        "type": "root",
+        "level": 0
+      },
+      "metadata": {},
+      "parent_thread": null,
+      "child_threads": [],
+      "temporal_position": 0.0,
+      "coherence_score": 1.0
+    }
+  ],
+  "couplings": [],
+  "current_temporal_position": 0.0,
+  "coherence_history": []
+}

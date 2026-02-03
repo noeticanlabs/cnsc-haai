@@ -8,6 +8,7 @@ for the Noetic ecosystem integration.
 import asyncio
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -438,7 +439,7 @@ class GMLMemory:
         return deleted_count
     
     async def export_memory(self, filepath: str) -> None:
-        """Export memory state to file."""
+        """Export memory state to file using atomic write."""
         export_data = {
             "export_timestamp": datetime.now().isoformat(),
             "threads": [thread.to_dict() for thread in self.threads.values()],
@@ -447,10 +448,20 @@ class GMLMemory:
             "coherence_history": self.coherence_history[-100:]  # Last 100 entries
         }
         
-        with open(filepath, 'w') as f:
-            json.dump(export_data, f, indent=2)
-        
-        self.logger.info(f"Memory exported to {filepath}")
+        # Atomic write using temp file + rename
+        temp_filepath = f"{filepath}.tmp.{os.getpid()}"
+        try:
+            with open(temp_filepath, 'w') as f:
+                json.dump(export_data, f, indent=2)
+            # Atomic rename on POSIX systems
+            os.replace(temp_filepath, filepath)
+            self.logger.info(f"Memory exported to {filepath}")
+        except Exception as e:
+            # Clean up temp file on failure
+            if os.path.exists(temp_filepath):
+                os.remove(temp_filepath)
+            self.logger.error(f"Failed to export memory: {e}")
+            raise
     
     async def import_memory(self, filepath: str) -> None:
         """Import memory state from file."""

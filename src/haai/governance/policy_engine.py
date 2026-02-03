@@ -72,6 +72,12 @@ class PolicyConstraint:
         min_val = self.parameters.get("min")
         max_val = self.parameters.get("max")
         
+        # Validate constraint parameters
+        if min_val is not None and not isinstance(min_val, (int, float)):
+            return {"satisfied": False, "reason": f"min_val must be numeric, got {type(min_val).__name__}"}
+        if max_val is not None and not isinstance(max_val, (int, float)):
+            return {"satisfied": False, "reason": f"max_val must be numeric, got {type(max_val).__name__}"}
+        
         if value is None:
             return {"satisfied": False, "reason": f"Value is None"}
         
@@ -328,6 +334,31 @@ class PolicyConflict:
         }
 
 
+class ComplianceCheckerFacade:
+    """Facade to provide a backward-compatible compliance_checker API.
+
+    This object is callable (so engine.compliance_checker(context) works) and
+    also exposes enums like PolicyStatus for legacy tests and code that expect
+    attributes such as engine.compliance_checker.PolicyStatus.
+    """
+    def __init__(self, engine: 'PolicyEngine'):
+        self._engine = engine
+        # Expose enums for legacy access patterns
+        self.PolicyStatus = PolicyStatus
+        self.PolicyType = PolicyType
+        self.EnforcementLevel = EnforcementLevel
+
+    def __call__(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        results = self._engine.evaluate_policies(context)
+        return {
+            "compliant": results["overall_compliant"],
+            "violations": results["total_violations"],
+            "required_actions": results["required_actions"],
+            "evaluated_policies": list(results["policy_results"].keys()),
+            "timestamp": datetime.now().isoformat()
+        }
+
+
 class PolicyEngine:
     """Enhanced policy engine with conflict detection and resolution."""
     
@@ -337,6 +368,8 @@ class PolicyEngine:
         self.logger = logging.getLogger("haai.policy_engine")
         self._policy_cache: Dict[str, Dict[str, Any]] = {}
         self._cache_ttl = timedelta(minutes=5)
+        # Backwards-compatible compliance_checker facade
+        self.compliance_checker = ComplianceCheckerFacade(self)
         
         # Load default policies
         self._load_default_policies()
@@ -484,13 +517,147 @@ class PolicyEngine:
         self.add_policy(resource_policy)
         self.add_policy(safety_policy)
     
+    # --- Compatibility helpers: accept legacy dicts or legacy CGL Policy objects ---
+    def _constraint_from_dict(self, c: Dict[str, Any]) -> PolicyConstraint:
+        enforcement = c.get("enforcement_level") or c.get("enforcement", None)
+        if enforcement is None:
+            enforcement_level = EnforcementLevel.ADVISORY
+        else:
+            try:
+                enforcement_level = EnforcementLevel(enforcement)
+            except Exception:
+                # Fallback if caller passed enum member or unknown string
+                enforcement_level = EnforcementLevel.ADVISORY
+
+        constraint_id = c.get("constraint_id") or c.get("id") or hashlib.sha1(json.dumps(c, sort_keys=True).encode()).hexdigest()
+
+        return PolicyConstraint(
+            constraint_id=constraint_id,
+            name=c.get("name", constraint_id),
+            type=c.get("type", c.get("constraint_type", "range")),
+            parameters=c.get("parameters", {k: v for k, v in c.items() if k not in ("constraint_id", "id", "name", "type", "constraint_type", "enforcement_level", "enforcement")} ),
+            enforcement_level=enforcement_level,
+            description=c.get("description", "")
+        )
+
+    def _rule_from_dict(self, r: Dict[str, Any]) -> PolicyRule:
+        # Support both the enhanced shape and legacy shape
+        constraints = []
+        for c in r.get("constraints", []) or []:
+            if isinstance(c, PolicyConstraint):
+                constraints.append(c)
+            elif isinstance(c, dict):
+                constraints.append(self._constraint_from_dict(c))
+
+        return PolicyRule(
+            rule_id=r.get("rule_id") or r.get("id") or hashlib.sha1(json.dumps(r, sort_keys=True).encode()).hexdigest(),
+            name=r.get("name", r.get("title", "unnamed_rule")),
+            conditions=r.get("conditions", r.get("when", [])) or [],
+            constraints=constraints,
+            actions=r.get("actions", r.get("then", [])) or [],
+            priority=r.get("priority", 1),
+            enabled=r.get("enabled", True)
+        )
+
+    def _policy_from_input(self, policy_in: Any) -> Policy:
+        """Convert a dict-like or legacy CGL Policy into the canonical Policy dataclass.
+
+        Accepts:
+        - Policy (already canonical) -> returned as-is
+        - dict -> converted
+        - legacy objects that implement to_dict() -> converted via to_dict
+        - objects with attributes that match the legacy CGL Policy dataclass
+        """
+        # Normalize any input shape. If caller passed a Policy instance that was
+        # constructed with raw dict rules, we still need to normalize inner rules
+        # into PolicyRule/PolicyConstraint objects. Therefore we do NOT early
+        # return for Policy instances; instead prefer to convert via to_dict().
+        policy_dict = None
+        if hasattr(policy_in, "to_dict") and callable(getattr(policy_in, "to_dict")):
+            try:
+                policy_dict = policy_in.to_dict()
+            except Exception:
+                policy_dict = None
+        else:
+            policy_dict = None
+
+        if policy_dict is None and isinstance(policy_in, dict):
+            policy_dict = policy_in
+
+        if policy_dict is None:
+            # Try attribute access for legacy CGL Policy
+            try:
+                policy_dict = {
+                    "policy_id": getattr(policy_in, "policy_id"),
+                    "name": getattr(policy_in, "name", "unnamed_policy"),
+                    "description": getattr(policy_in, "description", ""),
+                    "policy_type": getattr(policy_in, "policy_type", PolicyType.SAFETY),
+                    "status": getattr(policy_in, "status", PolicyStatus.ACTIVE),
+                    "rules": getattr(policy_in, "rules", []),
+                    "metadata": getattr(policy_in, "metadata", {}),
+                }
+            except Exception:
+                raise TypeError("Unsupported policy input type for conversion")
+
+        # Build rules
+        rules = []
+        for r in policy_dict.get("rules", []):
+            if isinstance(r, PolicyRule):
+                rules.append(r)
+            elif isinstance(r, dict):
+                rules.append(self._rule_from_dict(r))
+            else:
+                # Try to call to_dict on rule-like objects
+                if hasattr(r, "to_dict"):
+                    rules.append(self._rule_from_dict(r.to_dict()))
+                else:
+                    raise TypeError("Unsupported rule type in policy")
+
+        # policy_type and status conversion
+        ptype = policy_dict.get("policy_type")
+        if isinstance(ptype, PolicyType):
+            policy_type = ptype
+        else:
+            try:
+                policy_type = PolicyType(ptype) if ptype is not None else PolicyType.SAFETY
+            except Exception:
+                policy_type = PolicyType.SAFETY
+
+        status_val = policy_dict.get("status")
+        if isinstance(status_val, PolicyStatus):
+            status = status_val
+        else:
+            try:
+                status = PolicyStatus(status_val) if status_val is not None else PolicyStatus.ACTIVE
+            except Exception:
+                status = PolicyStatus.ACTIVE
+
+        policy_id = policy_dict.get("policy_id") or policy_dict.get("id") or hashlib.sha1(json.dumps(policy_dict, sort_keys=True).encode()).hexdigest()
+
+        return Policy(
+            policy_id=policy_id,
+            name=policy_dict.get("name", "unnamed_policy"),
+            description=policy_dict.get("description", ""),
+            policy_type=policy_type,
+            status=status,
+            rules=rules,
+            metadata=policy_dict.get("metadata", {}),
+            created_at=datetime.fromisoformat(policy_dict.get("created_at")) if policy_dict.get("created_at") else datetime.now(),
+            updated_at=datetime.fromisoformat(policy_dict.get("updated_at")) if policy_dict.get("updated_at") else datetime.now(),
+            version=policy_dict.get("version", "1.0"),
+            author=policy_dict.get("author", "system"),
+            tags=set(policy_dict.get("tags", []))
+        )
+
     def add_policy(self, policy: Policy) -> None:
-        """Add a policy to the engine."""
-        self.policies[policy.policy_id] = policy
-        self.logger.info(f"Added policy: {policy.name} ({policy.policy_id})")
-        
-        # Check for conflicts
-        self._detect_conflicts(policy)
+        """Add a policy to the engine. Accept legacy shapes (dict or CGL.Policy)."""
+        canonical = self._policy_from_input(policy)
+        self.policies[canonical.policy_id] = canonical
+        self.logger.info(f"Added policy: {canonical.name} ({canonical.policy_id})")
+        try:
+            self._detect_conflicts(canonical)
+        except Exception:
+            self.logger.debug("Conflict detection failed during add_policy", exc_info=True)
     
     def remove_policy(self, policy_id: str) -> None:
         """Remove a policy from the engine."""
@@ -659,6 +826,17 @@ class PolicyEngine:
         """Clear policy evaluation cache."""
         self._policy_cache.clear()
         self.logger.info("Policy cache cleared")
+    
+    def compliance_checker(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Check compliance against all active policies."""
+        results = self.evaluate_policies(context)
+        return {
+            "compliant": results["overall_compliant"],
+            "violations": results["total_violations"],
+            "required_actions": results["required_actions"],
+            "evaluated_policies": list(results["policy_results"].keys()),
+            "timestamp": datetime.now().isoformat()
+        }
     
     def get_engine_status(self) -> Dict[str, Any]:
         """Get policy engine status."""

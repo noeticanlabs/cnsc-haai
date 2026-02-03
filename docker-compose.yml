@@ -1,0 +1,161 @@
+# HAAI Docker Compose Configuration
+# ====================================
+
+version: '3.8'
+
+services:
+  # Main HAAI application
+  haai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: haai-app
+    ports:
+      - "8000:8000"
+    environment:
+      - HAAI_ENV=development
+      - HAAI_LOG_LEVEL=DEBUG
+      - HAAI_DATABASE_URL=postgresql://haai_user:haai_secret@postgres:5432/haai_audit
+      - HAAI_REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - haai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.path.insert(0, '/app'); from haai import __version__; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL database for audit storage
+  postgres:
+    image: postgres:15-alpine
+    container_name: haai-postgres
+    environment:
+      POSTGRES_DB: haai_audit
+      POSTGRES_USER: haai_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-haai_secret}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - haai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U haai_user -d haai_audit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and message bus
+  redis:
+    image: redis:7-alpine
+    container_name: haai-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - haai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for PostgreSQL management (optional)
+  pgadmin:
+    image: dpage/pgadmin8:latest
+    container_name: haai-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@haai.local
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-haai_admin}
+      PGADMIN_CONFIG_SERVER_MODE: False
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - haai-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # Redis Commander for Redis management (optional)
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: haai-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=${REDISCommander_PASSWORD:-haai_admin}
+    ports:
+      - "8081:8081"
+    networks:
+      - haai-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # Grafana for monitoring dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: haai-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-haai_admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - "3000:3000"
+    networks:
+      - haai-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+
+  # Prometheus for metrics collection (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: haai-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - prometheus_data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - haai-network
+    restart: unless-stopped
+
+networks:
+  haai-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
+  grafana_data:
+  prometheus_data:

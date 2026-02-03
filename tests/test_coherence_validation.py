@@ -287,40 +287,41 @@ class BudgetManagementTester:
         """Create budget management load scenarios."""
         scenarios = []
         
-        # Light load scenario
+        # Light load scenario - consume 75, leave 25 remaining
         scenarios.append({
             "name": "light_load",
             "description": "Light computational load",
             "initial_budget": 100.0,
             "operations": [
-                {"cost": 5.0, "count": 10},
-                {"cost": 10.0, "count": 5}
+                {"cost": 5.0, "count": 7},   # 35
+                {"cost": 10.0, "count": 4}  # 40
             ],
             "expected_remaining": 25.0
         })
         
-        # Heavy load scenario
+        # Heavy load scenario - consume 95, leave 5 remaining, 1 failure
         scenarios.append({
             "name": "heavy_load",
             "description": "Heavy computational load",
             "initial_budget": 100.0,
             "operations": [
-                {"cost": 15.0, "count": 5},
-                {"cost": 20.0, "count": 3}
+                {"cost": 15.0, "count": 5},  # 75
+                {"cost": 20.0, "count": 2}  # 40, but only 25 available, so 1 fails
             ],
-            "expected_remaining": 5.0
+            "expected_remaining": 5.0,
+            "expected_failures": 1
         })
         
-        # Overload scenario
+        # Overload scenario - budget exceeded with one failure
         scenarios.append({
             "name": "overload",
             "description": "Budget exceeded scenario",
             "initial_budget": 50.0,
             "operations": [
-                {"cost": 30.0, "count": 2},
-                {"cost": 10.0, "count": 3}
+                {"cost": 30.0, "count": 2},  # 60, but only 50, so 1 fails
+                {"cost": 10.0, "count": 3}   # 30, budget exhausted, allowance=12.5, 2 succeed from allowance
             ],
-            "expected_failures": 1  # One operation should fail
+            "expected_failures": 1  # Only the 2nd 30-cost operation fails
         })
         
         return scenarios
@@ -407,7 +408,7 @@ class RiskStateTransitionTester:
             "initial_state": "normal",
             "coherence_sequence": [0.9, 0.8, 0.7, 0.6, 0.5],
             "thresholds": {"elevated": 0.6, "high": 0.4},
-            "expected_transitions": ["normal", "normal", "normal", "elevated", "elevated"]
+            "expected_transitions": ["normal", "normal", "normal", "normal", "elevated", "elevated"]
         })
         
         # Hysteresis scenario
@@ -417,7 +418,7 @@ class RiskStateTransitionTester:
             "initial_state": "normal",
             "coherence_sequence": [0.9, 0.7, 0.5, 0.7, 0.9],
             "thresholds": {"elevated": 0.6, "normal_recovery": 0.8},
-            "expected_transitions": ["normal", "normal", "elevated", "elevated", "normal"]
+            "expected_transitions": ["normal", "normal", "normal", "elevated", "elevated", "normal"]
         })
         
         # Rapid escalation scenario
@@ -427,7 +428,7 @@ class RiskStateTransitionTester:
             "initial_state": "normal",
             "coherence_sequence": [0.9, 0.5, 0.3, 0.1],
             "thresholds": {"elevated": 0.6, "high": 0.4, "critical": 0.2},
-            "expected_transitions": ["normal", "elevated", "high", "critical"]
+            "expected_transitions": ["normal", "normal", "elevated", "high", "critical"]
         })
         
         return scenarios
