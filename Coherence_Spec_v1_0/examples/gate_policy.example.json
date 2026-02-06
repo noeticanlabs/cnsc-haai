@@ -1,0 +1,16 @@
+{
+  "policy_id": "policy-coherence-v1",
+  "hard_gates": ["no_nan", "valid_invariants"],
+  "soft_gates": {
+    "conservation": { "warn": 0.8, "fail": 1.0 },
+    "reconstruction": { "warn": 0.7, "fail": 1.0 }
+  },
+  "hysteresis": {
+    "enter": 1.0,
+    "exit": 0.8
+  },
+  "rails": [
+    { "name": "reduce_dt", "bounds": "dt >= 0.002" },
+    { "name": "projection", "bounds": "|x'-x| <= 0.05" }
+  ]
+}
