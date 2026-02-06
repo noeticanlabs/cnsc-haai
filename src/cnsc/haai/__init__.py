@@ -12,5 +12,8 @@ __version__ = "1.0.0"
 __author__ = "CNHAAI Team"
 
 from cnsc.haai import ghll
+from cnsc.haai import glll
+from cnsc.haai import nsc
+from cnsc.haai import gml
 
-__all__ = ["ghll", "__version__"]
+__all__ = ["ghll", "glll", "nsc", "gml", "__version__"]
