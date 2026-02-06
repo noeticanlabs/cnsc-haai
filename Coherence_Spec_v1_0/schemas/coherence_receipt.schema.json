@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "coherence_receipt.schema.json",
+  "title": "Coherence Receipt",
+  "type": "object",
+  "required": [
+    "receipt_id",
+    "timestamp",
+    "policy_id",
+    "state_summary",
+    "residuals",
+    "debt",
+    "debt_terms",
+    "gates",
+    "rails",
+    "decision",
+    "decision_reason",
+    "parent_hash",
+    "receipt_hash"
+  ],
+  "properties": {
+    "receipt_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "policy_id": { "type": "string" },
+    "state_summary": {
+      "type": "object",
+      "required": ["summary_hash"],
+      "properties": {
+        "summary_hash": { "type": "string" },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "residuals": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "number" }
+    },
+    "debt": { "type": "number" },
+    "debt_terms": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "number" }
+    },
+    "gates": {
+      "type": "object",
+      "required": ["hard_pass", "soft_pass", "hysteresis_state"],
+      "properties": {
+        "hard_pass": { "type": "boolean" },
+        "soft_pass": { "type": "boolean" },
+        "hysteresis_state": { "type": "string" },
+        "violations": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "rails": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "bounds", "before", "after"],
+        "properties": {
+          "name": { "type": "string" },
+          "bounds": { "type": "string" },
+          "before": {},
+          "after": {}
+        },
+        "additionalProperties": false
+      }
+    },
+    "decision": { "type": "string", "enum": ["accept", "retry", "abort"] },
+    "decision_reason": { "type": "string" },
+    "parent_hash": { "type": "string" },
+    "receipt_hash": { "type": "string" }
+  },
+  "additionalProperties": false
+}

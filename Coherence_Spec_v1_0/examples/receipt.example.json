@@ -1,0 +1,37 @@
+{
+  "receipt_id": "r-0002",
+  "timestamp": "2024-01-01T00:00:01Z",
+  "policy_id": "policy-coherence-v1",
+  "state_summary": {
+    "summary_hash": "abc123",
+    "summary": "step=12, dt=0.01"
+  },
+  "residuals": {
+    "conservation": 1.2,
+    "reconstruction": 0.6
+  },
+  "debt": 1.78,
+  "debt_terms": {
+    "cons": 1.44,
+    "rec": 0.36,
+    "thrash": -0.02
+  },
+  "gates": {
+    "hard_pass": true,
+    "soft_pass": false,
+    "hysteresis_state": "entered",
+    "violations": ["conservation"]
+  },
+  "rails": [
+    {
+      "name": "reduce_dt",
+      "bounds": "dt >= 0.002",
+      "before": { "dt": 0.01 },
+      "after": { "dt": 0.005 }
+    }
+  ],
+  "decision": "retry",
+  "decision_reason": "soft_gate_fail: conservation",
+  "parent_hash": "h-0001",
+  "receipt_hash": "h-0002"
+}

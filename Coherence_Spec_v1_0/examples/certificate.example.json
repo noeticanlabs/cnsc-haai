@@ -1,0 +1,12 @@
+{
+  "run_id": "run-2024-01-01",
+  "status": "pass",
+  "max_debt": 1.92,
+  "max_residuals": {
+    "conservation": 1.0,
+    "reconstruction": 0.9
+  },
+  "final_hash": "h-final",
+  "config_hash": "cfg-9ab2",
+  "policy_hash": "policy-1f2e"
+}
