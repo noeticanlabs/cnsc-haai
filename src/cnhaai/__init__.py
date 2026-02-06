@@ -9,8 +9,8 @@ __version__ = "1.0.0"
 __author__ = "CNHAAI Team"
 
 # Core components
-from cnhaai.core.abstraction import Abstraction, AbstractionLayer, AbstractionType
-from cnhaai.core.gates import (
+from .core.abstraction import Abstraction, AbstractionLayer, AbstractionType
+from .core.gates import (
     Gate,
     GateDecision,
     GateResult,
@@ -19,7 +19,7 @@ from cnhaai.core.gates import (
     EvidenceSufficiencyGate,
     CoherenceCheckGate
 )
-from cnhaai.core.receipts import (
+from .core.receipts import (
     Receipt,
     ReceiptContent,
     ReceiptDecision,
@@ -28,9 +28,9 @@ from cnhaai.core.receipts import (
     ReceiptStepType,
     ReceiptSystem
 )
-from cnhaai.core.phases import Phase, PhaseConfig, PhaseState, PhaseManager
-from cnhaai.core.coherence import CoherenceBudget
-from cnhaai.kernel.minimal import MinimalKernel, EpisodeResult
+from .core.phases import Phase, PhaseConfig, PhaseState, PhaseManager
+from .core.coherence import CoherenceBudget
+from .kernel.minimal import MinimalKernel, EpisodeResult
 
 __all__ = [
     # Version
