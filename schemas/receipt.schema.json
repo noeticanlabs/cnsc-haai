@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Receipt",
+  "type": "object",
+  "required": ["receipt_id", "parent", "hash", "payload", "phase"],
+  "properties": {
+    "receipt_id": { "type": "string" },
+    "parent": { "type": "string" },
+    "hash": { "type": "string" },
+    "payload": { "type": "object" },
+    "phase": { "type": "string" }
+  }
+}

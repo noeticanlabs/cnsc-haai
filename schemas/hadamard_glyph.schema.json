@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hadamard Glyph",
+  "type": "object",
+  "required": ["glyph_id", "vector", "metadata"],
+  "properties": {
+    "glyph_id": { "type": "string" },
+    "vector": { "type": "array", "items": { "type": "number" } },
+    "metadata": { "type": "object" }
+  }
+}
