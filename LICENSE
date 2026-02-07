@@ -1,1 +1,97 @@
-All rights reserved. License to be determined.
+CNSC-HAAI Protective Research License (PRL-1.1)
+
+Copyright © 2026
+All rights reserved.
+
+Owner:
+CNSC-HAAI and its primary author(s) / maintainer(s)
+
+────────────────────────────────────────────────────────────────────────────
+1. OWNERSHIP
+────────────────────────────────────────────────────────────────────────────
+All intellectual property rights, including but not limited to source code,
+models, architectures, design documents, algorithms, training procedures,
+and derivative concepts, are and shall remain the exclusive property of
+the CNSC-HAAI Owner(s), unless explicitly transferred in writing.
+
+No rights are granted except those explicitly stated in this license.
+
+────────────────────────────────────────────────────────────────────────────
+2. PERMITTED USE (RESEARCH ONLY)
+────────────────────────────────────────────────────────────────────────────
+Permission is granted to use, copy, and modify the System solely for:
+
+• Non-commercial research
+• Academic study
+• Internal evaluation
+• Peer review and benchmarking
+
+Any use must be non-profit, non-revenue-generating, and non-monetized,
+whether directly or indirectly.
+
+────────────────────────────────────────────────────────────────────────────
+3. PROHIBITED COMMERCIALIZATION
+────────────────────────────────────────────────────────────────────────────
+The following are strictly prohibited without a separate written license
+from the Owner:
+
+• Selling, licensing, sublicensing, or leasing the System
+• Offering the System as a service (SaaS, API, hosted model, consulting)
+• Using the System to generate revenue, funding, equity, tokens, or fees
+• Incorporating the System into a commercial or for-profit product
+• Using the System to train, bootstrap, or improve a commercial model
+
+If money changes hands because of this System, **you are in violation**.
+
+────────────────────────────────────────────────────────────────────────────
+4. DERIVATIVE WORKS
+────────────────────────────────────────────────────────────────────────────
+Derivative works may be created for research purposes only and:
+
+a) Do NOT transfer ownership of original or derivative IP
+b) MUST retain this license in full
+c) MUST clearly state that they are derived from CNSC-HAAI
+d) MAY NOT be commercialized in any form
+
+Derivative works do NOT grant the right to commercialize the original
+System or the derivative.
+
+────────────────────────────────────────────────────────────────────────────
+5. NO COMPETITIVE USE
+────────────────────────────────────────────────────────────────────────────
+The System may not be used to develop or enhance a competing commercial
+system without explicit written permission from the Owner.
+
+────────────────────────────────────────────────────────────────────────────
+6. ATTRIBUTION
+────────────────────────────────────────────────────────────────────────────
+All publications, talks, benchmarks, or public disclosures must credit:
+
+“CNSC-HAAI — Cognitive Non-Symbolic Computation / Hybrid Artificial Intelligence”
+
+────────────────────────────────────────────────────────────────────────────
+7. NO IMPLIED LICENSE
+────────────────────────────────────────────────────────────────────────────
+Nothing in this license shall be construed as granting any patent rights,
+trademark rights, or rights beyond those explicitly stated.
+
+────────────────────────────────────────────────────────────────────────────
+8. DISCLAIMER
+────────────────────────────────────────────────────────────────────────────
+THE SYSTEM IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND.
+
+────────────────────────────────────────────────────────────────────────────
+9. LIMITATION OF LIABILITY
+────────────────────────────────────────────────────────────────────────────
+IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY DAMAGES ARISING FROM USE,
+MISUSE, OR INABILITY TO USE THE SYSTEM.
+
+────────────────────────────────────────────────────────────────────────────
+10. ENFORCEMENT & TERMINATION
+────────────────────────────────────────────────────────────────────────────
+Any violation of this license automatically terminates all rights granted
+herein. Upon termination, all copies must be destroyed.
+
+────────────────────────────────────────────────────────────────────────────
+END OF TERMS
+────────────────────────────────────────────────────────────────────────────
