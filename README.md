@@ -5,7 +5,7 @@ Commercial use requires a separate license from NoeticanLabs.
 
 
 Below is a **compelling, technically honest, and funder-/engineer-ready README** for **CNSC-HAAI**.
-It’s written to do three things at once:
+It's written to do three things at once:
 
 1. Make it immediately clear **what this system is (and is not)**
 2. Explain **why it fundamentally differs from LLMs and agent frameworks**
@@ -176,8 +176,8 @@ This is a **non-negotiable property**.
 
 CNSC-HAAI integrates **formal mathematics** (Lean-verified theorems) into runtime via **Named Gate Contracts**.
 
-A gate is not “because the model said so.”
-A gate is “because theorem X applies under assumptions A.”
+A gate is not "because the model said so."
+A gate is "because theorem X applies under assumptions A."
 
 This bridges:
 
@@ -207,7 +207,7 @@ At runtime:
 * guarantees are licensed
 * failures are explicit
 
-This turns “math we believe” into **math we enforce**.
+This turns "math we believe" into **math we enforce**.
 
 ---
 
@@ -268,14 +268,65 @@ It is explicitly **not** designed for:
 
 ## Project Status
 
-* Core architecture implemented
-* 200+ unit tests passing
-* Deterministic execution verified
-* Receipt and replay system complete
-* Integration tests in progress
-* Tokenless and CBLM prototypes underway
+> **⚠️ Prototype / Experimental - Not Production Ready**
 
-This project is **past the exploratory phase** and entering **instrument-grade refinement**.
+CNSC-HAAI is an **early-stage research prototype**. The core architecture is implemented and functional for evaluation purposes, but:
+
+* Many CLI commands are **stubs or partially implemented**
+* Security keys are **hardcoded for prototype use only**
+* The system is **not yet hardened for production deployment**
+* Some components (NSC VM bytecode compiler) are incomplete
+
+### Implementation Status by Layer
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| **GHLL** (lexicon, parser, types) | ✅ Implemented | Core grammar and type system complete |
+| **GLLL** (codebook, hadamard, mapping, packetizer) | ✅ Implemented | Encoding/decoding pipeline functional |
+| **GML** (phaseloom, receipts, replay, trace) | ✅ Implemented | Functionally implemented; receipt signing uses prototype hardcoded keys (see Security) |
+| **NSC** (cfa, gates, ir, vm) | ✅ Implemented (caveat) | Implemented; VM currently missing `compile_to_bytecode` utility |
+| **CLI** | ❌ Partial | `trace`, `replay`, `verify`, `encode`, `decode` commands are stubs |
+
+This project is in the **research/experimental phase** and not yet suitable for production use.
+
+---
+
+## ⚠️ Security Considerations
+
+**This is a research prototype - not secure for production use.**
+
+Known security issues:
+
+* **Hardcoded Security Keys**: The receipt signing and verification system uses hardcoded keys for prototype demonstration only. These are not suitable for production where cryptographic secrets must be properly managed.
+
+* **Incomplete Validation**: Input validation and boundary checking are not yet comprehensive.
+
+* **Stub Commands**: Several CLI commands (`trace`, `replay`, `verify`, `encode`, `decode`) are incomplete stubs and may not function as expected.
+
+Do not use this code in any security-critical or production environment until these issues are addressed.
+
+---
+
+## Known Issues
+
+The following issues are known and tracked in the prototype:
+
+- Broken imports in `src/cnsc/haai/cli/commands.py` referencing `NSCVirtualMachine`, `compile_to_bytecode`, and `Glyph` which do not currently exist.
+- Type/enum inconsistencies across modules and use of bare exception handling in some paths.
+
+---
+
+## Module Structure
+
+This repository contains **two parallel module structures**:
+
+| Path | Purpose | Status |
+|------|---------|--------|
+| `src/cnsc/haai/` | **Primary implementation** - CLI, layers (GHLL, GLLL, GML, NSC) | Active development |
+| `src/cnhaai/` | **Kernel documentation** - Coherence theory specs and documentation | Reference only |
+| `cnhaai/` | Standalone documentation project | Legacy |
+
+The main implementation lives under `src/cnsc/haai/`. The `src/cnhaai/` directory contains theoretical documentation related to the coherence kernel.
 
 ---
 
@@ -307,10 +358,12 @@ This repository is an attempt to build that answer—cleanly, rigorously, and wi
 ```bash
 pip install -e .
 pytest -q
-python -m cnsc.haai.cli --help
+python -m cnsc.haai.cli.main --help
 ```
 
-A full **“Hello Cognition”** end-to-end demo is provided in the integration tests and CLI examples.
+A full "Hello Cognition" end-to-end demo is provided in the integration tests.
+
+> Note: The CLI is partially implemented. Some commands (`trace`, `replay`, `verify`, `encode`, `decode`) are stubs.
 
 ---
 
@@ -325,15 +378,8 @@ If you are interested in:
 * auditable reasoning
 * coherence-first AI
 * formal guarantees at runtime
-* intelligence that can say “no” and prove why
+* intelligence that can say "no" and prove why
 
-You’re in the right place.
+You're in the right place.
 
 ---
-
-If you want, next I can:
-
-* tailor a **grant-oriented README variant**
-* write a **“Hello Cognition” walkthrough**
-* produce a **1-page executive summary**
-* or align this README exactly with your Named Gate Contract registry
