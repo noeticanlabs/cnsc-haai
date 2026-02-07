@@ -55,27 +55,39 @@ A **receipt** is a cryptographic record of a reasoning step that enables auditab
 
 ### 2.1 Receipt Structure
 
+> **Canonical Schema**: See [`schemas/receipt.schema.json`](../../../schemas/receipt.schema.json)
+
 ```yaml
 receipt:
-  version: "1.0.0"
-  receipt_id: "uuid"
-  timestamp: "ISO8601"
-  episode_id: "uuid"
+  version: "1.0.0"          # Schema version (required)
+  receipt_id: "a1b2c3d4"    # 8-char hex identifier
+  timestamp: "ISO8601"      # Creation timestamp
+  episode_id: "e5f6g7h8"    # Episode identifier
   
   content:
-    step_type: "gate_validation|phase_transition|..."
-    input_state: "hash"
-    output_state: "hash"
-    decision: "pass|fail|warn"
+    step_type: PARSE|TYPE_CHECK|GATE_EVAL|...  # Step type enum
+    input_hash: "sha256:..." # Input state hash
+    output_hash: "sha256:..." # Output state hash
+    decision: PASS|FAIL|WARN|SKIP|PENDING  # Decision
+    details: {}              # Step-specific metadata
+    coherence_before: 0.92   # Pre-step coherence (optional)
+    coherence_after: 0.94    # Post-step coherence (optional)
     
   provenance:
-    parent_receipts: ["uuid", ...]
-    evidence_references: ["uri", ...]
+    source: "nsc-vm"         # Source component
+    phase: "execution"       # Execution phase
+    span: {...}              # Provenance span (optional)
     
   signature:
-    algorithm: "Ed25519"
-    signer: "certificate_id"
-    signature: "base64_signature"
+    algorithm: HMAC-SHA256|Ed25519|ECDSA|RSA
+    signer: "system-key-001" # Key/certificate ID
+    signature: "base64..."   # Signature
+  
+  # Chain fields
+  previous_receipt_id: "9i8j7k6l"
+  previous_receipt_hash: "sha256:..."
+  chain_hash: "sha256:..."    # Chain hash
+  metadata: {}               # Extensibility
 ```
 
 ### 2.2 Receipt Types

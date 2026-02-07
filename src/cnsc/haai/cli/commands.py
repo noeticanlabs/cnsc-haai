@@ -486,11 +486,41 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_trace(args: argparse.Namespace) -> int:
-    """Handle trace command."""
-    print("Trace command - full GML tracing")
-    print(f"Input: {args.input}")
-    print(f"Output: {args.output}")
-    print(f"Receipt: {args.receipt}")
+    """Handle trace command - full GML tracing."""
+    from cnsc.haai.gml.trace import TraceManager, TraceLevel
+    from cnsc.haai.gml.receipts import ReceiptSystem
+    
+    # Read input
+    if args.input == "-":
+        source = sys.stdin.read()
+    else:
+        with open(args.input) as f:
+            source = f.read()
+    
+    # Create trace manager and receipt system
+    trace_manager = TraceManager()
+    receipt_system = ReceiptSystem()
+    
+    # TODO: Implement full GML tracing with coherence tracking
+    # For now, create a trace event
+    trace_manager.log_event(
+        event_type="trace_execution",
+        level=TraceLevel.DEBUG,
+        details={"source": args.input, "content_length": len(source)}
+    )
+    
+    # Output trace
+    trace_data = trace_manager.export_trace()
+    if args.output:
+        with open(args.output, 'w') as f:
+            json.dump(trace_data, f, indent=2)
+        print(f"Trace saved to {args.output}")
+    else:
+        print(json.dumps(trace_data, indent=2))
+    
+    if args.receipt:
+        print(f"Receipt: {args.receipt}")
+    
     return 0
 
 
@@ -503,30 +533,115 @@ def cmd_replay(args: argparse.Namespace) -> int:
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
-    """Handle verify command."""
-    print("Verify command")
-    print(f"Receipt: {args.receipt}")
-    print(f"Verbose: {args.verbose}")
-    return 0
+    """Handle verify command - verify receipt chain."""
+    from cnsc.haai.gml.receipts import ReceiptSystem, ChainValidator
+    
+    # Load receipt system from file or verify single receipt
+    try:
+        with open(args.receipt) as f:
+            data = json.load(f)
+        
+        # Check if it's a receipt file or episode
+        if "receipts" in data:
+            # Full receipt system dump
+            from cnsc.haai.gml.receipts import Receipt
+            receipts = [Receipt.from_dict(r) for r in data["receipts"]]
+            validator = ChainValidator()
+            valid, message, details = validator.validate_chain(receipts)
+        elif "receipt_id" in data:
+            # Single receipt
+            receipt = Receipt.from_dict(data)
+            validator = ChainValidator()
+            valid, message = validator.validate_receipt(receipt)
+            details = {}
+        else:
+            print(f"Unknown receipt format in {args.receipt}", file=sys.stderr)
+            return 1
+        
+        if args.verbose:
+            print(json.dumps({"valid": valid, "message": message, "details": details}, indent=2))
+        else:
+            print(f"Verification: {'PASSED' if valid else 'FAILED'} - {message}")
+        
+        return 0 if valid else 1
+    except FileNotFoundError:
+        print(f"File not found: {args.receipt}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Verification error: {e}", file=sys.stderr)
+        return 1
 
 
 def cmd_encode(args: argparse.Namespace) -> int:
-    """Handle encode command."""
-    print("Encode command")
-    print(f"Input: {args.input}")
-    print(f"Output: {args.output}")
-    print(f"Codebook: {args.codebook}")
-    print(f"Order: {args.order}")
+    """Handle encode command - encode data to GLLL Hadamard format."""
+    from cnsc.haai.glll.hadamard import HadamardCodec
+    
+    # Read input
+    if args.input == "-":
+        data_str = sys.stdin.read()
+    else:
+        with open(args.input) as f:
+            data_str = f.read()
+    
+    # Convert input to binary data
+    # For now, encode the string as binary
+    binary_data = [ord(c) for c in data_str]
+    
+    # Create codec and encode
+    codec = HadamardCodec(order=args.order)
+    encoded = codec.encode(binary_data)
+    
+    # Output
+    output_data = {
+        "original_length": len(binary_data),
+        "order": args.order,
+        "encoded": encoded,
+    }
+    
+    if args.output:
+        with open(args.output, 'w') as f:
+            json.dump(output_data, f, indent=2)
+        print(f"Encoded data saved to {args.output}")
+    else:
+        print(json.dumps(output_data, indent=2))
+    
     return 0
 
 
 def cmd_decode(args: argparse.Namespace) -> int:
-    """Handle decode command."""
-    print("Decode command")
-    print(f"Input: {args.input}")
-    print(f"Output: {args.output}")
-    print(f"Codebook: {args.codebook}")
-    print(f"Order: {args.order}")
+    """Handle decode command - decode from GLLL Hadamard format."""
+    from cnsc.haai.glll.hadamard import HadamardCodec
+    
+    # Read input
+    with open(args.input) as f:
+        data = json.load(f)
+    
+    encoded = data.get("encoded", [])
+    
+    if not encoded:
+        print("No encoded data found in input", file=sys.stderr)
+        return 1
+    
+    # Create codec and decode
+    codec = HadamardCodec(order=data.get("order", args.order))
+    decoded, was_corrected = codec.decode(encoded)
+    
+    # Convert binary back to string
+    result_str = ''.join(chr(b) for b in decoded if b < 256)
+    
+    output_data = {
+        "decoded": result_str,
+        "was_corrected": was_corrected,
+        "original_length": data.get("original_length", 0),
+    }
+    
+    if args.output:
+        with open(args.output, 'w') as f:
+            f.write(result_str)
+        print(f"Decoded data saved to {args.output}")
+    else:
+        print(json.dumps(output_data, indent=2))
+    
     return 0
 
 
@@ -588,8 +703,8 @@ def cmd_codebook(args: argparse.Namespace) -> int:
         return 0
     
     elif operation == "add":
-        from cnsc.haai.glll.codebook import create_codebook, GlyphType, SymbolCategory
-        codebook = create_codebook.load(args.file)
+        from cnsc.haai.glll.codebook import Codebook, GlyphType, SymbolCategory, Glyph
+        codebook = Codebook.load(args.file)
         
         # Parse code
         code = [int(x.strip()) for x in args.code.split(",")]
@@ -608,8 +723,8 @@ def cmd_codebook(args: argparse.Namespace) -> int:
         return 0
     
     elif operation == "validate":
-        from cnsc.haai.glll.codebook import create_codebook, create_codebook_validator
-        codebook = create_codebook.load(args.file)
+        from cnsc.haai.glll.codebook import Codebook, create_codebook_validator
+        codebook = Codebook.load(args.file)
         validator = create_codebook_validator()
         valid, errors = validator.validate(codebook)
         
@@ -623,8 +738,8 @@ def cmd_codebook(args: argparse.Namespace) -> int:
             return 1
     
     elif operation == "stats":
-        from cnsc.haai.glll.codebook import create_codebook
-        codebook = create_codebook.load(args.file)
+        from cnsc.haai.glll.codebook import Codebook
+        codebook = Codebook.load(args.file)
         stats = codebook.get_stats()
         print(json.dumps(stats, indent=2))
         return 0

@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 import hashlib
 import json
+import sys
 
 
 class ParseFormType(Enum):
@@ -373,7 +374,14 @@ class LexiconManager:
             self.by_category = loaded_manager.by_category
             self.by_token = loaded_manager.by_token
             return True
-        except Exception:
+        except FileNotFoundError:
+            print(f"Lexicon file not found: {filepath}", file=sys.stderr)
+            return False
+        except json.JSONDecodeError as e:
+            print(f"Invalid JSON in lexicon file: {e}", file=sys.stderr)
+            return False
+        except Exception as e:
+            print(f"Error loading lexicon: {e}", file=sys.stderr)
             return False
     
     def save_to_file(self, filepath: str) -> bool:
@@ -393,11 +401,48 @@ class LexiconManager:
         except Exception:
             return False
     
-    def create_default_lexicon(self) -> None:
+    def save(self, filepath: str) -> bool:
+        """
+        Save lexicon to JSON file (convenience method).
+        
+        Args:
+            filepath: Path to the JSON file
+            
+        Returns:
+            True if saved successfully, False otherwise
+        """
+        return self.save_to_file(filepath)
+    
+    @classmethod
+    def load(cls, filepath: str) -> 'LexiconManager':
+        """
+        Load lexicon from JSON file (class method).
+        
+        Args:
+            filepath: Path to the JSON file
+            
+        Returns:
+            LexiconManager instance
+        """
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        return cls.from_dict(data)
+    
+    def get_all_entries(self) -> List[LexiconEntry]:
+        """
+        Get all lexicon entries.
+        
+        Returns:
+            List of all lexicon entries
+        """
+        return list(self.entries.values())
+    
+    def create_default_lexicon(self, name: str = "Default Lexicon") -> None:
         """
         Create the default GHLL lexicon with common entries.
         
-        This creates a minimal lexicon with common keywords and operators.
+        Args:
+            name: Optional name for the lexicon (stored in metadata)
         """
         # Keywords
         keywords = [

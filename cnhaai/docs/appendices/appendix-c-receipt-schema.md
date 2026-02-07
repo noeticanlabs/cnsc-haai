@@ -1,6 +1,16 @@
 # Appendix C: Receipt Schema Reference
 
+> **Canonical Schema**: `schemas/receipt.schema.json` (v1.0.0)
+> 
+> This appendix provides detailed documentation and examples. The authoritative JSON Schema is at [`schemas/receipt.schema.json`](../../../schemas/receipt.schema.json).
+
 **Complete JSON Schema and Examples for All Receipt Types**
+
+## Schema Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0.0 | 2024-01-15 | Initial canonical schema |
 
 ## Receipt Schema (Version 1.0.0)
 
@@ -37,7 +47,19 @@
       "properties": {
         "step_type": {
           "type": "string",
-          "enum": ["gate_validation", "phase_transition", "recovery_action", "manual_annotation"]
+          "enum": [
+            "PARSE",
+            "TYPE_CHECK",
+            "GATE_EVAL",
+            "PHASE_TRANSITION",
+            "VM_EXECUTION",
+            "COHERENCE_CHECK",
+            "TRACE_EVENT",
+            "CHECKPOINT",
+            "REPLAY",
+            "CUSTOM"
+          ],
+          "description": "Type of step that generated this receipt"
         },
         "input_state": {
           "type": "string",
@@ -99,29 +121,34 @@
 ```json
 {
   "version": "1.0.0",
-  "receipt_id": "550e8400-e29b-41d4-a716-446655440000",
+  "receipt_id": "a1b2c3d4",
   "timestamp": "2024-01-15T10:30:00Z",
-  "episode_id": "660e8400-e29b-41d4-a716-446655440000",
+  "episode_id": "e5f6g7h8",
   "content": {
-    "step_type": "gate_validation",
-    "input_state": "sha256:abc123...",
-    "output_state": "sha256:def456...",
+    "step_type": "GATE_EVAL",
+    "input_hash": "sha256:abc123...",
+    "output_hash": "sha256:def456...",
     "decision": "PASS",
     "details": {
       "gate_type": "evidence_sufficiency",
       "threshold": 0.95,
       "measured_value": 0.97
-    }
+    },
+    "coherence_before": 0.92,
+    "coherence_after": 0.94
   },
   "provenance": {
-    "parent_receipts": ["440e8400-e29b-41d4-a716-446655440000"],
-    "evidence_references": ["urn:evidence:patient-123"]
+    "source": "nsc-vm",
+    "phase": "execution"
   },
   "signature": {
-    "algorithm": "Ed25519",
+    "algorithm": "HMAC-SHA256",
     "signer": "system-key-001",
     "signature": "base64signaturestring..."
-  }
+  },
+  "previous_receipt_id": "9i8j7k6l",
+  "previous_receipt_hash": "sha256:previous...",
+  "chain_hash": "sha256:current..."
 }
 ```
 
@@ -130,30 +157,35 @@
 ```json
 {
   "version": "1.0.0",
-  "receipt_id": "770e8400-e29b-41d4-a716-446655440000",
+  "receipt_id": "m3n4o5p6",
   "timestamp": "2024-01-15T10:35:00Z",
-  "episode_id": "660e8400-e29b-41d4-a716-446655440000",
+  "episode_id": "e5f6g7h8",
   "content": {
-    "step_type": "phase_transition",
-    "input_state": "sha256:ghi789...",
-    "output_state": "sha256:jkl012...",
+    "step_type": "PHASE_TRANSITION",
+    "input_hash": "sha256:ghi789...",
+    "output_hash": "sha256:jkl012...",
     "decision": "PASS",
     "details": {
       "from_phase": "reasoning",
       "to_phase": "validation",
       "duration_ms": 5000,
       "steps_completed": 42
-    }
+    },
+    "coherence_before": 0.94,
+    "coherence_after": 0.96
   },
   "provenance": {
-    "parent_receipts": ["660e8400-e29b-41d4-a716-446655440001"],
-    "evidence_references": []
+    "source": "phaseloom",
+    "phase": "transition"
   },
   "signature": {
-    "algorithm": "Ed25519",
+    "algorithm": "HMAC-SHA256",
     "signer": "system-key-001",
     "signature": "base64signaturestring..."
-  }
+  },
+  "previous_receipt_id": "a1b2c3d4",
+  "previous_receipt_hash": "sha256:a1b2c3d4...",
+  "chain_hash": "sha256:m3n4o5p6..."
 }
 ```
 

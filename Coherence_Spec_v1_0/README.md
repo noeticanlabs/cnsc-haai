@@ -1,5 +1,12 @@
 # Coherence Spec v1.0 (Canonical Constraint)
 
+> **DEPRECATED**: This specification has been superseded by the current CNHAAI spec at `spec/` and `cnhaai/docs/`.
+> 
+> For current documentation, see:
+> - **Specs**: [`spec/`](spec/)
+> - **Theory**: [`cnhaai/docs/spine/`](cnhaai/docs/spine/)
+> - **Examples**: [`examples/`](examples/)
+
 This package defines **Coherence** as an **operational, measurable, and auditable governance budget** for system evolution. Coherence is not a metaphysical claim; it is a discipline for deciding whether a proposed step is affordable under declared constraints and logged corrections.
 
 ## What “Coherence” means here
@@ -20,22 +27,22 @@ A system is **coherence-compliant** only if it produces replayable receipts and 
 
 ## Navigation
 
-* **Principle**: `docs/01_Coherence_Principle.md`
-* **Formal definitions**: `docs/02_Formal_Definitions.md`
-* **Axioms and postulates**: `docs/03_Axioms_and_Postulates.md`
-* **Functionals**: `docs/04_Coherence_Functionals.md`
-* **Transport and balance**: `docs/05_Coherence_Transport_and_Balance.md`
-* **Gates and rails**: `docs/06_Gates_Rails_and_Affordability.md`
-* **Operational lemmas**: `docs/07_Coherence_Lemmas_Operational.md`
-* **Canonical algorithms**: `docs/08_Algorithms_Canonical.md`
-* **Receipts and certificates**: `docs/09_Receipts_Ledgers_and_Certificates.md`
-* **Verification plan**: `docs/10_Verification_and_Test_Plan.md`
-* **Failure modes**: `docs/11_Failure_Modes_and_Recovery.md`
-* **Glossary**: `docs/12_Glossary_and_Lexicon.md`
-* **Bridge notes**: `docs/13_Bridge_Notes_Time_GR_PDE_AI.md`
-* **Schemas**: `schemas/`
-* **Examples**: `examples/`
-* **Manifest**: `manifest/manifest.md`
+> **DEPRECATED**: This directory is archived. Use current docs instead.
+
+For current documentation:
+- **Specs**: [`spec/`](spec/) - Technical specifications
+- **Theory**: [`cnhaai/docs/spine/`](cnhaai/docs/spine/) - Learning path
+- **Examples**: [`examples/`](examples/) - End-to-end examples
+- **Schemas**: [`schemas/`](schemas/) - JSON schemas
+
+### Migration Guide
+
+| Old Path | New Path |
+|----------|----------|
+| `docs/01_Coherence_Principle.md` | [`cnhaai/docs/spine/12-coherence-principles.md`](cnhaai/docs/spine/12-coherence-principles.md) |
+| `docs/02_Formal_Definitions.md` | [`cnhaai/docs/spine/`](cnhaai/docs/spine/) |
+| `schemas/coherence_receipt.schema.json` | [`schemas/receipt.schema.json`](schemas/receipt.schema.json) |
+| `examples/receipt.example.json` | [`cnhaai/docs/appendices/appendix-c-receipt-schema.md`](cnhaai/docs/appendices/appendix-c-receipt-schema.md) |
 
 ## Compliance checklist (minimum requirements)
 

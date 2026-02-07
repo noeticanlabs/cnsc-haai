@@ -1,5 +1,11 @@
 # System Overview
 
+> **DEPRECATED**: This file is archived. Use current documentation instead.
+> 
+> For current documentation:
+> - **Overview**: [`cnhaai/docs/spine/00-project-overview.md`](cnhaai/docs/spine/00-project-overview.md)
+> - **Specs**: [`spec/`](spec/)
+
 ## Layer Model
 - **GLLL → GHLL → NSC → GML**
 - Two alphabets with one compiler seam and one ledger-truth runtime contract.

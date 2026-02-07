@@ -61,7 +61,6 @@ __all__ = [
     "ReceiptSignature",
     "ReceiptContent",
     "ReceiptProvenance",
-    "ReceiptChain",
     "HashChain",
     "ChainValidator",
     "ReceiptSystem",

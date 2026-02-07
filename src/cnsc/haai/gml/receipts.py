@@ -166,7 +166,13 @@ class Receipt:
     Receipt.
     
     Cryptographic record of a reasoning step.
+    
+    Version: 1.0.0 - See schemas/receipt.schema.json for canonical spec.
     """
+    # Version field (required for schema compatibility)
+    version: str = "1.0.0"
+    
+    # Core fields
     receipt_id: str
     content: ReceiptContent
     signature: ReceiptSignature
@@ -183,6 +189,7 @@ class Receipt:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
+            "version": self.version,
             "receipt_id": self.receipt_id,
             "content": self.content.to_dict(),
             "signature": self.signature.to_dict(),
@@ -197,6 +204,7 @@ class Receipt:
     def from_dict(cls, data: Dict[str, Any]) -> 'Receipt':
         """Create from dictionary."""
         return cls(
+            version=data.get("version", "1.0.0"),
             receipt_id=data["receipt_id"],
             content=ReceiptContent.from_dict(data["content"]),
             signature=ReceiptSignature.from_dict(data["signature"]),

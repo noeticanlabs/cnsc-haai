@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "coherence_receipt.schema.json",
-  "title": "Coherence Receipt",
+  "title": "Coherence Receipt (DEPRECATED)",
+  "description": "DEPRECATED: This schema is no longer maintained. Use schemas/receipt.schema.json (v1.0.0) instead. This file exists for backwards compatibility only.",
   "type": "object",
   "required": [
     "receipt_id",
