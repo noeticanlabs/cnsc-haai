@@ -1,3 +1,9 @@
+Research & Licensing Notice
+The Coherence Framework is available for non-commercial academic and government research, including NSF- and DARPA-funded projects.
+Commercial use requires a separate license from NoeticanLabs.
+
+
+
 Below is a **compelling, technically honest, and funder-/engineer-ready README** for **CNSC-HAAI**.
 It’s written to do three things at once:
 
