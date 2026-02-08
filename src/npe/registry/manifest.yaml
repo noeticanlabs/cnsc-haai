@@ -1,0 +1,44 @@
+spec: NPE-REGISTRY-1.0
+registry_name: npe_default
+registry_version: 1
+domain:
+  gr:
+    enabled: true
+    proposer_order:
+      - gr.repair.from_gate_reasons
+      - gr.rule.atomic_safety
+      - gr.template.plan_library
+      - gr.explain.receipt_summarizer
+
+proposers:
+  gr.repair.from_gate_reasons:
+    module: npe.proposers.gr.repair_from_gate_reasons
+    entrypoint: propose
+    candidate_types: [repair]
+    max_outputs: 12
+    budgets:
+      max_wall_ms: 30
+
+  gr.rule.atomic_safety:
+    module: npe.proposers.gr.rule_atomic_safety
+    entrypoint: propose
+    candidate_types: [solver_config, repair]
+    max_outputs: 12
+    budgets:
+      max_wall_ms: 30
+
+  gr.template.plan_library:
+    module: npe.proposers.gr.template_plan_library
+    entrypoint: propose
+    candidate_types: [plan]
+    max_outputs: 16
+    budgets:
+      max_wall_ms: 40
+
+  gr.explain.receipt_summarizer:
+    module: npe.proposers.gr.explain_receipt_summarizer
+    entrypoint: propose
+    candidate_types: [explain]
+    max_outputs: 8
+    budgets:
+      max_wall_ms: 20
