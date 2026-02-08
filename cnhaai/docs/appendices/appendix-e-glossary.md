@@ -74,7 +74,7 @@
 
 ## N
 
-**NSC**: Network Structured Code - the intermediate representation layer.
+**NSC (Noetica Symbolic Code)**: A multi-model symbolic programming language family that unifies mathematics, physics, computation, and semantic reasoning under coherence governance. NSC is the execution substrate that lowers GHLL to executable form. NSC is NOT a Triaxis layer—rather, it serves as the lowering target from GHLL before GML receipt emission. Domain-specialized variants include NSC_NS (Network Systems), NSC_GR (General Relativity), NSC_YM (Yang-Mills), and NSC_Time (Temporal dynamics).
 
 ## P
 

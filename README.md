@@ -67,41 +67,60 @@ This single shift changes everything.
 
 ## High-Level Architecture
 
-CNSC-HAAI is composed of **strictly separated, load-bearing layers**, each enforcing a different class of coherence.
+CNSC-HAAI combines **Triaxis** (the three-layer abstraction hierarchy) with **NSC** (the execution substrate) and **CNHAAI** (the coherence kernel). Each component has a distinct role:
 
 ```
-┌──────────────────────────┐
-│        Interfaces        │  ← CLI / APIs / LLM proposal adapters
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│     GHLL (Meaning)       │  ← Typed grammar & semantic constraints
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│     NSC (Execution)      │  ← Constrained IR, VM, gates, rails
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│     GLLL (Integrity)     │  ← Reversible packetization & encoding
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│     GML (Forensics)      │  ← Trace, receipts, replay verification
-└──────────────────────────┘
+┌─────────────────────────────────────────────┐
+│              Interfaces                      │  ← CLI / APIs / LLM proposal adapters
+└─────────────────────┬───────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────┐
+│           Triaxis: GHLL (Meaning)            │  ← Typed grammar & semantic constraints
+│           Triaxis: GLLL (Integrity)          │  ← Reversible packetization & encoding
+│           Triaxis: GML (Forensics)           │  ← Trace, receipts, replay verification
+└─────────────────────┬───────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────┐
+│     NSC (Noetica Symbolic Code)              │  ← Execution substrate / IR / VM / gates / rails
+│     Executes GHLL → produces GML receipts    │
+└─────────────────────┬───────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────┐
+│          CNHAAI (Coherence Kernel)           │  ← Governance / coherence budgets / phased execution
+└─────────────────────────────────────────────┘
 ```
 
-### Kernel (CNHAAI)
+### Triaxis: The Three-Layer Abstraction Hierarchy
 
-At the foundation is a **coherence kernel**:
+**Triaxis** defines the canonical abstraction structure with exactly **3 layers**:
+
+| Layer | Purpose | Key Properties |
+|-------|---------|----------------|
+| **GML** (Global Meaning Layer) | Forensics, trace, receipts | Full execution history, replay verification |
+| **GHLL** (Global High-Level Language) | Meaning, typed grammar | Semantic constraints, rewrite rules |
+| **GLLL** (Global Low-Level Language) | Integrity, encoding | Reversible packetization, Hadamard basis |
+
+### NSC: The Execution Substrate
+
+**NSC (Noetica Symbolic Code)** is a **language family and execution substrate** that:
+
+- **Executes GHLL** programs by lowering them to constrained IR
+- **Manages the VM** with gates, rails, and bounded termination
+- **Emits GML receipts** for every state transition
+- **Is NOT a Triaxis layer** — it's the runtime that operates on Triaxis output
+
+NSC is the "engine" that makes Triaxis specifications executable while preserving coherence properties.
+
+### CNHAAI: The Coherence Kernel
+
+At the foundation is a **coherence kernel** (CNHAAI):
 
 * explicit state
 * phased execution
 * commitments
 * coherence budgets
 * receipt primitives
-
-This kernel is **language-agnostic** and **tokenless by design**.
+* **language-agnostic** and **LLM-tokenless by design** (the kernel operates on semantic units, not LLM tokens)
 
 ---
 
@@ -227,22 +246,18 @@ CNSC-HAAI decides.
 
 ---
 
-## Tokenless by Design
+## LLM-Tokenless by Design (Kernel Level)
 
-Internal cognition in CNSC-HAAI does **not require tokens**.
+At the **CNHAAI kernel level**, cognition is **LLM-tokenless by design**:
 
-Language is treated as:
+* The kernel operates on **semantic units** and **coherence states**, not LLM-generated tokens
+* Language is treated as an interface, projection, or view of internal state
+* This enables:
+  * Continuous reasoning across timescales
+  * Stability across long horizons
+  * Non-linguistic cognition
 
-* an interface
-* a projection
-* a view of internal state
-
-This enables:
-
-* continuous reasoning
-* multi-timescale memory
-* stability across long horizons
-* non-linguistic cognition
+> **Note:** The GHLL parser uses internal Token/SemanticUnit classes for lexical analysis of source code. This is a necessary interface for parsing text, but the CNHAAI kernel itself does not depend on or generate LLM tokens. The "tokenless" claim specifically refers to independence from LLM tokenization, not the absence of internal parsing structures.
 
 ---
 
@@ -277,13 +292,13 @@ CNSC-HAAI is an **early-stage research prototype**. The core architecture is imp
 * The system is **not yet hardened for production deployment**
 * Some components (NSC VM bytecode compiler) are incomplete
 
-### Implementation Status by Layer
+### Implementation Status by Component
 
-| Layer | Status | Notes |
-|-------|--------|-------|
-| **GHLL** (lexicon, parser, types) | ✅ Implemented | Core grammar and type system complete |
-| **GLLL** (codebook, hadamard, mapping, packetizer) | ✅ Implemented | Encoding/decoding pipeline functional |
-| **GML** (phaseloom, receipts, replay, trace) | ✅ Implemented | Functionally implemented; receipt signing uses prototype hardcoded keys (see Security) |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Triaxis: GHLL** (lexicon, parser, types) | ✅ Implemented | Core grammar and type system complete |
+| **Triaxis: GLLL** (codebook, hadamard, mapping, packetizer) | ✅ Implemented | Encoding/decoding pipeline functional |
+| **Triaxis: GML** (phaseloom, receipts, replay, trace) | ✅ Implemented | Functionally implemented; receipt signing uses prototype hardcoded keys (see Security) |
 | **NSC** (cfa, gates, ir, vm) | ✅ Implemented (caveat) | Implemented; VM currently missing `compile_to_bytecode` utility |
 | **CLI** | ❌ Partial | `trace`, `replay`, `verify`, `encode`, `decode` commands are stubs |
 
@@ -322,7 +337,7 @@ This repository contains **two parallel module structures**:
 
 | Path | Purpose | Status |
 |------|---------|--------|
-| `src/cnsc/haai/` | **Primary implementation** - CLI, layers (GHLL, GLLL, GML, NSC) | Active development |
+| `src/cnsc/haai/` | **Primary implementation** - CLI, Triaxis layers (GHLL, GLLL, GML), NSC execution | Active development |
 | `src/cnhaai/` | **Kernel documentation** - Coherence theory specs and documentation | Reference only |
 | `cnhaai/` | Standalone documentation project | Legacy |
 

@@ -1,11 +1,17 @@
 """
-GML (Governance Metadata Language) Module
+GML (Glyph Memory Language) Module
 
-This module provides:
-- Trace: Reasoning trace representation
-- PhaseLoom: PhaseLoom thread management
-- Receipts: Receipt chain management
-- Replay: Deterministic replay and verification
+GML is the Memory/Time axis of Triaxis — a declarative append-only language
+recording irreversible system evolution, including time, causality, coherence
+receipts, and outcomes.
+
+GML answers: "What *actually happened*, when, and why it was permitted?"
+
+This module provides traceability and forensics by recording what happened:
+- Trace: Reasoning trace representation and event recording
+- PhaseLoom: PhaseLoom thread management for temporal coupling
+- Receipts: Receipt chain management for causality and coherence verification
+- Replay: Deterministic replay and verification for audit purposes
 """
 
 from cnsc.haai.gml.trace import (
