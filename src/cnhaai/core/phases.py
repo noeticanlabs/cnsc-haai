@@ -157,13 +157,14 @@ class PhaseManager:
             )
         }
     
-    def start_phase(self, phase: Phase, metadata: Optional[Dict[str, Any]] = None) -> PhaseState:
+    def start_phase(self, phase: Phase, metadata: Optional[Dict[str, Any]] = None, steps_completed: int = 0) -> PhaseState:
         """
         Start a new phase.
         
         Args:
             phase: The phase to start
             metadata: Optional metadata for the phase
+            steps_completed: Steps completed from previous phase (for transition continuity)
             
         Returns:
             The new phase state
@@ -172,12 +173,25 @@ class PhaseManager:
         if self.current_state is not None:
             self.current_state.end_time = datetime.utcnow()
             self.phase_history.append(self.current_state)
+            # Call exit callbacks for current phase
+            self._call_callbacks(self.on_exit_callbacks.get(self.current_state.phase, []))
+            # Create a transition record for implicit phase change
+            transition = PhaseTransition(
+                from_phase=self.current_state.phase,
+                to_phase=phase,
+                reason="phase_started",
+                duration_ms=self.current_state.duration_ms(),
+                steps_completed=self.current_state.steps_completed,
+                metadata=metadata or {}
+            )
+            self.transitions.append(transition)
         
         # Create new state
         self.current_phase = phase
         self.current_state = PhaseState(
             phase=phase,
             start_time=datetime.utcnow(),
+            steps_completed=steps_completed,
             metadata=metadata or {}
         )
         
@@ -213,9 +227,6 @@ class PhaseManager:
             steps_completed=steps_completed
         )
         
-        # Call exit callbacks
-        self._call_callbacks(self.on_exit_callbacks.get(self.current_state.phase, []))
-        
         # End current state
         self.current_state.end_time = datetime.utcnow()
         self.phase_history.append(self.current_state)
@@ -248,8 +259,8 @@ class PhaseManager:
         # Complete current phase
         transition = self.complete_phase(reason, steps_completed)
         
-        # Start new phase
-        new_state = self.start_phase(phase, metadata)
+        # Start new phase, carrying over step count
+        new_state = self.start_phase(phase, metadata, steps_completed=steps_completed)
         
         # Update transition with target phase
         if transition:

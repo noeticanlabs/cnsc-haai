@@ -373,8 +373,66 @@ This repository is an attempt to build that answer—cleanly, rigorously, and wi
 ```bash
 pip install -e .
 pytest -q
-python -m cnsc.haai.cli.main --help
+python -m cnsc.haai --help
 ```
+
+---
+
+## Quick Start (One True Path)
+
+### Install
+```bash
+pip install -e .
+```
+
+### Run NPE server
+```bash
+python -m npe.api.server
+# or
+npe serve
+```
+
+### Run minimal CNSC-HAAI pipeline
+```bash
+python -m cnsc.haai --help
+```
+
+### Run tests
+```bash
+pytest -q
+```
+
+### Expected outputs
+
+#### Help output:
+```
+usage: cnsc-haai [-h] [--verbose] [--config FILE] {trace,replay,verify,encode,decode} ...
+
+CNSC-HAAI: Coherence-Native, Safety-Constrained Hybrid Artificial Intelligence
+
+positional arguments:
+  {trace,replay,verify,encode,decode}
+    trace               Trace an execution
+    replay              Replay a trace
+    verify              Verify a trace
+    encode              Encode input to GLLL
+    decode              Decode GLLL to output
+
+options:
+  -h, --help            show this help message and update_todo_list information
+  --verbose, -v         Enable verbose output
+  --config FILE, -c FILE
+                        Configuration file path
+```
+
+#### Test output:
+```
+============================= test session starts =============================
+...
+=============================  passed in 0.XX s ==============================
+```
+
+---
 
 A full "Hello Cognition" end-to-end demo is provided in the integration tests.
 

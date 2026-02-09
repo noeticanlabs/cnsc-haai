@@ -11,6 +11,7 @@ from .filters import (
     trust_scope_filter,
 )
 from .query import QueryBuilder, build_query
+from .index_build import IndexBuilder, load_index
 
 __all__ = [
     "CorpusStore",
@@ -26,4 +27,6 @@ __all__ = [
     "trust_scope_filter",
     "QueryBuilder",
     "build_query",
+    "IndexBuilder",
+    "load_index",
 ]

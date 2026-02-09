@@ -370,6 +370,56 @@ cnsc-haai gate validate gates.json
 
 ---
 
+### serve (NPE)
+
+Start the NPE (Neuro-Proposition Engine) HTTP service.
+
+```bash
+cnsc-haai serve [options]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--port` | Port to bind to (default: 8080) |
+| `--socket` | Unix socket path (optional, for socket mode) |
+| `--registry` | Path to registry manifest (optional) |
+| `--index` | Path to corpus index (optional) |
+
+**Examples:**
+
+```bash
+# Start on TCP port 8080
+cnsc-haai serve --port 8080
+
+# Start on Unix socket
+cnsc-haai serve --socket /tmp/npe.sock
+
+# With custom registry
+cnsc-haai serve --registry /path/to/manifest.yaml
+```
+
+**NPE Service Assets:**
+
+The NPE service uses assets from `npe_assets/`:
+- Codebooks: `npe_assets/codebooks/`
+- Corpus: `npe_assets/corpus/`
+- Receipts: `npe_assets/receipts/`
+
+Build corpus index:
+```bash
+npe build-index --corpus npe_assets/corpus --output npe_assets/index
+```
+
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/propose` | POST | Submit a proposal request |
+| `/repair` | POST | Submit a repair request |
+
+---
+
 ### version
 
 Show version information.

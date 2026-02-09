@@ -735,3 +735,8 @@ def create_vm(program: NSCProgram) -> VM:
     vm = VM(program)
     vm.load()
     return vm
+
+
+# Aliases for backward compatibility
+NSCVirtualMachine = VM
+compile_to_bytecode = BytecodeEmitter

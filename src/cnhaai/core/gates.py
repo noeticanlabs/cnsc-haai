@@ -485,8 +485,17 @@ class GateManager:
             
             type_name = result.gate_type.name
             if type_name not in summary["by_type"]:
-                summary["by_type"][type_name] = {"passed": 0, "failed": 0, "warnings": 0}
-            summary["by_type"][type_name][result.decision.name.lower()] += 1
+                summary["by_type"][type_name] = {"passed": 0, "failed": 0, "warnings": 0, "skipped": 0}
+            # Use full decision name for consistency
+            decision_key = result.decision.name.lower()
+            if decision_key == "pass":
+                summary["by_type"][type_name]["passed"] += 1
+            elif decision_key == "fail":
+                summary["by_type"][type_name]["failed"] += 1
+            elif decision_key == "warn":
+                summary["by_type"][type_name]["warnings"] += 1
+            elif decision_key == "skip":
+                summary["by_type"][type_name]["skipped"] += 1
         
         return summary
     

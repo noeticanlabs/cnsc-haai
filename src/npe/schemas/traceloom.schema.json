@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TraceLoom Thread Record",
+  "type": "object",
+  "required": ["thread_id", "events", "couplings"],
+  "properties": {
+    "thread_id": { "type": "string" },
+    "events": { "type": "array", "items": { "type": "object" } },
+    "couplings": { "type": "array", "items": { "type": "object" } }
+  }
+}

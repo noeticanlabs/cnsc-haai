@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GHLL Lexicon Entry",
+  "type": "object",
+  "required": ["token", "parse_form", "semantics", "receipt_signature"],
+  "properties": {
+    "token": { "type": "string" },
+    "parse_form": { "type": "string" },
+    "semantics": { "type": "object" },
+    "receipt_signature": { "type": "string" }
+  }
+}

@@ -31,6 +31,7 @@ from cnsc.haai.nsc.vm import (
     VMState,
     VMFrame,
     VMStack,
+    create_vm,
 )
 from cnsc.haai.nsc.gates import (
     GateType,

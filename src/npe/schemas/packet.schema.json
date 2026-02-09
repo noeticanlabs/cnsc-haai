@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NSC Packet",
+  "type": "object",
+  "required": ["header", "payload", "provenance", "receipt_policy"],
+  "properties": {
+    "header": { "type": "object" },
+    "payload": { "type": "object" },
+    "provenance": { "type": "object" },
+    "receipt_policy": { "type": "object" }
+  }
+}

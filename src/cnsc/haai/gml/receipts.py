@@ -387,6 +387,18 @@ class Receipt:
     npe_proposals: List[Dict[str, Any]] = field(default_factory=list)
     npe_provenance: Optional[Dict[str, Any]] = None
     
+    # Artifact hashes for replay safety (E1)
+    registry_hash: Optional[str] = None
+    corpus_snapshot_hash: Optional[str] = None
+    schema_bundle_hash: Optional[str] = None
+    
+    # Taint/provenance enforcement (E2)
+    # "observed", "inferred", "proposed", "external", "user_claim"
+    taint_class: str = "observed"
+    provenance_chain_id: Optional[str] = None
+    gate_approval_required: bool = False
+    gate_approved: bool = False
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         result = {
@@ -409,6 +421,22 @@ class Receipt:
             result["npe_proposals"] = self.npe_proposals
         if self.npe_provenance is not None:
             result["npe_provenance"] = self.npe_provenance
+        # Artifact hashes for replay safety (E1)
+        if self.registry_hash is not None:
+            result["registry_hash"] = self.registry_hash
+        if self.corpus_snapshot_hash is not None:
+            result["corpus_snapshot_hash"] = self.corpus_snapshot_hash
+        if self.schema_bundle_hash is not None:
+            result["schema_bundle_hash"] = self.schema_bundle_hash
+        # Taint/provenance enforcement (E2)
+        if self.taint_class != "observed":
+            result["taint_class"] = self.taint_class
+        if self.provenance_chain_id is not None:
+            result["provenance_chain_id"] = self.provenance_chain_id
+        if self.gate_approval_required:
+            result["gate_approval_required"] = True
+        if self.gate_approved:
+            result["gate_approved"] = True
         return result
     
     @classmethod
@@ -428,6 +456,15 @@ class Receipt:
             npe_response_status=data.get("npe_response_status"),
             npe_proposals=data.get("npe_proposals", []),
             npe_provenance=data.get("npe_provenance"),
+            # Artifact hashes for replay safety (E1)
+            registry_hash=data.get("registry_hash"),
+            corpus_snapshot_hash=data.get("corpus_snapshot_hash"),
+            schema_bundle_hash=data.get("schema_bundle_hash"),
+            # Taint/provenance enforcement (E2)
+            taint_class=data.get("taint_class", "observed"),
+            provenance_chain_id=data.get("provenance_chain_id"),
+            gate_approval_required=data.get("gate_approval_required", False),
+            gate_approved=data.get("gate_approved", False),
         )
     
     def compute_hash(self) -> str:
@@ -591,6 +628,119 @@ class Receipt:
             True if NPE data is present
         """
         return self.npe_request_id is not None or bool(self.npe_proposals)
+    
+    # -------------------------------------------------------------------------
+    # Taint/Provenance Enforcement (E2)
+    # -------------------------------------------------------------------------
+    
+    def set_taint_class(self, taint: str) -> None:
+        """
+        Set the taint class for this receipt.
+        
+        Args:
+            taint: Taint class ("observed", "inferred", "proposed", "external", "user_claim")
+        
+        Raises:
+            ValueError: If taint class is not recognized
+        """
+        valid_taints = {"observed", "inferred", "proposed", "external", "user_claim"}
+        if taint not in valid_taints:
+            raise ValueError(f"Invalid taint class: {taint}. Valid: {valid_taints}")
+        self.taint_class = taint
+    
+    def requires_gate_approval(self) -> bool:
+        """
+        Check if this receipt requires gate approval before mutating memory.
+        
+        Returns:
+            True if gate approval is required
+        """
+        return self.gate_approval_required
+    
+    def set_gate_approval(self, approved: bool) -> None:
+        """
+        Set gate approval status.
+        
+        Args:
+            approved: Whether gate approved this receipt
+        """
+        self.gate_approved = approved
+    
+    def can_mutate_memory(self) -> bool:
+        """
+        Check if this receipt can mutate memory.
+        Memory mutation requires: no taint, or gate approval.
+        
+        Returns:
+            True if memory mutation is allowed
+        """
+        # "observed" is the default (safe) taint class
+        # Other taint classes require gate approval
+        if self.taint_class == "observed":
+            return True
+        return self.gate_approved
+    
+    def set_provenance_chain(self, chain_id: str) -> None:
+        """
+        Set the provenance chain ID.
+        
+        Args:
+            chain_id: Unique provenance chain identifier
+        """
+        self.provenance_chain_id = chain_id
+    
+    def record_artifact_hashes(
+        self,
+        registry_hash: Optional[str] = None,
+        corpus_snapshot_hash: Optional[str] = None,
+        schema_bundle_hash: Optional[str] = None,
+    ) -> None:
+        """
+        Record artifact hashes for replay safety (E1).
+        
+        Args:
+            registry_hash: Hash of the registry manifest
+            corpus_snapshot_hash: Hash of the corpus snapshot
+            schema_bundle_hash: Hash of the schema bundle
+        """
+        if registry_hash:
+            self.registry_hash = registry_hash
+        if corpus_snapshot_hash:
+            self.corpus_snapshot_hash = corpus_snapshot_hash
+        if schema_bundle_hash:
+            self.schema_bundle_hash = schema_bundle_hash
+    
+    def verify_artifact_hashes(
+        self,
+        expected_registry_hash: Optional[str] = None,
+        expected_corpus_hash: Optional[str] = None,
+        expected_schema_hash: Optional[str] = None,
+    ) -> Tuple[bool, str]:
+        """
+        Verify artifact hashes match expected values.
+        Used for replay safety - fail-fast if hashes differ.
+        
+        Args:
+            expected_registry_hash: Expected registry hash
+            expected_corpus_hash: Expected corpus snapshot hash
+            expected_schema_hash: Expected schema bundle hash
+            
+        Returns:
+            Tuple of (match, message)
+        """
+        if expected_registry_hash and self.registry_hash:
+            if self.registry_hash != expected_registry_hash:
+                return False, f"Registry hash mismatch: expected {expected_registry_hash[:16]}..., got {self.registry_hash[:16]}..."
+        
+        if expected_corpus_hash and self.corpus_snapshot_hash:
+            if self.corpus_snapshot_hash != expected_corpus_hash:
+                return False, f"Corpus hash mismatch: expected {expected_corpus_hash[:16]}..., got {self.corpus_snapshot_hash[:16]}..."
+        
+        if expected_schema_hash and self.schema_bundle_hash:
+            if self.schema_bundle_hash != expected_schema_hash:
+                return False, f"Schema hash mismatch: expected {expected_schema_hash[:16]}..., got {self.schema_bundle_hash[:16]}..."
+        
+        return True, "All artifact hashes match"
 
 
 class NPEReceipt(Receipt):

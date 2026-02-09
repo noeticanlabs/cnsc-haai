@@ -140,11 +140,8 @@ class NPEServer:
         
         await self.site.start()
         
-        # Print binding info
-        if self.socket_path:
-            print(f"[NPE] Server started on unix://{self.socket_path}")
-        else:
-            print(f"[NPE] Server started on http://{self.host}:{self.port}")
+        # Print startup banner with artifact hashes
+        self._print_startup_banner()
         
         # Set up shutdown handler
         self._shutdown_event = asyncio.Event()
@@ -156,6 +153,55 @@ class NPEServer:
         
         # Wait for shutdown
         await self._shutdown_event.wait()
+    
+    def _print_startup_banner(self) -> None:
+        """Print startup banner with artifact hashes for replay safety."""
+        print("=" * 60)
+        print("NPE Service Starting")
+        print("=" * 60)
+        
+        # Get registry hash
+        from ..registry.loader import load_registry
+        try:
+            registry = load_registry(self.registry_path)
+            print(f"Registry: {registry.registry_name} v{registry.registry_version}")
+            print(f"Registry Hash: {registry.registry_hash}")
+        except Exception as e:
+            print(f"Registry: Failed to load ({e})")
+            print("Registry Hash: N/A")
+        
+        # Get corpus index hash
+        try:
+            if self.corpus_index_path and os.path.exists(self.corpus_index_path):
+                from ..retrieval.index_build import load_index
+                index = load_index(self.corpus_index_path)
+                corpus_hash = index.get("corpus_snapshot_hash", "N/A")
+                chunk_count = index.get("chunk_count", 0)
+                print(f"Corpus Index: {chunk_count} chunks")
+                print(f"Corpus Hash: {corpus_hash}")
+            else:
+                print("Corpus Index: Not configured")
+                print("Corpus Hash: N/A")
+        except Exception as e:
+            print(f"Corpus Index: Failed to load ({e})")
+            print("Corpus Hash: N/A")
+        
+        # Get schema bundle hash
+        try:
+            from ..schema import get_schema_bundle_hash
+            schema_hash = get_schema_bundle_hash()
+            print(f"Schema Bundle Hash: {schema_hash or 'N/A'}")
+        except Exception as e:
+            print(f"Schema Bundle Hash: Failed to compute ({e})")
+        
+        print("=" * 60)
+        
+        # Print binding info
+        if self.socket_path:
+            print(f"Server started on unix://{self.socket_path}")
+        else:
+            print(f"Server started on http://{self.host}:{self.port}")
+        print("=" * 60)
     
     def _signal_handler(self) -> None:
         """Handle shutdown signals."""

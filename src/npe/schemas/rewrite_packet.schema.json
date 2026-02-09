@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rewrite Packet",
+  "type": "object",
+  "required": ["operator", "guard", "subgraph", "receipt_policy", "cost"],
+  "properties": {
+    "operator": { "type": "string" },
+    "guard": { "type": "object" },
+    "subgraph": { "type": "object" },
+    "receipt_policy": { "type": "object" },
+    "reversibility": { "type": "string" },
+    "cost": { "type": "number" }
+  }
+}

@@ -120,13 +120,35 @@ class ProposerClient:
     def _get_schema_path(schema_name: str) -> str:
         """Get the path to a schema file.
         
+        Searches in the following order:
+        1. cnsc-haai repo root schemas/ directory
+        2. npe package schemas/ directory (for installed package)
+        
         Args:
             schema_name: Name of the schema file (e.g., "npe_request.schema.json")
             
         Returns:
             Absolute path to the schema file
         """
-        return str(Path(__file__).parent.parent.parent.parent / "schemas" / schema_name)
+        # First, try repo root schemas/ directory
+        # This file is at src/cnsc/haai/nsc/proposer_client.py
+        # parent.parent.parent = src/
+        # parent.parent.parent.parent = repo root
+        repo_root = Path(__file__).parent.parent.parent.parent
+        repo_schemas = repo_root / "schemas" / schema_name
+        if repo_schemas.exists():
+            return str(repo_schemas)
+        
+        # Fall back to npe package schemas/ directory (for installed package)
+        # Navigate from cnsc to npe: parent.parent.parent = src/cnsc/haai/
+        # parent.parent.parent.parent = src/
+        # We need to go up and into npe/schemas
+        npe_schemas = repo_root / "npe" / "schemas" / schema_name
+        if npe_schemas.exists():
+            return str(npe_schemas)
+        
+        # Return repo schemas path as default (will fail with FileNotFoundError)
+        return str(repo_schemas)
     
     @staticmethod
     def validate_schema(data: Dict[str, Any], schema_path: str) -> bool:

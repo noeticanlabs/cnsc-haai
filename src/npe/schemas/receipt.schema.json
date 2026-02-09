@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/receipt.schema.json",
+  "title": "CNHAAI Receipt Schema v1.0.0",
+  "description": "Unified receipt schema for the Coherence Framework. This is the canonical schema for all receipt types.",
+  "type": "object",
+  "required": ["version", "receipt_id", "timestamp", "content", "signature"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "Receipt schema version. Must be '1.0.0' for current implementation."
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "Unique 8-character hex identifier for this receipt."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of receipt creation in UTC."
+    },
+    "episode_id": {
+      "type": "string",
+      "description": "Optional identifier for the reasoning episode this receipt belongs to."
+    },
+    "content": {
+      "type": "object",
+      "required": ["step_type", "decision"],
+      "description": "Content of the receipt describing the reasoning step.",
+      "properties": {
+        "step_type": {
+          "type": "string",
+          "enum": [
+            "PARSE",
+            "TYPE_CHECK",
+            "GATE_EVAL",
+            "PHASE_TRANSITION",
+            "VM_EXECUTION",
+            "COHERENCE_CHECK",
+            "TRACE_EVENT",
+            "CHECKPOINT",
+            "REPLAY",
+            "CUSTOM"
+          ],
+          "description": "Type of step that generated this receipt."
+        },
+        "input_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the input state."
+        },
+        "output_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the output state."
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN", "SKIP", "PENDING"],
+          "description": "Decision made by the reasoning step."
+        },
+        "details": {
+          "type": "object",
+          "description": "Step-specific details and metadata."
+        },
+        "coherence_before": {
+          "type": "number",
+          "description": "Coherence score before the step (0.0 to 1.0)."
+        },
+        "coherence_after": {
+          "type": "number",
+          "description": "Coherence score after the step (0.0 to 1.0)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Provenance information for tracking the receipt's origin.",
+      "required": ["source"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source component that emitted this receipt."
+        },
+        "episode_id": {
+          "type": "string",
+          "description": "Episode identifier (deprecated, use top-level episode_id)."
+        },
+        "phase": {
+          "type": "string",
+          "description": "Execution phase when this receipt was created."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp (deprecated, use top-level timestamp)."
+        },
+        "span": {
+          "type": "object",
+          "description": "Provenance span information for tracing."
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature": {
+      "type": "object",
+      "description": "Cryptographic signature of the receipt content.",
+      "required": ["algorithm", "signer", "signature"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": ["HMAC-SHA256", "Ed25519", "ECDSA", "RSA"],
+          "description": "Signing algorithm used."
+        },
+        "signer": {
+          "type": "string",
+          "description": "Identifier of the signer (key ID or certificate ID)."
+        },
+        "signature": {
+          "type": "string",
+          "description": "Base64-encoded signature of the content hash."
+        }
+      },
+      "additionalProperties": false
+    },
+    "previous_receipt_id": {
+      "type": "string",
+      "description": "ID of the previous receipt in the chain."
+    },
+    "previous_receipt_hash": {
+      "type": "string",
+      "description": "Hash of the previous receipt in the chain."
+    },
+    "chain_hash": {
+      "type": "string",
+      "description": "Hash of this receipt in the chain context."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata for extensibility."
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "version": "1.0.0",
+      "receipt_id": "a1b2c3d4",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "episode_id": "e5f6g7h8",
+      "content": {
+        "step_type": "GATE_EVAL",
+        "input_hash": "sha256:abc123...",
+        "output_hash": "sha256:def456...",
+        "decision": "PASS",
+        "details": {
+          "gate_type": "evidence_sufficiency",
+          "threshold": 0.95,
+          "measured_value": 0.97
+        },
+        "coherence_before": 0.92,
+        "coherence_after": 0.94
+      },
+      "provenance": {
+        "source": "nsc-vm",
+        "phase": "execution",
+        "span": {
+          "start_line": 42,
+          "end_line": 45
+        }
+      },
+      "signature": {
+        "algorithm": "HMAC-SHA256",
+        "signer": "system-key-001",
+        "signature": "base64signature..."
+      },
+      "previous_receipt_id": "9i8j7k6l",
+      "previous_receipt_hash": "sha256:previous...",
+      "chain_hash": "sha256:current...",
+      "metadata": {}
+    }
+  ]
+}

@@ -305,6 +305,7 @@ class Candidate:
         scores: Scoring information
         suggested_gate_stack: Optional suggested gate stack
         proposer_meta: Metadata about proposer that generated this
+        taint_class: Taint classification for provenance enforcement (E2)
     """
     candidate_hash: str
     candidate_type: str
@@ -318,6 +319,9 @@ class Candidate:
     scores: Scores = field(default_factory=Scores)
     suggested_gate_stack: Optional[List[str]] = None
     proposer_meta: Optional[ProposerMeta] = None
+    # Taint class for provenance enforcement (E2)
+    # "observed", "inferred", "proposed", "external", "user_claim"
+    taint_class: str = "proposed"
 
 
 @dataclass
