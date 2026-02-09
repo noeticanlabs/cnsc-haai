@@ -1,0 +1,107 @@
+# Gate Repair Map
+# Maps gate failure types to repair strategies
+
+spec: NPE-REPAIR-MAP-1.0
+domain: gr
+version: 1
+
+failure_mappings:
+  # Affordability Failures
+  affordability_failure:
+    description: "Resource constraints exceeded"
+    strategies:
+      - adjust_parameters
+      - relax_constraints
+      - defer_operation
+    priority_order: [adjust_parameters, relax_constraints, defer_operation]
+
+  cpu_budget_exceeded:
+    description: "Computation time exceeded allocation"
+    strategies:
+      - optimize_algorithm
+      - reduce_iterations
+      - cache_intermediate
+    priority_order: [optimize_algorithm, reduce_iterations, cache_intermediate]
+
+  memory_limit_exceeded:
+    description: "Memory usage exceeded allocation"
+    strategies:
+      - stream_data
+      - reduce_batch_size
+      - offload_to_disk
+    priority_order: [stream_data, reduce_batch_size, offload_to_disk]
+
+  token_budget_exceeded:
+    description: "Output tokens exceeded allocation"
+    strategies:
+      - summarize_output
+      - truncate_response
+      - request_user_approval
+    priority_order: [summarize_output, truncate_response, request_user_approval]
+
+  # Coherence Failures
+  coherence_failure:
+    description: "Internal consistency violated"
+    strategies:
+      - resolve_conflict
+      - rollback_to_consistent
+      - request_clarification
+    priority_order: [resolve_conflict, rollback_to_consistent, request_clarification]
+
+  type_mismatch:
+    description: "Output type incompatible with expected"
+    strategies:
+      - cast_type
+      - restructure_output
+      - add_conversion_layer
+    priority_order: [cast_type, restructure_output, add_conversion_layer]
+
+  consistency_violation:
+    description: "Contradicts established facts"
+    strategies:
+      - reconcile_facts
+      - prefer_newer
+      - flag_for_review
+    priority_order: [reconcile_facts, prefer_newer, flag_for_review]
+
+  cycle_detected:
+    description: "Circular dependency found"
+    strategies:
+      - break_cycle
+      - restructure_graph
+      - use_lazy_evaluation
+    priority_order: [break_cycle, restructure_graph, use_lazy_evaluation]
+
+  # Security Failures
+  security_failure:
+    description: "Safety boundary violated"
+    strategies:
+      - sanitize_input
+      - escalate_to_human
+      - terminate_operation
+    priority_order: [sanitize_input, escalate_to_human, terminate_operation]
+
+  taint_detection:
+    description: "Forbidden content pattern detected"
+    strategies:
+      - redact_content
+      - block_operation
+      - log_security_event
+    priority_order: [redact_content, block_operation, log_security_event]
+
+  boundary_violation:
+    description: "Attempted access outside permitted scope"
+    strategies:
+      - restrict_scope
+      - require_authorization
+      - redirect_to_authorized
+    priority_order: [restrict_scope, require_authorization, redirect_to_authorized]
+
+  # Unknown Failures
+  unknown_failure:
+    description: "Unclassified failure type"
+    strategies:
+      - collect_diagnostics
+      - escalate_to_human
+      - safe_default
+    priority_order: [collect_diagnostics, escalate_to_human, safe_default]

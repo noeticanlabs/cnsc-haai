@@ -8,6 +8,8 @@ This module provides:
 - ThreadCoupling: Thread relationships
 - CouplingPolicy: Coupling rules
 - ThreadState: Thread state tracking
+
+Dual-write support for GraphGML output is included.
 """
 
 from enum import Enum, auto
@@ -15,6 +17,13 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Callable, Tuple
 from datetime import datetime
 from uuid import uuid4
+
+# GraphGML import with graceful fallback
+try:
+    from cnsc.haai.graphgml import types, builder, core
+    GRAPHGML_AVAILABLE = True
+except ImportError:
+    GRAPHGML_AVAILABLE = False
 
 
 class ThreadState(Enum):
@@ -166,11 +175,45 @@ class ThreadCoupling:
 
 
 @dataclass
+class GateStackRun:
+    """
+    Gate Stack Run.
+    
+    Represents execution of a gate stack within a thread.
+    """
+    run_id: str
+    gate_sequence: List[str] = field(default_factory=list)
+    results: List[Dict[str, Any]] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "run_id": self.run_id,
+            "gate_sequence": self.gate_sequence,
+            "results": self.results,
+            "created_at": self.created_at.isoformat(),
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'GateStackRun':
+        """Create from dictionary."""
+        return cls(
+            run_id=data["run_id"],
+            gate_sequence=data.get("gate_sequence", []),
+            results=data.get("results", []),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
+        )
+
+
+@dataclass
 class PhaseLoom:
     """
     PhaseLoom.
     
     Thread container with coupling management.
+    
+    Dual-write support for GraphGML is included via to_graph() method.
     """
     loom_id: str
     name: str
@@ -329,6 +372,86 @@ class PhaseLoom:
             created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
             is_active=data.get("is_active", True),
         )
+    
+    # GraphGML Methods
+    def to_graph(self) -> Optional[core.GraphGML]:
+        """
+        Convert entire PhaseLoom to single GraphGML.
+        
+        Returns:
+            GraphGML representation or None if GraphGML unavailable.
+        """
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        combined = core.GraphGML()
+        
+        for thread_id, thread in self.threads.items():
+            thread_graph = thread.to_graph()
+            if thread_graph:
+                # Prefix node IDs to avoid collisions (only if not already prefixed)
+                for node_id, node in thread_graph.nodes.items():
+                    # Check if node_id already starts with thread_id
+                    if node_id.startswith(f"{thread_id}_"):
+                        prefixed_id = node_id
+                    else:
+                        prefixed_id = f"{thread_id}_{node_id}"
+                    
+                    # Only add if not already present
+                    if prefixed_id not in combined.nodes:
+                        node.node_id = prefixed_id
+                        if hasattr(node, 'properties') and 'node_id' in node.properties:
+                            node.properties['thread_id'] = thread_id
+                        combined.add_node(node)
+                
+                # Remap edges with prefixed IDs
+                for edge in thread_graph.edges:
+                    # Get source and target, prefix if needed
+                    source = edge[0]
+                    target = edge[2]
+                    
+                    if source.startswith(f"{thread_id}_"):
+                        prefixed_source = source
+                    else:
+                        prefixed_source = f"{thread_id}_{source}"
+                    
+                    if target.startswith(f"{thread_id}_"):
+                        prefixed_target = target
+                    else:
+                        prefixed_target = f"{thread_id}_{target}"
+                    
+                    # Only add edge if both nodes exist
+                    if prefixed_source in combined.nodes and prefixed_target in combined.nodes:
+                        combined.add_edge(prefixed_source, edge[1], prefixed_target)
+        
+        # Add coupling nodes and edges
+        for coupling_id, coupling in self.couplings.items():
+            coupling_node = types.GraphNode(
+                node_id=f"coupling_{coupling_id}",
+                node_type="thread_coupling",
+                properties={
+                    "coupling_id": coupling.coupling_id,
+                    "from_thread": coupling.from_thread,
+                    "to_thread": coupling.to_thread,
+                    "coupling_type": coupling.coupling_type,
+                    "strength": coupling.strength,
+                }
+            )
+            combined.add_node(coupling_node)
+            
+            # Add edges for coupling relationships
+            combined.add_edge(
+                f"{coupling.from_thread}_thread",
+                "has_coupling",
+                coupling_node.node_id
+            )
+            combined.add_edge(
+                coupling_node.node_id,
+                "couples_to",
+                f"{coupling.to_thread}_thread"
+            )
+        
+        return combined
 
 
 @dataclass
@@ -337,6 +460,8 @@ class PhaseLoomThread:
     PhaseLoom Thread.
     
     Individual thread within a PhaseLoom.
+    
+    Dual-write support for GraphGML is included via to_graph() method.
     """
     thread_id: str
     name: str
@@ -364,6 +489,11 @@ class PhaseLoomThread:
     
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    # GraphGML optional fields (populated during graph conversion)
+    events: List[Dict[str, Any]] = field(default_factory=list)
+    receipts: Dict[str, List[Any]] = field(default_factory=dict)
+    gate_runs: List[GateStackRun] = field(default_factory=list)
     
     # Properties
     @property
@@ -437,6 +567,224 @@ class PhaseLoomThread:
             completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None,
             metadata=data.get("metadata", {}),
         )
+    
+    # GraphGML Methods
+    def to_graph(self) -> Optional[core.GraphGML]:
+        """
+        Convert PhaseLoomThread to GraphGML representation.
+        
+        Returns:
+            GraphGML representation or None if GraphGML unavailable.
+        """
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        graph = core.GraphGML()
+        
+        # Create thread node using GraphNode base class
+        thread_node = types.GraphNode(
+            node_id=f"{self.thread_id}_thread",
+            node_type="thread",
+            properties={
+                "thread_id": self.thread_id,
+                "name": self.name,
+                "loom_id": self.loom_id,
+                "state": self.state.to_string(),
+                "coherence_level": self.coherence_level,
+                "progress": self.progress,
+            }
+        )
+        graph.add_node(thread_node)
+        
+        # Process events and create state nodes
+        for idx, event in enumerate(self.events):
+            event_id = event.get("event_id", f"{self.thread_id}_event_{idx}")
+            state_node = types.StateNode(
+                state_id=f"state_{event_id}",
+                state_type=event.get("event_type", "unknown"),
+                properties={
+                    "event_id": event_id,
+                    "event_type": event.get("event_type"),
+                    "timestamp": event.get("timestamp"),
+                }
+            )
+            graph.add_node(state_node)
+            
+            # Link to thread
+            graph.add_edge(thread_node.node_id, "contains", state_node.node_id)
+            
+            # Link consecutive events
+            if idx > 0:
+                prev_event_id = self.events[idx - 1].get("event_id", f"{self.thread_id}_event_{idx - 1}")
+                graph.add_edge(
+                    f"state_{prev_event_id}",
+                    "scheduled_after",
+                    state_node.node_id
+                )
+        
+        # Process receipts and create commit/proof nodes
+        for receipt_id, receipt_list in self.receipts.items():
+            for receipt in receipt_list:
+                # Create commit node from receipt
+                commit_node = types.CommitNode(
+                    commit_id=f"commit_{receipt_id}",
+                    operation=receipt.get("operation", "unknown"),
+                    properties={
+                        "receipt_id": receipt_id,
+                        "operation": receipt.get("operation"),
+                        "timestamp": receipt.get("timestamp"),
+                    }
+                )
+                graph.add_node(commit_node)
+                
+                # Link to thread
+                graph.add_edge(thread_node.node_id, "produces", commit_node.node_id)
+                
+                # Link to previous receipt if exists
+                prev_receipt_id = receipt.get("previous_receipt_id")
+                if prev_receipt_id:
+                    graph.add_edge(
+                        f"commit_{prev_receipt_id}",
+                        "requires_proof",
+                        commit_node.node_id
+                    )
+        
+        # Process gate runs and create GateResult nodes
+        for gate_run in self.gate_runs:
+            gate_node = types.GateStackRunNode(
+                run_id=f"gatestack_{gate_run.run_id}",
+                gate_sequence=gate_run.gate_sequence,
+                properties={
+                    "run_id": gate_run.run_id,
+                    "gate_sequence": gate_run.gate_sequence,
+                }
+            )
+            graph.add_node(gate_node)
+            graph.add_edge(thread_node.node_id, "executes", gate_node.node_id)
+            
+            for idx, result in enumerate(gate_run.results):
+                result_id = result.get("result_id", f"{gate_run.run_id}_result_{idx}")
+                result_node = types.GateResultNode(
+                    result_id=f"gate_result_{result_id}",
+                    gate_type=result.get("gate_type", "unknown"),
+                    passed=result.get("passed", False),
+                    properties={
+                        "result_id": result_id,
+                        "gate_type": result.get("gate_type"),
+                        "passed": result.get("passed"),
+                        "details": result.get("details", {}),
+                    }
+                )
+                graph.add_node(result_node)
+                graph.add_edge(gate_node.node_id, "summarizes", result_node.node_id)
+        
+        # Add dependency edges
+        for dep_id in self.depends_on:
+            dep_node_id = f"{dep_id}_thread"
+            if dep_node_id in graph.nodes or self._node_exists_in_graph(graph, dep_node_id):
+                graph.add_edge(dep_node_id, "prerequisite_for", thread_node.node_id)
+        
+        return graph
+    
+    def _node_exists_in_graph(self, graph: core.GraphGML, node_id: str) -> bool:
+        """Check if a node exists in the graph (helper for to_graph)."""
+        return node_id in graph.nodes
+    
+    def generate_full_graph(self) -> Optional[core.GraphGML]:
+        """
+        Generate complete GraphGML including all dependencies.
+        
+        Returns:
+            GraphGML representation or None if GraphGML unavailable.
+        """
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        return self.to_graph()
+    
+    def query_causal_path(
+        self,
+        start_event_id: str,
+        end_event_id: str
+    ) -> Optional[List[str]]:
+        """
+        Find causal path between two events using graph traversal.
+        
+        Args:
+            start_event_id: Starting event ID
+            end_event_id: Ending event ID
+            
+        Returns:
+            List of node IDs in path, or None if GraphGML unavailable.
+        """
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        graph = self.to_graph()
+        if not graph:
+            return None
+        
+        start_node = f"state_{start_event_id}"
+        end_node = f"state_{end_event_id}"
+        
+        # Simple BFS traversal for path finding
+        if start_node not in graph.nodes or end_node not in graph.nodes:
+            return None
+        
+        edge_types = ["scheduled_after", "proposed_from", "evaluates"]
+        queue = [(start_node, [start_node])]
+        visited = {start_node}
+        
+        while queue:
+            current, path = queue.pop(0)
+            
+            if current == end_node:
+                return path
+            
+            # Get neighbors via valid edge types
+            adjacency = graph._build_adjacency()
+            for edge_type in edge_types:
+                for neighbor in adjacency[current].get(edge_type, []):
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append((neighbor, path + [neighbor]))
+        
+        return None
+    
+    def find_gate_dependencies(self, gate_run_id: str) -> List[str]:
+        """
+        Find all events/nodes that a gate run depends on.
+        
+        Args:
+            gate_run_id: ID of the gate run to find dependencies for
+            
+        Returns:
+            List of node IDs that the gate run depends on.
+        """
+        if not GRAPHGML_AVAILABLE:
+            return []
+        
+        graph = self.to_graph()
+        if not graph:
+            return []
+        
+        results = []
+        start_node = f"gatestack_{gate_run_id}"
+        
+        if start_node not in graph.nodes:
+            return []
+        
+        # Get all nodes that have edges to the gate run
+        adjacency = graph._build_adjacency()
+        for edge_type, targets in adjacency.items():
+            if start_node in targets:
+                results.append(edge_type)
+        
+        # Also get nodes the gate run links to
+        for neighbor in graph.get_neighbors(start_node):
+            results.append(neighbor.node_id)
+        
+        return results
 
 
 def create_phase_loom(name: str, loom_id: Optional[str] = None) -> PhaseLoom:

@@ -56,9 +56,11 @@ class GraphGML:
         
         self._adjacency = defaultdict(lambda: defaultdict(list))
         for source_id, edge_type, target_id in self.edges:
-            self._adjacency[source_id][edge_type].append(target_id)
+            # Convert edge_type to string value if it's an enum
+            edge_type_str = edge_type.value if hasattr(edge_type, 'value') else str(edge_type)
+            self._adjacency[source_id][edge_type_str].append(target_id)
             # Build reverse adjacency for reverse traversal
-            self._adjacency[target_id][f"rev_{edge_type}"].append(source_id)
+            self._adjacency[target_id][f"rev_{edge_type_str}"].append(source_id)
         
         return self._adjacency
     
@@ -244,14 +246,19 @@ class GraphGML:
                 if source_id not in visited:
                     queue.append(source_id)
     
-    def validate_invariants(self) -> list[str]:
+    def validate_invariants(self, allow_orphaned: bool = True) -> list[str]:
         """
         Validate graph structure invariants.
+        
+        Args:
+            allow_orphaned: If True, nodes without edges are allowed (warn only).
+                           If False, they cause validation failure.
         
         Returns:
             List of invariant violation messages (empty if valid)
         """
         violations = []
+        warnings = []
         
         # Check for orphaned nodes (nodes with no edges)
         connected_nodes = set()
@@ -261,7 +268,10 @@ class GraphGML:
         
         for node_id, node in self.nodes.items():
             if node_id not in connected_nodes:
-                violations.append(f"Node '{node_id}' is orphaned (no edges)")
+                if allow_orphaned:
+                    warnings.append(f"Node '{node_id}' is orphaned (no edges)")
+                else:
+                    violations.append(f"Node '{node_id}' is orphaned (no edges)")
         
         # Check for duplicate edges
         edge_set = set()

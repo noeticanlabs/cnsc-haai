@@ -1,0 +1,153 @@
+# Plan Templates Library
+# Templates for common repair and planning scenarios
+
+spec: NPE-PLAN-TEMPLATES-1.0
+domain: gr
+version: 1
+
+templates:
+  # Resource Optimization Template
+  - template_id: optimize_resources
+    name: "Resource Optimization Plan"
+    description: "Optimize resource usage when limits are exceeded"
+    goal_types: [affordability_repair]
+    parameters:
+      resource_type: "${resource_type}"
+      target_reduction: "${target_reduction}"
+    steps:
+      - step_id: analyze_consumption
+        action: "analyze_resource_consumption"
+        description: "Analyze current resource consumption pattern"
+        parameters:
+          resource_type: "${resource_type}"
+      - step_id: identify_optimization_points
+        action: "identify_optimization_points"
+        description: "Find opportunities for resource reduction"
+        parameters:
+          resource_type: "${resource_type}"
+      - step_id: apply_optimization
+        action: "apply_optimization"
+        description: "Apply chosen optimization strategy"
+        parameters:
+          strategy: "${optimization_strategy}"
+      - step_id: verify_constraints
+        action: "verify_constraints"
+        description: "Verify all gates now pass"
+        parameters: {}
+
+  # Coherence Recovery Template
+  - template_id: recover_coherence
+    name: "Coherence Recovery Plan"
+    description: "Restore consistency when coherence violations occur"
+    goal_types: [coherence_repair]
+    parameters:
+      violation_type: "${violation_type}"
+      conflicting_elements: "${conflicting_elements}"
+    steps:
+      - step_id: identify_conflict
+        action: "identify_conflict_sources"
+        description: "Identify source of inconsistency"
+        parameters:
+          violation_type: "${violation_type}"
+      - step_id: evaluate_resolutions
+        action: "evaluate_resolution_options"
+        description: "Generate possible resolution strategies"
+        parameters: {}
+      - step_id: apply_resolution
+        action: "apply_resolution"
+        description: "Apply chosen resolution"
+        parameters:
+          resolution_type: "${resolution_type}"
+      - step_id: verify_coherence
+        action: "verify_coherence"
+        description: "Confirm coherence restored"
+        parameters: {}
+
+  # Alternative Path Template
+  - template_id: find_alternative_path
+    name: "Alternative Path Plan"
+    description: "Find alternative execution path when direct path fails"
+    goal_types: [path_repair]
+    parameters:
+      failed_operation: "${failed_operation}"
+      failure_reason: "${failure_reason}"
+    steps:
+      - step_id: analyze_failure
+        action: "analyze_failure_context"
+        description: "Understand why direct path failed"
+        parameters:
+          failure_reason: "${failure_reason}"
+      - step_id: search_alternatives
+        action: "search_alternative_paths"
+        description: "Find alternative execution approaches"
+        parameters:
+          constraint_set: "${constraints}"
+      - step_id: validate_alternative
+        action: "validate_path"
+        description: "Verify alternative meets all requirements"
+        parameters: {}
+      - step_id: execute_alternative
+        action: "execute_path"
+        description: "Execute the alternative path"
+        parameters:
+          path_id: "${alternative_path_id}"
+
+  # Gate Policy Update Template
+  - template_id: update_gate_policy
+    name: "Gate Policy Update Plan"
+    description: "Update gate policy when constraints are too restrictive"
+    goal_types: [policy_repair]
+    parameters:
+      gate_type: "${gate_type}"
+      current_limit: "${current_limit}"
+      proposed_limit: "${proposed_limit}"
+    steps:
+      - step_id: document_issue
+        action: "document_policy_issue"
+        description: "Document why current policy is insufficient"
+        parameters:
+          gate_type: "${gate_type}"
+      - step_id: propose_update
+        action: "propose_policy_update"
+        description: "Generate policy update proposal"
+        parameters:
+          current_limit: "${current_limit}"
+          proposed_limit: "${proposed_limit}"
+      - step_id: validate_safety
+        action: "validate_safety_bounds"
+        description: "Ensure update maintains safety guarantees"
+        parameters: {}
+      - step_id: submit_for_review
+        action: "submit_policy_change"
+        description: "Submit update for approval process"
+        parameters: {}
+
+  # Safe Retry Template
+  - template_id: safe_retry
+    name: "Safe Retry Plan"
+    description: "Retry operation with adjusted parameters after failure"
+    goal_types: [retry_repair]
+    parameters:
+      operation: "${operation}"
+      original_parameters: "${original_parameters}"
+      failure_count: "${failure_count}"
+    steps:
+      - step_id: calculate_backoff
+        action: "calculate_backoff"
+        description: "Calculate retry delay and parameter adjustments"
+        parameters:
+          failure_count: "${failure_count}"
+      - step_id: apply_adjustments
+        action: "apply_parameters"
+        description: "Apply adjusted parameters"
+        parameters:
+          adjustments: "${parameter_adjustments}"
+      - step_id: execute_retry
+        action: "execute_operation"
+        description: "Retry the operation"
+        parameters:
+          operation: "${operation}"
+      - step_id: verify_success
+        action: "verify_success"
+        description: "Confirm operation succeeded"
+        parameters: {}

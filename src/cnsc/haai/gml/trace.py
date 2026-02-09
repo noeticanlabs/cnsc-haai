@@ -17,6 +17,13 @@ from typing import Any, Dict, List, Optional, Callable, Tuple
 from datetime import datetime
 from uuid import uuid4
 
+# GraphGML import for dual-write support (graceful degradation)
+try:
+    from cnsc.haai.graphgml import types, builder, core
+    GRAPHGML_AVAILABLE = True
+except ImportError:
+    GRAPHGML_AVAILABLE = False
+
 
 class TraceLevel(Enum):
     """Trace event severity levels."""
@@ -69,6 +76,27 @@ class TraceEvent:
     # Coherence
     coherence_before: Optional[float] = None
     coherence_after: Optional[float] = None
+    
+    # GraphGML integration (optional)
+    graph_node_id: Optional[str] = None
+    
+    def to_graph_node(self) -> Optional['types.StateNode']:
+        """Convert TraceEvent to GraphGML StateNode."""
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        return types.StateNode(
+            state_id=self.graph_node_id or f"state_{self.event_id}",
+            state_type=self.event_type,
+            properties={
+                "event_id": self.event_id,
+                "timestamp": self.timestamp.isoformat(),
+                "level": self.level.to_string(),
+                "message": self.message,
+                "details": self.details
+            },
+            metadata={"source": "trace_event"}
+        )
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -211,6 +239,35 @@ class TraceThread:
             is_active=data.get("is_active", True),
             is_complete=data.get("is_complete", False),
         )
+    
+    def to_graph(self) -> Optional['core.GraphGML']:
+        """Convert TraceThread to GraphGML representation."""
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        graph = core.GraphGML()
+        prev_event_id = None
+        
+        for event in self.events:
+            # Add state node
+            node = event.to_graph_node()
+            if node:
+                graph.add_node(node)
+                event.graph_node_id = node.node_id
+            
+            # Add scheduled_after edge if there's a previous event
+            if prev_event_id and node:
+                graph.add_edge(prev_event_id, "scheduled_after", node.node_id)
+            
+            prev_event_id = node.node_id if node else f"state_{event.event_id}"
+        
+        return graph
+    
+    def generate_graph_and_save(self, output_path: str) -> None:
+        """Generate GraphGML and save to file."""
+        graph = self.to_graph()
+        if graph:
+            graph.save(output_path)
 
 
 @dataclass
@@ -434,3 +491,37 @@ class TraceManager:
 def create_trace_manager(name: str = "Trace Manager") -> TraceManager:
     """Create new trace manager."""
     return TraceManager(name=name)
+
+
+class TraceDualWrite:
+    """Context manager for dual-write trace + graph output."""
+    
+    def __init__(self, trace_path: str, graph_path: Optional[str] = None):
+        self.trace_path = trace_path
+        self.graph_path = graph_path
+        self.thread = TraceThread(thread_id="dual_write", name="Dual Write Thread")
+    
+    def __enter__(self) -> 'TraceDualWrite':
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        # Save trace in existing format
+        self._save_trace(self.trace_path)
+        
+        # Save graph if path specified
+        if self.graph_path and GRAPHGML_AVAILABLE:
+            graph = self.thread.to_graph()
+            if graph:
+                graph.save(self.graph_path)
+        
+        return False
+    
+    def add_event(self, event: TraceEvent) -> None:
+        """Add event to both trace and graph."""
+        self.thread.events.append(event)
+    
+    def _save_trace(self, path: str) -> None:
+        """Save trace to file."""
+        import json
+        with open(path, 'w') as f:
+            json.dump(self.thread.to_dict(), f, indent=2)

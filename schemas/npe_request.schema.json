@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/npe_request.schema.json",
+  "title": "NPE Request Schema v1.0.0",
+  "description": "JSON schema for NPE (Noetican Proposal Engine) request wire protocol. Defines the envelope structure for requests to the NPE service.",
+  "type": "object",
+  "required": ["spec_version", "request_id", "timestamp", "domain", "candidate_type", "budget"],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "NPE request schema version. Must be '1.0.0' for current implementation."
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash (64 hex characters) uniquely identifying this request."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of request creation in UTC."
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["gr", "default"],
+      "description": "Domain/proposer type for the request. 'gr' for gate reasoner, 'default' for standard proposals."
+    },
+    "candidate_type": {
+      "type": "string",
+      "enum": ["proposal", "repair", "explanation"],
+      "description": "Type of candidate being requested."
+    },
+    "context": {
+      "type": "object",
+      "description": "Flexible dictionary for domain-specific context data. Contents are determined by the candidate_type and domain.",
+      "additionalProperties": true
+    },
+    "budget": {
+      "type": "object",
+      "description": "Budget constraints for the NPE execution.",
+      "required": ["max_wall_ms", "max_candidates", "max_input_tokens", "max_output_tokens"],
+      "properties": {
+        "max_wall_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300000,
+          "description": "Maximum wall-clock time in milliseconds for request execution."
+        },
+        "max_candidates": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Maximum number of candidate proposals to generate."
+        },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000,
+          "description": "Maximum number of input tokens to process."
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "description": "Maximum number of output tokens to generate."
+        }
+      },
+      "additionalProperties": false
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optional seed for deterministic random generation. Omit or use 0 for random seed."
+    },
+    "determinism_tier": {
+      "type": "string",
+      "enum": ["d0", "d1", "d2"],
+      "default": "d0",
+      "description": "Determinism tier level. 'd0' = best effort, 'd1' = reproducible, 'd2' = deterministic."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata for additional request context or tracking."
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "spec_version": "1.0.0",
+      "request_id": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "domain": "gr",
+      "candidate_type": "proposal",
+      "context": {
+        "goal": "improve_coherence",
+        "current_state": "phase_loom_receipt_chain",
+        "target_threshold": 0.95
+      },
+      "budget": {
+        "max_wall_ms": 5000,
+        "max_candidates": 16,
+        "max_input_tokens": 10000,
+        "max_output_tokens": 4000
+      },
+      "seed": 42,
+      "determinism_tier": "d0"
+    },
+    {
+      "spec_version": "1.0.0",
+      "request_id": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+      "timestamp": "2024-01-15T10:35:00Z",
+      "domain": "gr",
+      "candidate_type": "repair",
+      "context": {
+        "failing_gates": ["coherence_check"],
+        "proof_hash": "sha256:abc123...",
+        "gate_stack_id": "gs_001"
+      },
+      "budget": {
+        "max_wall_ms": 10000,
+        "max_candidates": 8,
+        "max_input_tokens": 20000,
+        "max_output_tokens": 8000
+      }
+    }
+  ]
+}

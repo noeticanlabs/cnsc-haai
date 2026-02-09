@@ -20,6 +20,9 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 from datetime import datetime
 
+from cnsc.haai.nsc.proposer_client import ProposerClient
+from cnsc.haai.nsc.proposer_client_errors import ProposerClientError
+
 
 class GateType(Enum):
     """Types of gates."""
@@ -216,12 +219,40 @@ class Gate(ABC):
         gate_type: GateType,
         conditions: Optional[List[GateCondition]] = None,
         is_required: bool = True,
+        proposer_client: Optional[ProposerClient] = None,
     ):
         self.gate_id = gate_id
         self.name = name
         self.gate_type = gate_type
         self.conditions = conditions or []
         self.is_required = is_required
+        self.proposer_client = proposer_client
+    
+    def request_repair(self, gate_name: str, failure_reasons: list) -> list:
+        """
+        Request repair proposals from NPE for a failed gate.
+        
+        Args:
+            gate_name: Name of the gate that failed
+            failure_reasons: List of reasons for the failure
+            
+        Returns:
+            List of repair proposals
+        """
+        if not self.proposer_client:
+            return []
+        
+        try:
+            response = self.proposer_client.repair(
+                gate_name=gate_name,
+                failure_reasons=failure_reasons,
+                context={},
+            )
+            return response.get("proposals", [])
+        except ProposerClientError:
+            return []
+        except Exception:
+            return []
     
     @abstractmethod
     def evaluate(self, context: Dict[str, Any]) -> GateResult:

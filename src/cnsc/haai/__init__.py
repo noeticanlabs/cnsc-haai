@@ -14,6 +14,7 @@ __author__ = "CNHAAI Team"
 from cnsc.haai import ghll
 from cnsc.haai import glll
 from cnsc.haai import nsc
-from cnsc.haai import gml
+# Temporarily disabled due to dataclass bug in receipts.py
+# from cnsc.haai import gml
 
-__all__ = ["ghll", "glll", "nsc", "gml", "__version__"]
+__all__ = ["ghll", "glll", "nsc", "__version__"]

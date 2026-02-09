@@ -1,0 +1,137 @@
+# Rulepacks - Atomic Safety Rules
+# Safety rules that must always be satisfied
+
+spec: NPE-RULEPACKS-1.0
+domain: gr
+version: 1
+
+rulepacks:
+  # Core Safety Rules
+  core_safety:
+    name: "Core Safety Rules"
+    description: "Fundamental safety rules that cannot be violated"
+    rules:
+      - rule_id: CORE-001
+        name: "No Resource Overrun"
+        description: "Operations must not exceed allocated resource budgets"
+        severity: fatal
+        condition: "operation.resource_usage <= operation.resource_limit"
+        action: "terminate_with_error"
+        
+      - rule_id: CORE-002
+        name: "No Tainted Input"
+        description: "Input containing taint patterns must be rejected"
+        severity: fatal
+        condition: "not input.has_taint_patterns"
+        action: "block_and_log"
+        
+      - rule_id: CORE-003
+        name: "Type Safety"
+        description: "All operations must maintain type safety"
+        severity: fatal
+        condition: "output.type == expected.type or type_castable(output.type, expected.type)"
+        action: "type_error"
+        
+      - rule_id: CORE-004
+        name: "No Cycle Creation"
+        description: "Operations must not create circular dependencies"
+        severity: fatal
+        condition: "not creates_cycle(graph)"
+        action: "reject_with_cycle_warning"
+
+  # Coherence Rules
+  coherence_safety:
+    name: "Coherence Safety Rules"
+    description: "Rules ensuring output coherence"
+    rules:
+      - rule_id: COH-001
+        name: "Internal Consistency"
+        description: "Output must not contain internal contradictions"
+        severity: error
+        condition: "not has_contradictions(output)"
+        action: "flag_for_repair"
+        
+      - rule_id: COH-002
+        name: "Context Alignment"
+        description: "Output must align with provided context"
+        severity: warning
+        condition: "consistency_score(output, context) >= threshold"
+        action: "warn_and_continue"
+        
+      - rule_id: COH-003
+        name: "Completeness"
+        description: "Required elements must be present in output"
+        severity: warning
+        condition: "all_required_present(output, requirements)"
+        action: "warn_and_request_completion"
+
+  # Audit Rules
+  audit_requirements:
+    name: "Audit Requirements"
+    description: "Rules ensuring proper audit trail"
+    rules:
+      - rule_id: AUD-001
+        name: "Receipt Generation"
+        description: "Every significant operation must generate a receipt"
+        severity: error
+        condition: "operation.has_receipt"
+        action: "generate_receipt"
+        
+      - rule_id: AUD-002
+        name: "Chain Integrity"
+        description: "Receipts must form a valid hash chain"
+        severity: fatal
+        condition: "receipt_chain.is_valid"
+        action: "abort_and_report"
+        
+      - rule_id: AUD-003
+        name: "Trace Completeness"
+        description: "Trace must capture all decision points"
+        severity: warning
+        condition: "trace.covers_all_decisions"
+        action: "enhance_trace"
+
+  # Security Rules
+  security_requirements:
+    name: "Security Requirements"
+    description: "Rules ensuring security boundaries"
+    rules:
+      - rule_id: SEC-001
+        name: "Boundary Respect"
+        description: "Operations must stay within defined boundaries"
+        severity: fatal
+        condition: "operation.stays_in_bounds"
+        action: "terminate_and_audit"
+        
+      - rule_id: SEC-002
+        name: "No Credential Leakage"
+        description: "Credentials must never appear in output"
+        severity: fatal
+        condition: "not output.contains_credentials"
+        action: "sanitize_and_warn"
+        
+      - rule_id: SEC-003
+        name: "Privacy Compliance"
+        description: "PII must be handled according to policy"
+        severity: error
+        condition: "pii_handling_complies(output)"
+        action: "redact_or_block"
+
+  # Performance Rules
+  performance_requirements:
+    name: "Performance Requirements"
+    description: "Rules ensuring acceptable performance"
+    rules:
+      - rule_id: PERF-001
+        name: "Timeout Compliance"
+        description: "Operations must complete within timeout"
+        severity: error
+        condition: "operation.elapsed_time < operation.timeout"
+        action: "timeout_and_retry"
+        
+      - rule_id: PERF-002
+        name: "Memory Budget"
+        description: "Memory usage must stay within budget"
+        severity: error
+        condition: "memory_used <= memory_budget"
+        action: "gc_and_retry_or_fail"

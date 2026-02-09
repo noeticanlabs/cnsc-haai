@@ -26,6 +26,13 @@ from cnsc.haai.nsc.ir import (
     NSCType,
     NSCValue,
 )
+from cnsc.haai.nsc.gates import (
+    Gate,
+    GateResult,
+    GateManager,
+    GateDecision,
+)
+from cnsc.haai.nsc.proposer_client import ProposerClient
 
 
 @dataclass
@@ -294,11 +301,19 @@ class VM:
     Stack-based bytecode interpreter with trace hooks and receipt emission.
     """
     
-    def __init__(self, program: NSCProgram):
+    def __init__(
+        self,
+        program: NSCProgram,
+        proposer_client: Optional[ProposerClient] = None,
+        gate_manager: Optional[GateManager] = None,
+    ):
         self.program = program
         self.state = VMState(program=program)
         self.bytecode: bytes = b''
         self.pc_to_block: Dict[int, Tuple[str, int]] = {}
+        self.proposer_client = proposer_client
+        self.gate_manager = gate_manager or GateManager()
+        self.repair_proposals: List[Dict[str, Any]] = []
     
     def load(self) -> bool:
         """Load program bytecode."""
@@ -604,7 +619,8 @@ class VM:
         # Gate operations
         elif opcode == NSCOpcode.GATE_EVAL:
             gate_name = operands[0] if operands else None
-            result = self._evaluate_gate(gate_name)
+            context = frame.stack.pop() if not frame.stack.is_empty() else {}
+            result = self._evaluate_gate(gate_name, context if isinstance(context, dict) else {})
             frame.stack.push(result)
         
         # Trace operations
@@ -634,11 +650,55 @@ class VM:
             return None
         return self.program.types.get(type_id)
     
-    def _evaluate_gate(self, gate_name: str) -> bool:
-        """Evaluate gate."""
+    def _evaluate_gate(self, gate_name: str, context: Optional[Dict[str, Any]] = None) -> bool:
+        """Evaluate gate and request repair on failure.
+        
+        Args:
+            gate_name: Name of the gate to evaluate
+            context: Optional context for gate evaluation
+            
+        Returns:
+            True if gate passed, False otherwise
+        """
         if self.state.on_gate:
-            return self.state.on_gate(gate_name)
-        return True
+            result = self.state.on_gate(gate_name)
+        elif self.gate_manager:
+            gate_result = self.gate_manager.evaluate_gate(gate_name, context or {})
+            if gate_result:
+                result = gate_result.is_pass()
+                
+                # Request repair on failure
+                if not result and gate_result.is_fail() and self.proposer_client:
+                    failure_reasons = [gate_result.message] if gate_result.message else []
+                    proposals = self._request_gate_repair(gate_name, failure_reasons)
+                    if proposals:
+                        self.repair_proposals.extend(proposals)
+            else:
+                result = True
+        else:
+            result = True
+        
+        return result
+    
+    def _request_gate_repair(self, gate_name: str, failure_reasons: list) -> List[Dict[str, Any]]:
+        """Request repair proposals from NPE for a failed gate.
+        
+        Args:
+            gate_name: Name of the gate that failed
+            failure_reasons: List of failure reasons
+            
+        Returns:
+            List of repair proposals
+        """
+        try:
+            response = self.proposer_client.repair(
+                domain="gr",
+                gate_name=gate_name,
+                failure_reasons=failure_reasons,
+            )
+            return response.get("proposals", [])
+        except Exception:
+            return []
     
     def step(self) -> bool:
         """Execute single instruction."""

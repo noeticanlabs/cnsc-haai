@@ -41,6 +41,14 @@ from cnsc.haai.nsc.gates import (
     CoherenceCheckGate,
     GateManager,
 )
+from cnsc.haai.nsc.proposer_client import (
+    ProposerClient,
+)
+from cnsc.haai.nsc.proposer_client_errors import (
+    ProposerClientError,
+    ConnectionError,
+    TimeoutError,
+)
 
 __all__ = [
     # IR
@@ -72,4 +80,9 @@ __all__ = [
     "EvidenceSufficiencyGate",
     "CoherenceCheckGate",
     "GateManager",
+    # ProposerClient
+    "ProposerClient",
+    "ProposerClientError",
+    "ConnectionError",
+    "TimeoutError",
 ]

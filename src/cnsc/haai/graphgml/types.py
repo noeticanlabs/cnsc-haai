@@ -96,7 +96,14 @@ class StateNode(GraphNode):
     including variable bindings, stack contents, and heap references.
     """
     def __init__(self, state_id: str, state_type: str = "unknown", **kwargs):
-        props = {"state_type": state_type, **kwargs.get("properties", {})}
+        # Extract state_type from kwargs if not explicitly passed
+        # Pass all other kwargs as properties
+        props = {"state_type": state_type}
+        props.update(kwargs.get("properties", {}))
+        # Also add any other kwargs as properties (for backward compatibility)
+        for key, value in kwargs.items():
+            if key not in ["properties", "metadata"]:
+                props[key] = value
         super().__init__(
             node_id=state_id,
             node_type="state",

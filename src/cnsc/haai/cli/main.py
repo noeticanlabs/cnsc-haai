@@ -17,6 +17,7 @@ Commands:
     decode       Decode from GLLL Hadamard format
     lexicon      Manage lexicon
     codebook     Manage codebook
+    npe          NPE service management and proposals
     version      Show version info
     help         Show this help message
 """

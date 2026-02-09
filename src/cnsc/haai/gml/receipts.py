@@ -21,6 +21,13 @@ import hmac
 import base64
 import json
 
+# GraphGML import for dual-write support
+try:
+    from cnsc.haai.graphgml import types, builder, core
+    GRAPHGML_AVAILABLE = True
+except ImportError:
+    GRAPHGML_AVAILABLE = False
+
 
 class ReceiptStepType(Enum):
     """Types of steps that generate receipts."""
@@ -43,6 +50,191 @@ class ReceiptDecision(Enum):
     WARN = auto()
     SKIP = auto()
     PENDING = auto()
+
+
+class NPEResponseStatus(Enum):
+    """NPE response status codes."""
+    SUCCESS = "success"
+    PARTIAL = "partial"  # Some candidates returned, others failed
+    ERROR = "error"  # Request failed entirely
+    TIMEOUT = "timeout"  # Request exceeded budget
+    INVALID = "invalid"  # Request was invalid
+
+
+# =============================================================================
+# NPE-Specific Receipt Extensions
+# =============================================================================
+
+@dataclass
+class NPEProposalRequest:
+    """
+    Tracks proposal requests sent to NPE.
+    
+    Attributes:
+        request_id: Unique identifier for the NPE request
+        domain: NPE domain (e.g., "gr" for governance/repair)
+        candidate_type: Type of candidates requested
+        seed: Deterministic seed for reproducibility
+        budgets: Budget constraints used
+        inputs: Input data sent to NPE
+    """
+    request_id: str
+    domain: str = "gr"
+    candidate_type: str = "repair"
+    seed: int = 0
+    budgets: Dict[str, Any] = field(default_factory=dict)
+    inputs: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "request_id": self.request_id,
+            "domain": self.domain,
+            "candidate_type": self.candidate_type,
+            "seed": self.seed,
+            "budgets": self.budgets,
+            "inputs": self.inputs,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'NPEProposalRequest':
+        """Create from dictionary."""
+        return cls(
+            request_id=data.get("request_id", ""),
+            domain=data.get("domain", "gr"),
+            candidate_type=data.get("candidate_type", "repair"),
+            seed=data.get("seed", 0),
+            budgets=data.get("budgets", {}),
+            inputs=data.get("inputs", {}),
+        )
+
+
+@dataclass
+class NPERepairProposal:
+    """
+    Tracks repair proposals received from NPE.
+    
+    Attributes:
+        proposal_id: Unique identifier for this proposal
+        candidate: The proposed candidate solution
+        score: Confidence or quality score
+        evidence: Supporting evidence items
+        explanation: Human-readable explanation of the proposal
+        provenance: Provenance data from NPE
+    """
+    proposal_id: str
+    candidate: Dict[str, Any] = field(default_factory=dict)
+    score: Optional[float] = None
+    evidence: List[Dict[str, Any]] = field(default_factory=list)
+    explanation: Optional[str] = None
+    provenance: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "proposal_id": self.proposal_id,
+            "candidate": self.candidate,
+            "score": self.score,
+            "evidence": self.evidence,
+            "explanation": self.explanation,
+            "provenance": self.provenance,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'NPERepairProposal':
+        """Create from dictionary."""
+        return cls(
+            proposal_id=data.get("proposal_id", ""),
+            candidate=data.get("candidate", {}),
+            score=data.get("score"),
+            evidence=data.get("evidence", []),
+            explanation=data.get("explanation"),
+            provenance=data.get("provenance", {}),
+        )
+
+
+@dataclass
+class NPEProposalMetadata:
+    """
+    Metadata for NPE proposals.
+    
+    Attributes:
+        request_timestamp: When the request was sent
+        response_timestamp: When the response was received
+        response_status: Status of the NPE response
+        total_candidates: Total candidates returned
+        budget_used: Actual budget consumed
+        npe_version: Version of NPE that processed the request
+    """
+    request_timestamp: str = ""
+    response_timestamp: str = ""
+    response_status: str = NPEResponseStatus.SUCCESS.value
+    total_candidates: int = 0
+    budget_used: Dict[str, Any] = field(default_factory=dict)
+    npe_version: str = "1.0.0"
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "request_timestamp": self.request_timestamp,
+            "response_timestamp": self.response_timestamp,
+            "response_status": self.response_status,
+            "total_candidates": self.total_candidates,
+            "budget_used": self.budget_used,
+            "npe_version": self.npe_version,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'NPEProposalMetadata':
+        """Create from dictionary."""
+        return cls(
+            request_timestamp=data.get("request_timestamp", ""),
+            response_timestamp=data.get("response_timestamp", ""),
+            response_status=data.get("response_status", NPEResponseStatus.SUCCESS.value),
+            total_candidates=data.get("total_candidates", 0),
+            budget_used=data.get("budget_used", {}),
+            npe_version=data.get("npe_version", "1.0.0"),
+        )
+
+
+@dataclass
+class NPEProvenance:
+    """
+    NPE-specific provenance data.
+    
+    Attributes:
+        source: Original source ("npe")
+        episode_id: Episode identifier
+        phase: Phase when NPE was invoked
+        npe_request_id: Reference to NPE request ID
+        npe_response_id: Reference to NPE response ID
+    """
+    source: str = "npe"
+    episode_id: Optional[str] = None
+    phase: Optional[str] = None
+    npe_request_id: Optional[str] = None
+    npe_response_id: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "source": self.source,
+            "episode_id": self.episode_id,
+            "phase": self.phase,
+            "npe_request_id": self.npe_request_id,
+            "npe_response_id": self.npe_response_id,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'NPEProvenance':
+        """Create from dictionary."""
+        return cls(
+            source=data.get("source", "npe"),
+            episode_id=data.get("episode_id"),
+            phase=data.get("phase"),
+            npe_request_id=data.get("npe_request_id"),
+            npe_response_id=data.get("npe_response_id"),
+        )
 
 
 @dataclass
@@ -169,14 +361,14 @@ class Receipt:
     
     Version: 1.0.0 - See schemas/receipt.schema.json for canonical spec.
     """
-    # Version field (required for schema compatibility)
-    version: str = "1.0.0"
-    
-    # Core fields
+    # Core fields (required, no defaults)
     receipt_id: str
     content: ReceiptContent
     signature: ReceiptSignature
     provenance: ReceiptProvenance
+    
+    # Version field (required for schema compatibility)
+    version: str = "1.0.0"
     
     # Chain links
     previous_receipt_id: Optional[str] = None
@@ -186,9 +378,18 @@ class Receipt:
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
     
+    # Graph integration
+    graph_commit_id: Optional[str] = None
+    
+    # NPE-specific fields (optional, backward compatible)
+    npe_request_id: Optional[str] = None
+    npe_response_status: Optional[str] = None
+    npe_proposals: List[Dict[str, Any]] = field(default_factory=list)
+    npe_provenance: Optional[Dict[str, Any]] = None
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        return {
+        result = {
             "version": self.version,
             "receipt_id": self.receipt_id,
             "content": self.content.to_dict(),
@@ -199,6 +400,16 @@ class Receipt:
             "chain_hash": self.chain_hash,
             "metadata": self.metadata,
         }
+        # Only include NPE fields if they are set (backward compatibility)
+        if self.npe_request_id is not None:
+            result["npe_request_id"] = self.npe_request_id
+        if self.npe_response_status is not None:
+            result["npe_response_status"] = self.npe_response_status
+        if self.npe_proposals:
+            result["npe_proposals"] = self.npe_proposals
+        if self.npe_provenance is not None:
+            result["npe_provenance"] = self.npe_provenance
+        return result
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Receipt':
@@ -213,6 +424,10 @@ class Receipt:
             previous_receipt_hash=data.get("previous_receipt_hash"),
             chain_hash=data.get("chain_hash"),
             metadata=data.get("metadata", {}),
+            npe_request_id=data.get("npe_request_id"),
+            npe_response_status=data.get("npe_response_status"),
+            npe_proposals=data.get("npe_proposals", []),
+            npe_provenance=data.get("npe_provenance"),
         )
     
     def compute_hash(self) -> str:
@@ -235,6 +450,236 @@ class Receipt:
         else:
             data = receipt_hash
         return hashlib.sha256(data.encode('utf-8')).hexdigest()
+    
+    def to_graph_commit(self) -> Optional[types.CommitNode]:
+        """Convert Receipt to GraphGML CommitNode."""
+        if not GRAPHGML_AVAILABLE:
+            return None
+        return types.CommitNode(
+            commit_id=self.graph_commit_id or f"commit_{self.receipt_id}",
+            operation=self.content.step_type.name,
+            properties={
+                "receipt_id": self.receipt_id,
+                "version": self.version,
+                "content": self.content.to_dict(),
+                "signature": self.signature.to_dict(),
+                "provenance": self.provenance.to_dict(),
+                "previous_receipt_id": self.previous_receipt_id,
+                "previous_receipt_hash": self.previous_receipt_hash,
+                "chain_hash": self.chain_hash,
+                "metadata": self.metadata,
+            },
+            metadata={"source": "receipt"}
+        )
+    
+    # -------------------------------------------------------------------------
+    # NPE Helper Methods
+    # -------------------------------------------------------------------------
+    
+    def record_npe_request(
+        self,
+        request_id: str,
+        domain: str,
+        candidate_type: str,
+        seed: int = 0,
+        budgets: Optional[Dict[str, Any]] = None,
+        inputs: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Record NPE request information on this receipt.
+        
+        Args:
+            request_id: Unique identifier for the NPE request
+            domain: NPE domain (e.g., "gr" for governance/repair)
+            candidate_type: Type of candidates requested
+            seed: Deterministic seed for reproducibility
+            budgets: Budget constraints used
+            inputs: Input data sent to NPE
+        """
+        self.npe_request_id = request_id
+        # Store request details in metadata for provenance
+        npe_request_data = {
+            "domain": domain,
+            "candidate_type": candidate_type,
+            "seed": seed,
+            "budgets": budgets or {},
+            "inputs": inputs or {},
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.metadata["npe_request"] = npe_request_data
+    
+    def record_npe_response(
+        self,
+        status: str,
+        proposals: Optional[List[Dict[str, Any]]] = None,
+        budget_used: Optional[Dict[str, Any]] = None,
+        npe_version: str = "1.0.0",
+    ) -> None:
+        """
+        Record NPE response information on this receipt.
+        
+        Args:
+            status: Response status (success, partial, error, timeout, invalid)
+            proposals: List of proposals received from NPE
+            budget_used: Actual budget consumed
+            npe_version: Version of NPE that processed the request
+        """
+        self.npe_response_status = status
+        self.npe_proposals = proposals or []
+        # Store response metadata
+        response_data = {
+            "status": status,
+            "proposal_count": len(self.npe_proposals),
+            "budget_used": budget_used or {},
+            "npe_version": npe_version,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.metadata["npe_response"] = response_data
+    
+    def record_npe_provenance(
+        self,
+        episode_id: Optional[str] = None,
+        phase: Optional[str] = None,
+        npe_request_id: Optional[str] = None,
+        npe_response_id: Optional[str] = None,
+    ) -> None:
+        """
+        Record NPE-specific provenance data.
+        
+        Args:
+            episode_id: Episode identifier
+            phase: Phase when NPE was invoked
+            npe_request_id: Reference to NPE request ID
+            npe_response_id: Reference to NPE response ID
+        """
+        self.npe_provenance = {
+            "source": "npe",
+            "episode_id": episode_id,
+            "phase": phase,
+            "npe_request_id": npe_request_id or self.npe_request_id,
+            "npe_response_id": npe_response_id,
+        }
+        # Update provenance if not already set
+        if episode_id and not self.provenance.episode_id:
+            self.provenance.episode_id = episode_id
+        if phase and not self.provenance.phase:
+            self.provenance.phase = phase
+    
+    def get_npe_metadata(self) -> Dict[str, Any]:
+        """
+        Get NPE-related metadata from this receipt.
+        
+        Returns:
+            Dictionary containing all NPE-related data
+        """
+        return {
+            "has_npe_data": self.npe_request_id is not None or self.npe_proposals,
+            "request_id": self.npe_request_id,
+            "response_status": self.npe_response_status,
+            "proposal_count": len(self.npe_proposals),
+            "proposals": self.npe_proposals,
+            "provenance": self.npe_provenance,
+            "request_details": self.metadata.get("npe_request", {}),
+            "response_details": self.metadata.get("npe_response", {}),
+        }
+    
+    def has_npe_data(self) -> bool:
+        """
+        Check if this receipt contains NPE data.
+        
+        Returns:
+            True if NPE data is present
+        """
+        return self.npe_request_id is not None or bool(self.npe_proposals)
+
+
+class NPEReceipt(Receipt):
+    """
+    Receipt with explicit NPE tracking.
+    
+    This subclass provides a convenient way to create receipts that
+    are known to contain NPE-related data. It provides enhanced
+    type hints and convenience methods for NPE workflows.
+    
+    Note: The base Receipt class already supports all NPE fields,
+    so this is primarily a convenience class for documentation
+    and type checking purposes.
+    """
+    
+    # NPE-specific fields with type hints
+    npe_request_id: str
+    npe_response_status: str
+    npe_proposals: List[Dict[str, Any]]
+    npe_provenance: Dict[str, Any]
+    
+    @classmethod
+    def create_npe_receipt(
+        cls,
+        receipt_id: str,
+        request_id: str,
+        domain: str,
+        candidate_type: str,
+        proposals: List[Dict[str, Any]],
+        response_status: str = NPEResponseStatus.SUCCESS.value,
+        content: Optional[ReceiptContent] = None,
+        signature: Optional[ReceiptSignature] = None,
+        provenance: Optional[ReceiptProvenance] = None,
+        **kwargs,
+    ) -> 'NPEReceipt':
+        """
+        Factory method to create an NPE receipt.
+        
+        Args:
+            receipt_id: Unique receipt identifier
+            request_id: NPE request ID
+            domain: NPE domain
+            candidate_type: Type of candidates
+            proposals: List of proposals from NPE
+            response_status: NPE response status
+            content: Receipt content (auto-created if None)
+            signature: Receipt signature (auto-created if None)
+            provenance: Receipt provenance (auto-created if None)
+            **kwargs: Additional receipt arguments
+            
+        Returns:
+            Configured NPEReceipt instance
+        """
+        # Create default content if not provided
+        if content is None:
+            content = ReceiptContent(
+                step_type=ReceiptStepType.CUSTOM,
+                decision=ReceiptDecision.PASS,
+                details={
+                    "npe_domain": domain,
+                    "npe_candidate_type": candidate_type,
+                },
+            )
+        
+        # Create default signature if not provided
+        if signature is None:
+            signature = ReceiptSignature(signer="npe")
+        
+        # Create default provenance if not provided
+        if provenance is None:
+            provenance = ReceiptProvenance(source="npe")
+        
+        # Create the receipt
+        receipt = cls(
+            receipt_id=receipt_id,
+            content=content,
+            signature=signature,
+            provenance=provenance,
+            npe_request_id=request_id,
+            npe_response_status=response_status,
+            npe_proposals=proposals,
+            npe_provenance={
+                "source": "npe",
+                "npe_request_id": request_id,
+            },
+            **kwargs,
+        )
+        
+        return receipt
 
 
 class HashChain:
@@ -299,6 +744,21 @@ class HashChain:
             "length": len(self.chain),
             "tip": self.get_tip(),
         }
+    
+    def to_graph_proof_bundle(self) -> Optional[types.ProofBundleNode]:
+        """Convert HashChain to GraphGML ProofBundleNode."""
+        if not GRAPHGML_AVAILABLE:
+            return None
+        return types.ProofBundleNode(
+            bundle_id=f"proof_{self.genesis_hash[:8]}",
+            proof_type="hash_chain",
+            properties={
+                "genesis_hash": self.genesis_hash,
+                "length": len(self.chain),
+                "tip": self.get_tip(),
+            },
+            metadata={"source": "hash_chain"}
+        )
 
 
 class ChainValidator:
@@ -539,6 +999,51 @@ class ReceiptSystem:
         self.receipts.clear()
         self.receipts_by_episode.clear()
         self.receipts_by_type.clear()
+    
+    def to_graph(self) -> Optional[core.GraphGML]:
+        """Convert ReceiptSystem to GraphGML representation."""
+        if not GRAPHGML_AVAILABLE:
+            return None
+        
+        graph = core.GraphGML()
+        commit_nodes = {}
+        
+        # First pass: create all commit nodes
+        for receipt_id, receipt in self.receipts.items():
+            commit_node = receipt.to_graph_commit()
+            if commit_node:
+                graph.add_node(commit_node)
+                receipt.graph_commit_id = commit_node.node_id
+                commit_nodes[receipt_id] = commit_node
+        
+        # Second pass: create requires_proof edges
+        for receipt_id, receipt in self.receipts.items():
+            if receipt.previous_receipt_id and receipt_id in commit_nodes:
+                prev_commit_id = f"commit_{receipt.previous_receipt_id}"
+                graph.add_edge(prev_commit_id, "requires_proof", commit_nodes[receipt_id].node_id)
+        
+        # Add proof bundle if exists
+        proof_bundle = self.chain.to_graph_proof_bundle()
+        if proof_bundle:
+            graph.add_node(proof_bundle)
+            for receipt_id, commit_node in commit_nodes.items():
+                graph.add_edge(commit_node.node_id, "requires_proof", proof_bundle.node_id)
+        
+        return graph
+    
+    def validate_graph_invariants(self) -> List[str]:
+        """Validate graph invariants for the receipt ledger."""
+        issues = []
+        graph = self.to_graph()
+        if graph:
+            issues.extend(graph.validate_invariants())
+        
+        # Additional receipt-specific validations
+        for receipt_id, receipt in self.receipts.items():
+            if receipt.previous_receipt_id and receipt.previous_receipt_id not in self.receipts:
+                issues.append(f"Receipt {receipt_id} references non-existent previous_receipt_id {receipt.previous_receipt_id}")
+        
+        return issues
 
 
 def create_receipt_system(signing_key: str = "default-key") -> ReceiptSystem:

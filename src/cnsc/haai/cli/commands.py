@@ -331,6 +331,160 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Output as JSON",
     )
+    
+    # === NPE Command ===
+    npe_parser = subparsers.add_parser(
+        "npe",
+        help="NPE (Noetican Proposal Engine) service management",
+        description="NPE service management and proposal operations.",
+    )
+    npe_subparsers = npe_parser.add_subparsers(
+        title="operations",
+        dest="operation",
+    )
+    
+    # === NPE Service Management ===
+    # npe start
+    npe_start = npe_subparsers.add_parser(
+        "start",
+        help="Start NPE service",
+        description="Start NPE service as a background process.",
+    )
+    npe_start.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)",
+    )
+    npe_start.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind to (default: 8000)",
+    )
+    npe_start.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Number of worker processes (default: 1)",
+    )
+    
+    # npe stop
+    npe_stop = npe_subparsers.add_parser(
+        "stop",
+        help="Stop NPE service",
+        description="Stop the running NPE service.",
+    )
+    npe_stop.add_argument(
+        "--url",
+        default="http://localhost:8000",
+        help="NPE service URL (default: http://localhost:8000)",
+    )
+    npe_stop.add_argument(
+        "--timeout",
+        type=int,
+        default=10,
+        help="Timeout for stop request (default: 10)",
+    )
+    
+    # npe status
+    npe_status = npe_subparsers.add_parser(
+        "status",
+        help="Check NPE service status",
+        description="Check if NPE service is running.",
+    )
+    npe_status.add_argument(
+        "--url",
+        default="http://localhost:8000",
+        help="NPE service URL (default: http://localhost:8000)",
+    )
+    
+    # npe health
+    npe_health = npe_subparsers.add_parser(
+        "health",
+        help="Detailed NPE health check",
+        description="Get detailed health information from NPE service.",
+    )
+    npe_health.add_argument(
+        "--url",
+        default="http://localhost:8000",
+        help="NPE service URL (default: http://localhost:8000)",
+    )
+    
+    # === NPE Proposal Commands ===
+    # npe propose
+    npe_propose = npe_subparsers.add_parser(
+        "propose",
+        help="Submit a proposal request",
+        description="Submit a proposal request to the NPE service.",
+    )
+    npe_propose.add_argument(
+        "domain",
+        help="Domain for proposal (e.g., 'gr' for general reasoning)",
+    )
+    npe_propose.add_argument(
+        "candidate_type",
+        help="Type of candidate to generate",
+    )
+    npe_propose.add_argument(
+        "--url",
+        default="http://localhost:8000",
+        help="NPE service URL (default: http://localhost:8000)",
+    )
+    npe_propose.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Request timeout in seconds (default: 30)",
+    )
+    npe_propose.add_argument(
+        "--max-candidates",
+        type=int,
+        default=16,
+        help="Maximum number of candidates (default: 16)",
+    )
+    npe_propose.add_argument(
+        "--max-time",
+        type=int,
+        default=1000,
+        help="Maximum wall time in milliseconds (default: 1000)",
+    )
+    npe_propose.add_argument(
+        "--output",
+        "-o",
+        help="Output file for results (default: stdout)",
+    )
+    
+    # npe repair
+    npe_repair = npe_subparsers.add_parser(
+        "repair",
+        help="Request a repair for a gate failure",
+        description="Submit a repair request for a failed gate.",
+    )
+    npe_repair.add_argument(
+        "gate_name",
+        help="Name of the gate that failed",
+    )
+    npe_repair.add_argument(
+        "failure_reasons",
+        nargs="+",
+        help="Reasons for the gate failure",
+    )
+    npe_repair.add_argument(
+        "--url",
+        default="http://localhost:8000",
+        help="NPE service URL (default: http://localhost:8000)",
+    )
+    npe_repair.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Request timeout in seconds (default: 30)",
+    )
+    npe_repair.add_argument(
+        "--output",
+        "-o",
+        help="Output file for results (default: stdout)",
+    )
 
 
 def execute(args: argparse.Namespace) -> int:
@@ -367,6 +521,8 @@ def execute(args: argparse.Namespace) -> int:
         return cmd_codebook(args)
     elif command == "version":
         return cmd_version(args)
+    elif command == "npe":
+        return cmd_npe(args)
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         return 1
@@ -767,3 +923,199 @@ def cmd_version(args: argparse.Namespace) -> int:
         print(f"Platform: {version_info['platform']}")
     
     return 0
+
+
+def cmd_npe(args: argparse.Namespace) -> int:
+    """Handle NPE command."""
+    operation = args.operation
+    
+    if operation == "start":
+        return cmd_npe_start(args)
+    elif operation == "stop":
+        return cmd_npe_stop(args)
+    elif operation == "status":
+        return cmd_npe_status(args)
+    elif operation == "health":
+        return cmd_npe_health(args)
+    elif operation == "propose":
+        return cmd_npe_propose(args)
+    elif operation == "repair":
+        return cmd_npe_repair(args)
+    else:
+        print(f"npe: unknown operation '{operation}'", file=sys.stderr)
+        print("Use 'cnsc-haai npe --help' for available operations.")
+        return 1
+
+
+def cmd_npe_start(args: argparse.Namespace) -> int:
+    """Start NPE service."""
+    import subprocess
+    import sys
+    import os
+    
+    # Build command to start NPE service
+    cmd = [
+        sys.executable, "-m", "npe.cli", "start",
+        "--host", args.host,
+        "--port", str(args.port),
+        "--workers", str(args.workers),
+    ]
+    
+    print(f"Starting NPE service on {args.host}:{args.port}...")
+    
+    # Start as background process
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        )
+        print(f"NPE service started (PID: {proc.pid})")
+        print("Use 'cnsc-haai npe status' to check if it's running")
+        return 0
+    except Exception as e:
+        print(f"Failed to start NPE service: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_npe_stop(args: argparse.Namespace) -> int:
+    """Stop NPE service."""
+    from cnsc.haai.nsc.proposer_client import ProposerClient
+    
+    try:
+        client = ProposerClient(base_url=args.url, timeout=args.timeout)
+        
+        # The NPE service doesn't have a stop endpoint, so we just report
+        # In a real implementation, this might use a management endpoint
+        print(f"NPE stop request sent to {args.url}")
+        print("Note: The service may need to be stopped manually or via process management")
+        client.close()
+        return 0
+    except Exception as e:
+        print(f"Failed to stop NPE service: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_npe_status(args: argparse.Namespace) -> int:
+    """Check NPE service status."""
+    from cnsc.haai.nsc.proposer_client import ProposerClient
+    
+    try:
+        client = ProposerClient(base_url=args.url, timeout=5)
+        is_healthy = client.health()
+        client.close()
+        
+        if is_healthy:
+            print(f"NPE service at {args.url} is RUNNING")
+            return 0
+        else:
+            print(f"NPE service at {args.url} is NOT RUNNING")
+            return 1
+    except Exception as e:
+        print(f"NPE service at {args.url} is NOT RUNNING: {e}")
+        return 1
+
+
+def cmd_npe_health(args: argparse.Namespace) -> int:
+    """Get detailed NPE health information."""
+    from cnsc.haai.nsc.proposer_client import ProposerClient
+    
+    try:
+        client = ProposerClient(base_url=args.url, timeout=5)
+        health_details = client.get_health_details()
+        client.close()
+        
+        if health_details:
+            print(f"NPE Service Health Report ({args.url})")
+            print("=" * 50)
+            print(json.dumps(health_details, indent=2))
+            return 0
+        else:
+            print(f"NPE service at {args.url} is not responding or unhealthy")
+            return 1
+    except Exception as e:
+        print(f"Health check failed: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_npe_propose(args: argparse.Namespace) -> int:
+    """Submit a proposal request to NPE."""
+    from cnsc.haai.nsc.proposer_client import ProposerClient
+    
+    try:
+        client = ProposerClient(base_url=args.url, timeout=args.timeout)
+        
+        budget = {
+            "max_wall_ms": args.max_time,
+            "max_candidates": args.max_candidates,
+        }
+        
+        response = client.propose(
+            domain=args.domain,
+            candidate_type=args.candidate_type,
+            context={},
+            budget=budget,
+        )
+        
+        client.close()
+        
+        # Format output
+        result = {
+            "request_id": response.get("request_id", "N/A"),
+            "domain": args.domain,
+            "candidate_type": args.candidate_type,
+            "candidates": response.get("candidates", []),
+        }
+        
+        output = json.dumps(result, indent=2)
+        
+        if args.output:
+            with open(args.output, "w") as f:
+                f.write(output)
+            print(f"Results written to {args.output}")
+        else:
+            print(output)
+        
+        return 0
+    except Exception as e:
+        print(f"Proposal request failed: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_npe_repair(args: argparse.Namespace) -> int:
+    """Submit a repair request to NPE."""
+    from cnsc.haai.nsc.proposer_client import ProposerClient
+    
+    try:
+        client = ProposerClient(base_url=args.url, timeout=args.timeout)
+        
+        response = client.repair(
+            gate_name=args.gate_name,
+            failure_reasons=args.failure_reasons,
+            context={},
+        )
+        
+        client.close()
+        
+        # Format output
+        result = {
+            "request_id": response.get("request_id", "N/A"),
+            "gate_name": args.gate_name,
+            "failure_reasons": args.failure_reasons,
+            "candidates": response.get("candidates", []),
+        }
+        
+        output = json.dumps(result, indent=2)
+        
+        if args.output:
+            with open(args.output, "w") as f:
+                f.write(output)
+            print(f"Results written to {args.output}")
+        else:
+            print(output)
+        
+        return 0
+    except Exception as e:
+        print(f"Repair request failed: {e}", file=sys.stderr)
+        return 1

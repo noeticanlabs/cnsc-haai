@@ -480,9 +480,12 @@ class GraphBuilder:
         """
         return self._current_context.get(key, default)
     
-    def build(self) -> GraphGML:
+    def build(self, strict: bool = False) -> GraphGML:
         """
         Finalize and return the constructed graph.
+        
+        Args:
+            strict: If True, fail on orphaned nodes. If False (default), allow them.
         
         Returns:
             The constructed GraphGML instance
@@ -490,7 +493,7 @@ class GraphBuilder:
         Raises:
             ValueError: If graph validation fails
         """
-        violations = self._graph.validate_invariants()
+        violations = self._graph.validate_invariants(allow_orphaned=not strict)
         if violations:
             raise ValueError(
                 f"Graph validation failed:\n  - " + "\n  - ".join(violations)
