@@ -2,8 +2,13 @@
 Coherence Budget System for CNHAAI
 
 This module provides coherence tracking and budget management:
-- CoherenceBudget: Tracks coherence degradation
+- VectorResidual: Two-component residual matching UFE.ObserverResidual
+- CoherenceBudget: Tracks coherence degradation with vector residuals
 - Methods for checking and updating budget
+
+Mathematical alignment with Lean 4 UFE formalization:
+- dynamical: ∇_u u (structural/geometric residual)
+- clock: g(u,u) + 1 (temporal/timelike residual)
 """
 
 from enum import Enum, auto
@@ -11,6 +16,42 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from uuid import uuid4
+import math
+
+
+@dataclass
+class VectorResidual:
+    """
+    Two-component residual matching UFE.ObserverResidual.
+    
+    Represents the observer residual in the universal frame equation:
+    - dynamical: ∇_u u (structural/geometric residual)
+    - clock: g(u,u) + 1 (temporal/timelike residual)
+    
+    The norm is computed as sqrt(dynamical² + clock²).
+    """
+    dynamical: float = 0.0   # ∇_u u (structural/geometric residual)
+    clock: float = 0.0        # g(u,u) + 1 (temporal/timelike residual)
+    
+    def norm(self) -> float:
+        """observerResidualNorm: sqrt(dynamical² + clock²)"""
+        return math.sqrt(self.dynamical**2 + self.clock**2)
+    
+    def to_dict(self) -> Dict[str, float]:
+        """Convert to dictionary."""
+        return {
+            "dynamical": self.dynamical,
+            "clock": self.clock,
+            "norm": self.norm(),
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, float]) -> 'VectorResidual':
+        """Create from dictionary."""
+        return cls(
+            dynamical=data.get("dynamical", 0.0),
+            clock=data.get("clock", 0.0),
+        )
 
 
 @dataclass
@@ -22,6 +63,10 @@ class CoherenceBudget:
     for reasoning, degrading as contradictions or inconsistencies
     are encountered and improving through validation and recovery.
     
+    Uses vector residuals matching the Lean 4 UFE formalization:
+    - dynamical_residual: ∇_u u component
+    - clock_residual: g(u,u) + 1 component
+    
     Attributes:
         current: Current coherence level (0.0 to 1.0)
         initial: Initial coherence level
@@ -29,6 +74,8 @@ class CoherenceBudget:
         degradation_rate: Rate of degradation per contradiction
         recovery_rate: Rate of recovery per validation
         degradation_history: Record of degradation events
+        recovery_history: Record of recovery events
+        last_update: Timestamp of last update
     """
     current: float = 1.0
     initial: float = 1.0
@@ -40,10 +87,31 @@ class CoherenceBudget:
     recovery_history: List[Dict[str, Any]] = field(default_factory=list)
     last_update: datetime = field(default_factory=datetime.utcnow)
     
+    # Vector residuals (UFE alignment)
+    dynamical_residual: float = 0.0
+    clock_residual: float = 0.0
+    
     def __post_init__(self):
         """Validate and normalize coherence values."""
         self.current = max(self.minimum, min(self.maximum, self.current))
         self.initial = max(self.minimum, min(self.maximum, self.initial))
+    
+    @property
+    def residual(self) -> VectorResidual:
+        """Get the current vector residual."""
+        return VectorResidual(
+            dynamical=self.dynamical_residual,
+            clock=self.clock_residual
+        )
+    
+    def norm(self) -> float:
+        """Compute L2 norm of residual vector."""
+        return self.residual.norm()
+    
+    @property
+    def coherence_from_residual(self) -> float:
+        """Compute coherence level from residual norm."""
+        return max(0.0, 1.0 - self.norm())
     
     def is_healthy(self) -> bool:
         """Check if coherence is above healthy threshold."""
@@ -123,6 +191,64 @@ class CoherenceBudget:
         })
         
         return self.current
+    
+    def degrade_with_residuals(
+        self,
+        dynamical: float = 0.0,
+        clock: float = 0.0,
+        reason: str = "contradiction",
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> float:
+        """
+        Degrade coherence with separate dynamical and clock residuals.
+        
+        This matches the UFE formalization where residuals have two components:
+        - dynamical: ∇_u u (structural/geometric)
+        - clock: g(u,u) + 1 (temporal)
+        
+        Args:
+            dynamical: Dynamical residual component
+            clock: Clock residual component
+            reason: Reason for degradation
+            metadata: Additional metadata
+            
+        Returns:
+            New coherence level derived from residual norm
+        """
+        old_dynamical = self.dynamical_residual
+        old_clock = self.clock_residual
+        
+        # Accumulate residuals
+        self.dynamical_residual = max(0.0, self.dynamical_residual + dynamical)
+        self.clock_residual = max(0.0, self.clock_residual + clock)
+        
+        # Update coherence from residual norm
+        self.current = self.coherence_from_residual
+        self.last_update = datetime.utcnow()
+        
+        # Record degradation with residual info
+        self.degradation_history.append({
+            "timestamp": self.last_update.isoformat(),
+            "old_dynamical": old_dynamical,
+            "old_clock": old_clock,
+            "new_dynamical": self.dynamical_residual,
+            "new_clock": self.clock_residual,
+            "residual_norm": self.norm(),
+            "coherence": self.current,
+            "reason": reason,
+            "metadata": metadata or {}
+        })
+        
+        return self.current
+    
+    def get_residual_info(self) -> Dict[str, Any]:
+        """Get current residual information."""
+        return {
+            "dynamical": self.dynamical_residual,
+            "clock": self.clock_residual,
+            "norm": self.norm(),
+            "coherence": self.current,
+        }
     
     def recover(
         self,
@@ -219,7 +345,10 @@ class CoherenceBudget:
             "status": self._get_status(),
             "timestamp": self.last_update.isoformat(),
             "degradation_history_count": len(self.degradation_history),
-            "recovery_history_count": len(self.recovery_history)
+            "recovery_history_count": len(self.recovery_history),
+            "dynamical_residual": self.dynamical_residual,
+            "clock_residual": self.clock_residual,
+            "residual_norm": self.norm(),
         }
     
     def reset(self, level: Optional[float] = None) -> float:

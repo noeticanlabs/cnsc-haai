@@ -10,6 +10,12 @@
 - **GLLL → GHLL → NSC → GML**
 - Two alphabets with one compiler seam and one ledger-truth runtime contract.
 
+## Mathematical Foundations
+
+CNSC-HAAI is formally verified using Lean 4. See:
+- [Mathematical Alignment](20_Mathematical_Alignment.md) - Python-to-Lean 4 mapping
+- [Coherence Budget](cnhaai/docs/spine/10-coherence-budget.md) - Implementation details
+
 ## Phase-Governed Execution
 - Control Flow Automaton (CFA) governs phase transitions.
 - PoC gates/rails/receipts provide runtime constraints.

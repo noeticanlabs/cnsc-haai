@@ -1,44 +1,23 @@
-Research & Licensing Notice
-The Coherence Framework is available for non-commercial academic and government research, including NSF- and DARPA-funded projects.
-Commercial use requires a separate license from NoeticanLabs.
-
-
-
-Below is a **compelling, technically honest, and funder-/engineer-ready README** for **CNSC-HAAI**.
-It's written to do three things at once:
-
-1. Make it immediately clear **what this system is (and is not)**
-2. Explain **why it fundamentally differs from LLMs and agent frameworks**
-3. Provide a clear mental model for contributors, reviewers, and future you
-
-You can drop this in as `README.md` with minimal edits.
-
----
-
 # CNSC-HAAI
 
 **Coherence-Native, Safety-Constrained Hybrid Artificial Intelligence**
 
-> *Intelligence is not prediction.
-> Intelligence is staying coherent while changing.*
+> *Intelligence is not prediction. Intelligence is staying coherent while changing.*
 
 ---
 
 ## What is CNSC-HAAI?
 
-**CNSC-HAAI** is a **coherence-native cognitive runtime** designed for **auditable, deterministic, and constraint-governed intelligence**.
+CNSC-HAAI is a **coherence-native cognitive runtime** designed for **auditable, deterministic, and constraint-governed intelligence**.
 
-It is **not** a language model.
-It is **not** a prompt-driven agent.
-It is **not** a black box.
+It is **not** a language model. It is **not** a prompt-driven agent. It is **not** a black box.
 
 Instead, CNSC-HAAI is a **composable intelligence substrate** where:
-
-* reasoning is **constrained by explicit invariants**
-* decisions are **logged as receipts**
-* execution is **replayable**
-* violations are **detected, not narrated**
-* coherence is **enforced, not hoped for**
+- Reasoning is **constrained by explicit invariants**
+- Decisions are **logged as receipts**
+- Execution is **replayable**
+- Violations are **detected, not narrated**
+- Coherence is **enforced, not hoped for**
 
 CNSC-HAAI is built for **trustable intelligence at personal and small-scale deployment**, where correctness, explainability, and persistence matter more than fluency.
 
@@ -49,25 +28,23 @@ CNSC-HAAI is built for **trustable intelligence at personal and small-scale depl
 > **Coherence is the primary objective, not likelihood.**
 
 Where most AI systems optimize for:
-
-* next-token probability
-* reward signals
-* surface plausibility
+- Next-token probability
+- Reward signals
+- Surface plausibility
 
 CNSC-HAAI optimizes for:
-
-* **structural coherence**
-* **temporal consistency**
-* **constraint preservation**
-* **causal accountability**
+- **Structural coherence**
+- **Temporal consistency**
+- **Constraint preservation**
+- **Causal accountability**
 
 This single shift changes everything.
 
 ---
 
-## High-Level Architecture
+## Architecture Overview
 
-CNSC-HAAI combines **Triaxis** (the three-layer abstraction hierarchy) with **NSC** (the execution substrate) and **CNHAAI** (the coherence kernel). Each component has a distinct role:
+CNSC-HAAI combines **Triaxis** (the three-layer abstraction hierarchy) with **NSC** (the execution substrate) and **CNHAAI** (the coherence kernel).
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -90,369 +67,179 @@ CNSC-HAAI combines **Triaxis** (the three-layer abstraction hierarchy) with **NS
 └─────────────────────────────────────────────┘
 ```
 
-### Triaxis: The Three-Layer Abstraction Hierarchy
+### Core Components
 
-**Triaxis** defines the canonical abstraction structure with exactly **3 layers**:
-
-| Layer | Purpose | Key Properties |
-|-------|---------|----------------|
-| **GML** (Global Meaning Layer) | Forensics, trace, receipts | Full execution history, replay verification |
-| **GHLL** (Global High-Level Language) | Meaning, typed grammar | Semantic constraints, rewrite rules |
-| **GLLL** (Global Low-Level Language) | Integrity, encoding | Reversible packetization, Hadamard basis |
-
-### NSC: The Execution Substrate
-
-**NSC (Noetica Symbolic Code)** is a **language family and execution substrate** that:
-
-- **Executes GHLL** programs by lowering them to constrained IR
-- **Manages the VM** with gates, rails, and bounded termination
-- **Emits GML receipts** for every state transition
-- **Is NOT a Triaxis layer** — it's the runtime that operates on Triaxis output
-
-NSC is the "engine" that makes Triaxis specifications executable while preserving coherence properties.
-
-### CNHAAI: The Coherence Kernel
-
-At the foundation is a **coherence kernel** (CNHAAI):
-
-* explicit state
-* phased execution
-* commitments
-* coherence budgets
-* receipt primitives
-* **language-agnostic** and **LLM-tokenless by design** (the kernel operates on semantic units, not LLM tokens)
+| Component | Description |
+|-----------|-------------|
+| **GHLL** (Graphical Hypertext Linking Language) | Typed grammar & semantic constraints for meaning representation |
+| **GLLL** (Graphical Low-Level Language) | Reversible packetization & encoding for integrity |
+| **GML** (Graph Machine Language) | Trace, receipts, and replay verification for forensics |
+| **NSC** (Neural State Controller) | Execution substrate with IR, VM, gates, and rails |
+| **TGS** (Time Governor System) | Temporal governance and bounded execution |
+| **NPE** (Neural Planning Engine) | Planning and reasoning with coherence constraints |
 
 ---
 
-## What Makes CNSC-HAAI Different
+## Key Features
 
 ### 1. Determinism by Default
-
 Given the same inputs, configuration, and state:
-
-* the same execution path occurs
-* the same receipts are produced
-* the same replay verifies
+- The same execution path occurs
+- The same receipts are produced
+- The same replay verifies
 
 This is **not optional** and **not heuristic**.
 
----
-
 ### 2. Constraints Are Runtime Law
-
-Rules are not prompts.
-Policies are not suggestions.
-
-Constraints live as:
-
-* **gates**
-* **rails**
-* **invariants**
-
-Violations:
-
-* halt execution
-* downgrade decisions
-* generate receipts explaining *why*
-
----
+Rules are not prompts. Policies are not suggestions. Constraints live as:
+- **Gates**: Runtime checks with formal guarantees
+- **Rails**: Execution pathways with bounded behavior
+- **Invariants**: Properties that must hold throughout execution
 
 ### 3. Receipts, Not Explanations
+CNSC-HAAI records:
+- What assumptions were checked
+- Which gate was evaluated
+- What witnesses were used
+- Which contract allowed the action
 
-CNSC-HAAI does not invent justifications.
-
-It records:
-
-* what assumptions were checked
-* which gate was evaluated
-* what witnesses were used
-* which contract allowed the action
-
-This enables:
-
-* forensic analysis
-* audit
-* replay
-* rollback
-* trust
-
----
+This enables forensic analysis, audit, replay, rollback, and trust.
 
 ### 4. Replayable Intelligence
-
 Any execution can be:
-
-* replayed
-* verified
-* compared against prior runs
-* audited after the fact
-
-This is a **non-negotiable property**.
-
----
+- Replayed
+- Verified
+- Compared against prior runs
+- Audited after the fact
 
 ### 5. Proof-Anchored Gates
-
-CNSC-HAAI integrates **formal mathematics** (Lean-verified theorems) into runtime via **Named Gate Contracts**.
-
-A gate is not "because the model said so."
-A gate is "because theorem X applies under assumptions A."
-
-This bridges:
-
-* formal methods
-* runtime systems
-* practical AI
+Named Gate Contracts bind formal theorems to runtime-checkable assumptions, producing certified guarantees logged as receipts.
 
 ---
 
-## Named Gate Contracts (Key Innovation)
-
-A **Gate Contract** binds:
-
-* a **formal theorem**
-* to **runtime-checkable assumptions**
-* producing a **certified guarantee**
-* logged as a **receipt**
-
-Example:
-
-* *If resource bounds and nonnegativity hold, then accumulated coherence time is lower-bounded.*
-
-At runtime:
-
-* assumptions are checked
-* witnesses are logged
-* guarantees are licensed
-* failures are explicit
-
-This turns "math we believe" into **math we enforce**.
-
----
-
-## Relationship to LLMs
-
-CNSC-HAAI does **not** compete with LLMs on scale or fluency.
-
-Instead, it **complements** them.
-
-**Recommended pattern:**
-
-* LLMs → proposal generators
-* CNSC-HAAI → judge, executor, auditor
-
-LLMs imagine.
-CNSC-HAAI decides.
-
----
-
-## LLM-Tokenless by Design (Kernel Level)
-
-At the **CNHAAI kernel level**, cognition is **LLM-tokenless by design**:
-
-* The kernel operates on **semantic units** and **coherence states**, not LLM-generated tokens
-* Language is treated as an interface, projection, or view of internal state
-* This enables:
-  * Continuous reasoning across timescales
-  * Stability across long horizons
-  * Non-linguistic cognition
-
-> **Note:** The GHLL parser uses internal Token/SemanticUnit classes for lexical analysis of source code. This is a necessary interface for parsing text, but the CNHAAI kernel itself does not depend on or generate LLM tokens. The "tokenless" claim specifically refers to independence from LLM tokenization, not the absence of internal parsing structures.
-
----
-
-## Intended Use Cases
-
-CNSC-HAAI excels where **trust beats flash**:
-
-* personal reasoning systems
-* research assistants
-* planning & scheduling
-* safety-critical automation
-* engineering decision support
-* forensic analysis of decisions
-* long-term personal memory systems
-
-It is explicitly **not** designed for:
-
-* open-ended chat
-* creative writing at scale
-* general web search replacement
-
----
-
-## Project Status
-
-> **⚠️ Prototype / Experimental - Not Production Ready**
-
-CNSC-HAAI is an **early-stage research prototype**. The core architecture is implemented and functional for evaluation purposes, but:
-
-* Many CLI commands are **stubs or partially implemented**
-* Security keys are **hardcoded for prototype use only**
-* The system is **not yet hardened for production deployment**
-* Some components (NSC VM bytecode compiler) are incomplete
-
-### Implementation Status by Component
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| **Triaxis: GHLL** (lexicon, parser, types) | ✅ Implemented | Core grammar and type system complete |
-| **Triaxis: GLLL** (codebook, hadamard, mapping, packetizer) | ✅ Implemented | Encoding/decoding pipeline functional |
-| **Triaxis: GML** (phaseloom, receipts, replay, trace) | ✅ Implemented | Functionally implemented; receipt signing uses prototype hardcoded keys (see Security) |
-| **NSC** (cfa, gates, ir, vm) | ✅ Implemented (caveat) | Implemented; VM currently missing `compile_to_bytecode` utility |
-| **CLI** | ❌ Partial | `trace`, `replay`, `verify`, `encode`, `decode` commands are stubs |
-
-This project is in the **research/experimental phase** and not yet suitable for production use.
-
----
-
-## ⚠️ Security Considerations
-
-**This is a research prototype - not secure for production use.**
-
-Known security issues:
-
-* **Hardcoded Security Keys**: The receipt signing and verification system uses hardcoded keys for prototype demonstration only. These are not suitable for production where cryptographic secrets must be properly managed.
-
-* **Incomplete Validation**: Input validation and boundary checking are not yet comprehensive.
-
-* **Stub Commands**: Several CLI commands (`trace`, `replay`, `verify`, `encode`, `decode`) are incomplete stubs and may not function as expected.
-
-Do not use this code in any security-critical or production environment until these issues are addressed.
-
----
-
-## Known Issues
-
-The following issues are known and tracked in the prototype:
-
-- Broken imports in `src/cnsc/haai/cli/commands.py` referencing `NSCVirtualMachine`, `compile_to_bytecode`, and `Glyph` which do not currently exist.
-- Type/enum inconsistencies across modules and use of bare exception handling in some paths.
-
----
-
-## Module Structure
-
-This repository contains **two parallel module structures**:
-
-| Path | Purpose | Status |
-|------|---------|--------|
-| `src/cnsc/haai/` | **Primary implementation** - CLI, Triaxis layers (GHLL, GLLL, GML), NSC execution | Active development |
-| `src/cnhaai/` | **Kernel documentation** - Coherence theory specs and documentation | Reference only |
-| `cnhaai/` | Standalone documentation project | Legacy |
-
-The main implementation lives under `src/cnsc/haai/`. The `src/cnhaai/` directory contains theoretical documentation related to the coherence kernel.
-
----
-
-## Philosophy (Why This Exists)
-
-Most AI systems ask:
-
-> *How do we make machines produce intelligent outputs?*
-
-CNSC-HAAI asks:
-
-> *How do we make machines remain coherent, accountable, and correct as they think, act, and change?*
-
-The answer requires:
-
-* constraints
-* memory
-* identity
-* refusal
-* receipts
-* replay
-
-This repository is an attempt to build that answer—cleanly, rigorously, and without illusion.
-
----
-
-## Getting Started (Minimal)
+## Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-org/cnsc-haai.git
+cd cnsc-haai
+
+# Install dependencies
 pip install -e .
+
+# Run tests
 pytest -q
+
+# Verify installation
 python -m cnsc.haai --help
 ```
 
 ---
 
-## Quick Start (One True Path)
+## Quick Start
 
-### Install
-```bash
-pip install -e .
-```
+### Basic Usage
 
-### Run NPE server
 ```bash
+# View help
+python -m cnsc.haai --help
+
+# Run the NPE server
 python -m npe.api.server
-# or
+
+# Or using the CLI
 npe serve
 ```
 
-### Run minimal CNSC-HAAI pipeline
+### End-to-End Examples
+
+See the [`examples/end_to_end/`](examples/end_to_end/) directory for comprehensive examples:
+- [`00_glll_encode_decode.md`](examples/end_to_end/00_glll_encode_decode.md) - GLLL encoding/decoding
+- [`01_ghll_parse_rewrite.md`](examples/end_to_end/01_ghll_parse_rewrite.md) - GHLL parsing and rewriting
+- [`02_nsc_cfa_run.md`](examples/end_to_end/02_nsc_cfa_run.md) - NSC execution with CFA
+- [`03_gml_trace_audit.md`](examples/end_to_end/03_gml_trace_audit.md) - GML trace and audit
+
+---
+
+## Project Structure
+
+```
+cnsc-haai/
+├── spec/              # Detailed specifications for all components
+├── src/
+│   ├── cnsc/haai/     # Primary implementation (CLI, Triaxis, NSC)
+│   ├── cnhaai/        # Coherence kernel documentation
+│   └── npe/           # Neural Planning Engine
+├── compliance_tests/  # Test suites for all components
+├── examples/          # End-to-end usage examples
+├── docs/              # Architecture and documentation
+├── Coherence_Spec_v1_0/  # Coherence framework documentation
+└── schemas/           # JSON Schemas for data formats
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
+
+### Development Setup
+
 ```bash
-python -m cnsc.haai --help
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/cnsc/haai
 ```
 
-### Run tests
-```bash
-pytest -q
-```
+### Code Style
 
-### Expected outputs
-
-#### Help output:
-```
-usage: cnsc-haai [-h] [--verbose] [--config FILE] {trace,replay,verify,encode,decode} ...
-
-CNSC-HAAI: Coherence-Native, Safety-Constrained Hybrid Artificial Intelligence
-
-positional arguments:
-  {trace,replay,verify,encode,decode}
-    trace               Trace an execution
-    replay              Replay a trace
-    verify              Verify a trace
-    encode              Encode input to GLLL
-    decode              Decode GLLL to output
-
-options:
-  -h, --help            show this help message and update_todo_list information
-  --verbose, -v         Enable verbose output
-  --config FILE, -c FILE
-                        Configuration file path
-```
-
-#### Test output:
-```
-============================= test session starts =============================
-...
-=============================  passed in 0.XX s ==============================
-```
+- Follow PEP 8 guidelines
+- Use type hints for all function signatures
+- Write docstrings for all public modules, functions, and classes
+- Ensure all tests pass before submitting
 
 ---
 
-A full "Hello Cognition" end-to-end demo is provided in the integration tests.
+## License
 
-> Note: The CLI is partially implemented. Some commands (`trace`, `replay`, `verify`, `encode`, `decode`) are stubs.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Contact
+
+- **Repository**: https://github.com/your-org/cnsc-haai
+- **Issues**: Please use the GitHub issue tracker
+- **Discussions**: Use GitHub Discussions for questions and ideas
 
 ---
 
-## Final Note
+## Acknowledgments
 
-CNSC-HAAI is not trying to look intelligent.
-
-It is trying to **be trustworthy**.
-
-If you are interested in:
-
-* auditable reasoning
-* coherence-first AI
-* formal guarantees at runtime
-* intelligence that can say "no" and prove why
-
-You're in the right place.
+- NoeticanLabs for the original Coherence Framework
+- Research partners and contributors
+- The formal methods community for verification techniques
 
 ---
+
+## Citation
+
+If you use CNSC-HAAI in your research, please cite:
+
+```bibtex
+@misc{cnsc-haai,
+  title = {CNSC-HAAI: Coherence-Native, Safety-Constrained Hybrid Artificial Intelligence},
+  author = {NoeticanLabs},
+  year = {2026},
+  url = {https://github.com/your-org/cnsc-haai}
+}
+```

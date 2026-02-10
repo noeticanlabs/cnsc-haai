@@ -70,6 +70,42 @@
         "coherence_after": {
           "type": "number",
           "description": "Coherence score after the step (0.0 to 1.0)."
+        },
+        "coherence_residual": {
+          "type": "object",
+          "description": "Vector residual for UFE alignment (dynamical and clock components).",
+          "properties": {
+            "dynamical": {
+              "type": "number",
+              "description": "∇_u u (structural/geometric residual)"
+            },
+            "clock": {
+              "type": "number",
+              "description": "g(u,u) + 1 (temporal/timelike residual)"
+            },
+            "norm": {
+              "type": "number",
+              "description": "observerResidualNorm: sqrt(dynamical² + clock²)"
+            }
+          }
+        },
+        "bridge_cert": {
+          "type": "object",
+          "description": "Bridge certificate for discrete-to-analytic bound inference.",
+          "properties": {
+            "discrete_bound": {
+              "type": "number",
+              "description": "τΔ: Discrete residual bound"
+            },
+            "step_size": {
+              "type": "number",
+              "description": "Δ: Step size for discretization"
+            },
+            "analytic_bound": {
+              "type": "number",
+              "description": "τC: Analytic residual bound from errorBound function"
+            }
+          }
         }
       },
       "additionalProperties": false

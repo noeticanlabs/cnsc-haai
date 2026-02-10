@@ -1,96 +1,237 @@
-CNSC-HAAI Protective Research License (PRL-1.1)
+# CNSC-HAAI Protective Research License (PRL-1.2)
 
-Copyright © 2026
-All rights reserved.
+**Version 1.2 - Enhanced Professional Edition**
 
-Owner: NoeticanLabs and its primary author(s) / maintainer(s)
+---
 
-─────────────── ─────────────────────────────────────────────────────────────
-1. OWNERSHIP
-────────────────────────────────────────────────────────────────────────────
-All intellectual property rights, including but not limited to source code,
-models, architectures, design documents, algorithms, training procedures,
-and derivative concepts, are and shall remain the exclusive property of
-the CNSC-HAAI Owner(s), unless explicitly transferred in writing.
+## Preamble
 
-No rights are granted except those explicitly stated in this license.
+This license governs the use of the CNSC-HAAI ("Coherence-Native, Safety-Constrained Hybrid Artificial Intelligence") system. This is a protective research license designed to preserve the rights of the creators while enabling open research and collaboration.
 
-────────────────────────────────────────────────────────────────────────────
-2. PERMITTED USE (RESEARCH ONLY)
-────────────────────────────────────────────────────────────────────────────
-Permission is granted to use, copy, and modify the System solely for:
+---
 
-• Non-commercial research
-• Academic study
-• Internal evaluation
-• Peer review and benchmarking
+## 1. Ownership and Intellectual Property
 
-Any use must be non-profit, non-revenue-generating, and non-monetized,
-whether directly or indirectly.
+**1.1** All intellectual property rights in the CNSC-HAAI system, including but not limited to:
+- Source code, algorithms, and software architecture
+- Design documents, specifications, and technical documentation
+- Training procedures, methodologies, and concepts
+- Trademarked names and branding elements
+- Any derivative works, modifications, or extensions
 
-────────────────────────────────────────────────────────────────────────────
-3. PROHIBITED COMMERCIALIZATION
-────────────────────────────────────────────────────────────────────────────
-The following are strictly prohibited without a separate written license
-from the Owner:
+...are and shall remain the exclusive property of **NoeticanLabs** and its designated author(s)/maintainer(s).
 
-• Selling, licensing, sublicensing, or leasing the System
-• Offering the System as a service (SaaS, API, hosted model, consulting)
-• Using the System to generate revenue, funding, equity, tokens, or fees
-• Incorporating the System into a commercial or for-profit product
-• Using the System to train, bootstrap, or improve a commercial model
+**1.2** No rights are granted under this license except those explicitly stated herein. Any use of the system constitutes acceptance of these terms.
 
-If money changes hands because of this System, **you are in violation**.
+---
 
-────────────────────────────────────────────────────────────────────────────
-4. DERIVATIVE WORKS
-────────────────────────────────────────────────────────────────────────────
-Derivative works may be created for research purposes only and:
+## 2. Permitted Uses
 
-a) Do NOT transfer ownership of original or derivative IP
-b) MUST retain this license in full
-c) MUST clearly state that they are derived from CNSC-HAAI
-d) MAY NOT be commercialized in any form
+Permission is granted to use, copy, modify, and distribute the system **free of charge** for the following purposes:
 
-Derivative works do NOT grant the right to commercialize the original
-System or the derivative.
+### 2.1 Research and Academic Use
+- Non-commercial academic research
+- University coursework and educational purposes
+- Scientific inquiry and experimentation
+- Peer review and scholarly citation
+- Benchmarking and comparative studies
 
-────────────────────────────────────────────────────────────────────────────
-5. NO COMPETITIVE USE
-────────────────────────────────────────────────────────────────────────────
-The System may not be used to develop or enhance a competing commercial
-system without explicit written permission from the Owner.
+### 2.2 Evaluation and Assessment
+- Internal evaluation and testing
+- Security and performance assessment
+- Compliance verification
+- Integration testing in non-commercial environments
 
-────────────────────────────────────────────────────────────────────────────
-6. ATTRIBUTION
-────────────────────────────────────────────────────────────────────────────
-All publications, talks, benchmarks, or public disclosures must credit:
+### 2.3 Collaboration and Contribution
+- Contributing to open-source development
+- Participating in research collaborations
+- Submitting bug reports and patches
+- Engaging in community discussions
 
-“CNSC-HAAI — Cognitive Non-Symbolic Computation / Hybrid Artificial Intelligence”
+**2.4** All permitted uses must be **non-commercial**, **non-revenue-generating**, and **non-monetized** in any manner, whether directly or indirectly.
 
-────────────────────────────────────────────────────────────────────────────
-7. NO IMPLIED LICENSE
-────────────────────────────────────────────────────────────────────────────
-Nothing in this license shall be construed as granting any patent rights,
-trademark rights, or rights beyond those explicitly stated.
+---
 
-────────────────────────────────────────────────────────────────────────────
-8. DISCLAIMER
-────────────────────────────────────────────────────────────────────────────
-THE SYSTEM IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND.
+## 3. Prohibited Uses and Commercial Restrictions
 
-────────────────────────────────────────────────────────────────────────────
-9. LIMITATION OF LIABILITY
-────────────────────────────────────────────────────────────────────────────
-IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY DAMAGES ARISING FROM USE,
-MISUSE, OR INABILITY TO USE THE SYSTEM.
+The following activities are **strictly prohibited** without prior written permission from the Owner:
 
-────────────────────────────────────────────────────────────────────────────
-10. ENFORCEMENT & TERMINATION
-────────────────────────────────────────────────────────────────────────────
-Any violation of this license automatically terminates all rights granted
-herein. Upon termination, all copies must be destroyed.
+### 3.1 Commercial Exploitation
+- Selling, licensing, sublicensing, or leasing the system
+- Offering the system as a service (SaaS, API, hosted model, or consulting)
+- Using the system to generate revenue, funding, equity, or fees
+- Incorporating the system into commercial or for-profit products
+- Using the system to train, bootstrap, or improve commercial models
 
-────────────────────────────────────────────────────────────────────────────
-END OF TERMS
-────────────────────────────────────────────────────────────────────────────
+### 3.2 Competitive Use
+- Using the system to develop competing products or services
+- Creating derivative works intended for commercial advantage
+- Utilizing the system to enhance competitive offerings
+
+### 3.3 Unauthorized Distribution
+- Redistributing the system without this license
+- Removing or modifying license notices
+- Creating obfuscated or hidden distributions
+
+**3.4** If any monetary benefit is derived directly or indirectly from the use of this system, **you are in violation** of this license.
+
+---
+
+## 4. Derivative Works
+
+**4.1** Derivative works may be created for **research purposes only** and must:
+
+- **(a)** NOT transfer ownership of original or derivative IP
+- **(b)** RETAIN this license in its entirety
+- **(c)** CLEARLY STATE that the work is derived from CNSC-HAAI
+- **(d)** NOT be commercialized in any form
+
+**4.2** Creating derivative works does **NOT** grant the right to commercialize either the original system or the derivative work.
+
+**4.3** All derivative works must include prominent attribution to the original system and this license.
+
+---
+
+## 5. Attribution Requirements
+
+**5.1** All publications, presentations, papers, talks, benchmarks, or public disclosures that utilize or reference this system must credit:
+
+> "CNSC-HAAI — Cognitive Non-Symbolic Computation / Hybrid Artificial Intelligence"
+> 
+> Developed by NoeticanLabs
+
+**5.2** Attribution should include a link to the original repository and this license.
+
+**5.3** Modified versions must clearly indicate that modifications were made.
+
+---
+
+## 6. Open-Source Contributions
+
+**6.1** Contributions submitted to the official CNSC-HAAI repository are subject to the contributor agreement in effect at the time of submission.
+
+**6.2** By contributing, you grant NoeticanLabs a perpetual, worldwide, non-exclusive license to use, modify, and distribute your contributions under this license.
+
+**6.3** You represent that you have the right to grant such a license and that your contributions do not infringe on any third-party rights.
+
+---
+
+## 7. Warranty Disclaimer
+
+**7.1** THE SYSTEM IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+
+**7.2** The Owner expressly disclaims all warranties, including but not limited to:
+- Merchantability
+- Fitness for a particular purpose
+- Non-infringement
+- Accuracy or completeness of results
+- Error-free operation
+
+**7.3** Use of this system is at your own risk. The Owner does not warrant that the system will meet your requirements or that operation will be uninterrupted or error-free.
+
+---
+
+## 8. Limitation of Liability
+
+**8.1** IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM:
+
+- Use or inability to use the system
+- Loss of data, business, or reputation
+- System failures or security vulnerabilities
+- Any other matter relating to this license or the system
+
+**8.2** This limitation applies even if the Owner has been advised of the possibility of such damages.
+
+**8.3** Some jurisdictions do not allow the exclusion of implied warranties or limitation of liability, so the above limitations may not apply to you.
+
+---
+
+## 9. Indemnification
+
+**9.1** You agree to indemnify, defend, and hold harmless the Owner from any claims, damages, losses, or expenses (including reasonable attorney fees) arising from:
+
+- Your violation of this license
+- Your use of the system in violation of applicable laws
+- Your infringement of any third-party rights
+- Your modification or distribution of the system
+
+---
+
+## 10. Export Controls
+
+**10.1** You agree to comply with all applicable export control laws and regulations.
+
+**10.2** You shall not export or re-export the system to countries or persons prohibited by applicable export controls.
+
+---
+
+## 11. Term and Termination
+
+**11.1** This license is effective indefinitely, starting from your first use of the system.
+
+**11.2** This license terminates **automatically** upon any violation of its terms.
+
+**11.3** Upon termination:
+- You must immediately cease all use of the system
+- You must destroy all copies of the system in your possession
+- You must remove the system from any devices or storage media
+- All accrued rights and obligations survive termination
+
+**11.4** The Owner may pursue all available legal and equitable remedies for violations.
+
+---
+
+## 12. Governing Law and Disputes
+
+**12.1** This license shall be governed by and construed in accordance with applicable law.
+
+**12.2** Disputes arising from this license shall be resolved through:
+
+1. **Negotiation**: Good-faith discussions between parties
+2. **Mediation**: If negotiation fails, with a mutually agreed mediator
+3. **Arbitration**: If mediation fails, binding arbitration under applicable rules
+
+**12.3** The prevailing party in any dispute shall be entitled to recover reasonable attorney fees and costs.
+
+---
+
+## 13. Miscellaneous Provisions
+
+**13.1 Complete Agreement**: This license constitutes the complete agreement between the parties regarding the system.
+
+**13.2 Amendment**: This license may only be amended in writing signed by the Owner.
+
+**13.3 Severability**: If any provision is found unenforceable, the remaining provisions remain in effect.
+
+**13.4 Waiver**: Failure to enforce any provision does not constitute a waiver of future enforcement.
+
+**13.5 Notices**: All notices should be sent to the contact information specified in the official repository.
+
+**13.6 No Agency**: This license does not create an agency, partnership, or employment relationship.
+
+---
+
+## 14. Third-Party Components
+
+**14.1** The system may include third-party components under their respective licenses. You must comply with those licenses in addition to this one.
+
+**14.2** A list of third-party components and their licenses is maintained in the repository documentation.
+
+---
+
+## 15. Contact Information
+
+For questions about this license, commercial licensing requests, or permissions:
+
+- **Repository**: https://github.com/your-org/cnsc-haai
+- **Owner**: NoeticanLabs
+- **Email**: NoeticanLabs@gmail.com
+
+---
+
+## 16. Acknowledgment
+
+By using, copying, modifying, or distributing this system, you acknowledge that you have read, understood, and agree to be bound by all terms and conditions of this license.
+
+---
+
