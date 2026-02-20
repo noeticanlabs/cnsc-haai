@@ -36,7 +36,36 @@ from .budget import BudgetManager, GENESIS_RECEIPT_ID
 
 
 # Genesis constants
+# Per Gap D: Genesis definition
 GENESIS_CHAIN_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
+
+# SHA256 of empty bytes - the hash of empty state
+GENESIS_STATE_HASH = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+# Genesis receipt ID
+GENESIS_RECEIPT_ID = "00000000"
+
+
+@dataclass
+class Genesis:
+    """
+    Genesis state definition for replay anchoring.
+    
+    Per Gap D: Genesis definition
+    
+    The genesis receipt serves as the trusted root of the receipt chain.
+    All trajectories must start from this known state.
+    """
+    state_hash: str = GENESIS_STATE_HASH
+    chain_hash: str = GENESIS_CHAIN_HASH
+    receipt_id: str = GENESIS_RECEIPT_ID
+    
+    def verify(self, receipt: Receipt) -> bool:
+        """Verify a receipt matches genesis."""
+        return (
+            receipt.previous_receipt_id == GENESIS_RECEIPT_ID and
+            receipt.chain_hash == GENESIS_CHAIN_HASH
+        )
 
 
 class ReceiptVerifier:
@@ -236,25 +265,32 @@ class ReceiptVerifier:
         if not receipt.content:
             return None
         
-        # Compute delta from receipt
-        risk_delta = receipt.content.risk_after_q - receipt.content.risk_before_q
+        # Use signed delta for proper sign detection
+        # This avoids the floor-at-zero issue in QFixed subtraction
+        from .numeric import compute_signed_delta
+        risk_delta = compute_signed_delta(
+            receipt.content.risk_after_q,
+            receipt.content.risk_before_q
+        )
         
-        if risk_delta <= QFixed.ZERO:
+        if not risk_delta.is_positive():  # ΔV ≤ 0
             # Risk decreased - budget must be preserved
             if budget_after != budget_before:
                 return BudgetViolationError(
                     budget_before.to_json(),
                     budget_after.to_json(),
-                    risk_delta.to_json()
+                    {"delta_raw": risk_delta.raw_delta, "delta_str": str(risk_delta)}
                 )
         else:
             # Risk increased - check and consume budget
-            required = kappa * risk_delta
+            # Use .plus() to get ΔV⁺ for the calculation
+            delta_plus = risk_delta.plus()
+            required = kappa * delta_plus
             if budget_before < required:
                 return InsufficientBudgetError(
                     budget_before.to_json(),
                     required.to_json(),
-                    risk_delta.to_json()
+                    {"delta_raw": risk_delta.raw_delta, "delta_str": str(risk_delta)}
                 )
             
             expected_after = budget_before - required
@@ -262,7 +298,7 @@ class ReceiptVerifier:
                 return BudgetViolationError(
                     budget_before.to_json(),
                     budget_after.to_json(),
-                    risk_delta.to_json()
+                    {"delta_raw": risk_delta.raw_delta, "delta_str": str(risk_delta)}
                 )
         
         return None
@@ -306,15 +342,24 @@ class ReceiptVerifier:
     
     def verify_trajectory(
         self,
-        initial_state: State,
+        initial_state_hash: str,
         initial_budget: QFixed,
         receipts: list,
         kappa: QFixed = None,
     ) -> Tuple[bool, Optional[ATSError]]:
         """
-        Verify a complete trajectory.
+        Verify a complete trajectory using ONLY receipt data.
         
-        Per docs/ats/30_ats_runtime/replay_verification.md
+        Per docs/ats/30_ats_runtime/replay_verification.md:
+        - initial_state_hash: Starting state hash (provided externally)
+        - Each receipt must contain:
+          - state_hash_before (links to previous)
+          - state_hash_after (for next link)
+          - risk values (for V verification)
+          - budget values (for B verification)
+        
+        This method does NOT trust runtime state - it verifies entirely
+        from receipt-contained data.
         
         Returns: (accepted: bool, error: Optional[ATSError])
         """
@@ -324,26 +369,72 @@ class ReceiptVerifier:
         self._previous_receipt_id = GENESIS_RECEIPT_ID
         self.budget_manager = BudgetManager(initial_budget, kappa)
         
-        current_state = initial_state
-        current_budget = initial_budget
+        # Track expected state hash for chain verification
+        expected_state_hash = initial_state_hash
+        
+        # Track previous chain hash for chain verification
+        prev_chain_hash = GENESIS_CHAIN_HASH
         
         for i, receipt in enumerate(receipts):
-            # Verify this step
-            accepted, error = self.verify_step(
-                state_before=current_state,
-                state_after=current_state,  # We don't have the actual after state
-                action=Action(ActionType.CUSTOM),  # Placeholder
+            # Get content from receipt (not runtime)
+            content = receipt.content
+            if not content:
+                return False, ATSError("Receipt missing content")
+            
+            # Step 1: Verify state hash chain (using receipt data only)
+            if content.state_hash_before != expected_state_hash:
+                return False, StateHashMismatchError(
+                    expected_state_hash,
+                    content.state_hash_before
+                )
+            
+            # Step 2: Verify receipt hash (receipt_id)
+            computed_id = receipt.compute_receipt_id()
+            if computed_id != receipt.receipt_id:
+                return False, InvalidReceiptHashError(receipt.receipt_id, computed_id)
+            
+            # Step 3: Verify chain hash (using new content-bound formula)
+            computed_chain_hash = receipt.compute_chain_hash(prev_chain_hash)
+            if computed_chain_hash != receipt.chain_hash:
+                return False, InvalidChainLinkError(receipt.chain_hash, computed_chain_hash)
+            
+            # Step 4: Verify chain link (previous receipt ID)
+            if receipt.previous_receipt_id != self._previous_receipt_id:
+                return False, InvalidChainLinkError(
+                    self._previous_receipt_id,
+                    receipt.previous_receipt_id
+                )
+            
+            # Step 5: Verify budget law using receipt data only
+            # (We compute expected budget transition and compare to receipt)
+            budget_before = self.budget_manager.budget
+            budget_after = content.budget_after_q
+            
+            # Compute risk delta from receipt content
+            risk_delta = content.risk_after_q - content.risk_before_q
+            
+            # Verify budget transition matches what receipt claims
+            accepted, error = self._verify_budget_law(
+                budget_before=budget_before,
+                budget_after=budget_after,
                 receipt=receipt,
-                budget_before=current_budget,
-                budget_after=receipt.content.budget_after_q if receipt.content else QFixed.ZERO,
                 kappa=kappa,
             )
             
-            if not accepted:
+            if error:
                 return False, error
             
-            # Update for next iteration
-            current_budget = receipt.content.budget_after_q if receipt.content else current_budget
+            # Update expected state for next step (from receipt, not runtime)
+            expected_state_hash = content.state_hash_after
+            
+            # Update chain hash for next iteration
+            prev_chain_hash = receipt.chain_hash
+            
+            # Update budget for next iteration
+            self.budget_manager.budget = budget_after
+            
+            # Update previous receipt ID for next iteration
+            self._previous_receipt_id = receipt.receipt_id
         
         return True, None
     

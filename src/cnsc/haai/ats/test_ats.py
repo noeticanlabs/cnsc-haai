@@ -354,6 +354,76 @@ def test_chain_verification():
     print("  ✓ Receipt chain verification pass")
 
 
+def test_meta_does_not_affect_chain_hash():
+    """
+    Gap F: Meta invariance test.
+    
+    This test proves that changing meta fields (telemetry) does NOT affect
+    chain_hash, ensuring meta data is truly non-consensus.
+    """
+    print("Testing meta invariance (Gap F)...")
+    
+    from ats.types import ReceiptType, State, BeliefState, MemoryState, PlanState, PolicyState, IOState
+    
+    # Create an ATS v2 receipt
+    state = State(
+        belief=BeliefState(),
+        memory=MemoryState(),
+        plan=PlanState(),
+        policy=PolicyState(),
+        io=IOState(),
+    )
+    state_hash = state.state_hash()
+    
+    content = ReceiptContent(
+        step_type="TEST",
+        risk_before_q=Q(1000000000000000000),
+        risk_after_q=Q(1000000000000000000),  # Same risk
+        delta_plus_q=Q(0),
+        budget_before_q=Q(1000000000000000000),
+        budget_after_q=Q(1000000000000000000),
+        kappa_q=Q(1),
+        state_hash_before=state_hash,
+        state_hash_after=state_hash,
+        decision="PASS",
+    )
+    
+    receipt = Receipt(
+        version="2.0.0",
+        receipt_type=ReceiptType.ATS_V2,
+        step_index=0,
+        content=content,
+        previous_receipt_id="00000000",
+    )
+    receipt.receipt_id = receipt.compute_receipt_id()
+    receipt.chain_hash = receipt.compute_chain_hash("0000000000000000000000000000000000000000000000000000000000000000")
+    
+    # Store original chain hash
+    original_chain_hash = receipt.chain_hash
+    original_receipt_id = receipt.receipt_id
+    
+    # Now change ALL meta fields
+    receipt.meta.timestamp = "2099-01-01T00:00:00Z"
+    receipt.meta.episode_id = "fake-episode-12345"
+    receipt.meta.provenance = {"host": "attacker.example.com", "malicious": True}
+    receipt.meta.signature = {"fake": "signature", "hacked": True}
+    receipt.meta.metadata = {"injected": True, "attack": "meta_injection"}
+    
+    # Recompute hashes
+    new_receipt_id = receipt.compute_receipt_id()
+    new_chain_hash = receipt.compute_chain_hash("0000000000000000000000000000000000000000000000000000000000000000")
+    
+    # CRITICAL: Chain hash MUST be identical
+    assert new_chain_hash == original_chain_hash, \
+        f"META CHAIN HASH CHANGED! {new_chain_hash} != {original_chain_hash}"
+    
+    # CRITICAL: Receipt ID MUST be identical (for ATS v2)
+    assert new_receipt_id == original_receipt_id, \
+        f"META RECEIPT ID CHANGED! {new_receipt_id} != {original_receipt_id}"
+    
+    print("  ✓ Meta invariance test pass")
+
+
 def main():
     """Run all tests."""
     print("=" * 60)
@@ -372,6 +442,8 @@ def main():
         test_insufficient_budget,
         test_budget_invariant,
         test_chain_verification,
+        # Gap F: Meta invariance test
+        test_meta_does_not_affect_chain_hash,
     ]
     
     passed = 0

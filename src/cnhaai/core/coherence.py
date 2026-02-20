@@ -1,4 +1,22 @@
 """
+===============================================================================
+WARNING: NON-CONSENSUS MODULE (Per Gap J: Coherence Firewall)
+===============================================================================
+
+This module provides HEURISTIC coherence scoring for UI purposes.
+It is NOT used in ATS kernel verification.
+
+DO NOT import this in:
+- src/cnsc/haai/ats/rv.py
+- src/cnsc/haai/ats/risk.py  
+- src/cnsc/haai/ats/types.py
+
+For ATS kernel coherence, use:
+- src/cnsc/haai/ats/risk.py (deterministic, fixed-point)
+- src/cnsc/haai/ats/numeric.py (QFixed arithmetic)
+
+===============================================================================
+
 Coherence Budget System for CNHAAI
 
 This module provides coherence tracking and budget management:

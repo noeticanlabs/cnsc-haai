@@ -10,31 +10,55 @@ from __future__ import annotations
 from enum import Enum, auto
 
 
+# Per Gap G: Rejection precedence
+# The order matters! First failure wins.
+REJECTION_PRECEDENCE = [
+    'InvalidChainLinkError',       # 1. Chain broken
+    'StateHashMismatchError',    # 2. State hash wrong
+    'RiskMismatchError',         # 3. Risk values don't match
+    'BudgetViolationError',      # 4. Budget law violated
+    'InvalidReceiptHashError',  # 5. Receipt hash invalid
+    'InsufficientBudgetError',   # 6. Not enough budget
+    'InvalidActionTypeError',   # 7. Unknown action
+    'ATSError',                 # 8. Generic error
+]
+
+
 class RejectionCode(Enum):
     """
     Complete list of ATS rejection codes.
     
-    Per docs/ats/50_security_model/rejection_reason_codes.md
+    Per Gap G: Rejection precedence
+    
+    The precedence order matters for consensus:
+    - Different nodes must return the SAME rejection reason
+    - First failure in precedence order wins
     """
-    # Verification Failures
-    INVALID_ACTION_TYPE = auto()
-    INVALID_STATE_SERIALIZATION = auto()
-    STATE_HASH_MISMATCH = auto()
-    INVALID_RECEIPT_HASH = auto()
-    RISK_MISMATCH = auto()
+    # Chain Failures (highest priority)
+    INVALID_CHAIN_LINK = auto()       # 1. Chain broken
+    GENESIS_REQUIRED = auto()         # 2. Must start from genesis
+    CHAIN_TOO_SHORT = auto()         # 3. Not enough steps
     
-    # Budget Violations
-    BUDGET_VIOLATION = auto()
-    INSUFFICIENT_BUDGET = auto()
-    NEGATIVE_BUDGET = auto()
+    # State Verification
+    STATE_HASH_MISMATCH = auto()     # 4. State hash wrong
     
-    # Chain Failures
-    INVALID_CHAIN_LINK = auto()
-    GENESIS_REQUIRED = auto()
-    CHAIN_TOO_SHORT = auto()
+    # Receipt Verification
+    INVALID_RECEIPT_HASH = auto()   # 5. Receipt hash invalid
+    
+    # Risk Verification
+    RISK_MISMATCH = auto()           # 6. Risk values don't match
+    
+    # Budget Verification
+    BUDGET_VIOLATION = auto()        # 7. Budget law violated
+    INSUFFICIENT_BUDGET = auto()     # 8. Not enough budget
+    NEGATIVE_BUDGET = auto()         # 9. Budget went negative
+    
+    # Action Verification
+    INVALID_ACTION_TYPE = auto()     # 10. Unknown action
+    INVALID_STATE_SERIALIZATION = auto()  # 11. Malformed state
     
     # Generic
-    UNKNOWN_ERROR = auto()
+    UNKNOWN_ERROR = auto()            # 12. Catch-all
 
 
 class ATSError(Exception):

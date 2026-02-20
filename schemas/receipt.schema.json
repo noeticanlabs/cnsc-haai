@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cnsc-haai.io/schemas/receipt.schema.json",
-  "title": "CNHAAI Receipt Schema v1.0.0",
-  "description": "Unified receipt schema for the Coherence Framework. This is the canonical schema for all receipt types.",
+  "title": "CNHAAI Receipt Schema v1.0.0 (DEPRECATED - TELEMETRY ONLY)",
+  "description": "DEPRECATED: This schema is for telemetry/debugging only. NOT CONSENSUS-SAFE. For ATS kernel receipts, use receipt.ats.v2.schema.json. This v1 schema includes timestamps, provenance, and signatures which are non-deterministic and violate ATS kernel invariants.",
   "type": "object",
   "required": ["version", "receipt_id", "timestamp", "content", "signature"],
   "properties": {

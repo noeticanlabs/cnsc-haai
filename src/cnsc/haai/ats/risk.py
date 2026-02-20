@@ -8,6 +8,20 @@ Per docs/ats/10_mathematical_core/risk_functional_V.md:
 - Deterministic, fixed-point domain
 - No floats allowed
 - Monotone guard semantics
+
+===============================================================================
+VERIFICATION REGIME: RV RECOMPUTES V (Regime 1)
+===============================================================================
+
+Per Gap B: Risk witness regime
+
+The ATS kernel uses Regime 1: RV recomputes V from committed state.
+This means:
+- RV must have access to state data (or StateCore) sufficient to compute V
+- No witnesses/bounds are needed - RV computes exact risk
+- The receipt contains state_hash_before/after, and RV can recompute V
+
+This is simpler than Regime 2 (verify bounds) and provides stronger guarantees.
 """
 
 from __future__ import annotations
@@ -15,7 +29,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from .numeric import QFixed
-from .types import State, BeliefState, MemoryState, PlanState, PolicyState, IOState
+from .types import State, BeliefState, MemoryState, PlanState, PolicyState, IOState, StateCore
 
 
 # Standard weights for risk aggregation
@@ -47,14 +61,27 @@ class RiskFunctional:
         """
         self.weights = weights or DEFAULT_WEIGHTS
     
-    def compute(self, state: State) -> QFixed:
+    def compute(self, state_or_core) -> QFixed:
         """
-        Compute V(state).
+        Compute V(state) or V(state_core).
         
+        Supports both State and StateCore for Regime 1 verification.
         V(x) = w₁·V_belief + w₂·V_memory + w₃·V_plan + w₄·V_policy + w₅·V_io
         
         Per docs/ats/10_mathematical_core/risk_functional_V.md
+        
+        Args:
+            state_or_core: Either State or StateCore (both have belief/memory/plan/policy/io)
+        
+        Returns:
+            Risk value V(state) in QFixed(18)
         """
+        # Support both State and StateCore
+        from .types import StateCore
+        if isinstance(state_or_core, StateCore):
+            state = state_or_core
+        else:
+            state = state_or_core
         risk_belief = self._compute_belief_risk(state.belief)
         risk_memory = self._compute_memory_risk(state.memory)
         risk_plan = self._compute_plan_risk(state.plan)

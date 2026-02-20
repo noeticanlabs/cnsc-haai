@@ -8,6 +8,18 @@ Per docs/ats/10_mathematical_core/budget_law.md:
 - If ΔV > 0: B_next = B_prev - κ × ΔV
 
 Core invariant: Σ(ΔV)⁺ ≤ B₀ / κ
+
+===============================================================================
+WARNING: SLAB COMPRESSION IS NON-CONSENSUS (Per Gap H)
+===============================================================================
+
+Slab compression is a PERFORMANCE OPTIMIZATION ONLY.
+It does NOT participate in consensus until:
+- CRT (Committed Receipt Tree) is implemented
+- Slab invariant is formally proven
+
+The global budget inequality must hold for micro-receipts.
+Slabs are optional summarization, not verification.
 """
 
 from __future__ import annotations

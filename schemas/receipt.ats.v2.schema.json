@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/receipt.ats.v2.schema.json",
+  "title": "ATS Consensus Receipt Schema v2.0.0",
+  "description": "Deterministic, consensus-safe receipt for ATS kernel verification. This schema excludes all non-deterministic fields (timestamps, provenance, signatures) from canonical hashes.",
+  "type": "object",
+  "required": ["version", "receipt_id", "receipt_core", "chain_hash"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "2.0.0",
+      "description": "ATS receipt schema version. Must be '2.0.0' for consensus-safe receipts."
+    },
+    "receipt_id": {
+      "$ref": "#/definitions/receipt_id"
+    },
+    "receipt_core": {
+      "$ref": "#/definitions/receipt_core"
+    },
+    "chain_hash": {
+      "$ref": "#/definitions/chain_hash"
+    },
+    "telemetry": {
+      "$ref": "#/definitions/telemetry",
+      "description": "Non-consensus metadata. MUST be excluded from canonical bytes and MUST NOT affect receipt_id or chain_hash."
+    }
+  },
+  "definitions": {
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "Unique 8-character hex identifier. Computed as: first8(sha256(canonical_bytes(receipt_core)))"
+    },
+    "receipt_core": {
+      "type": "object",
+      "required": ["step_index", "content"],
+      "description": "Consensus-critical receipt data. This is the ONLY part used for canonical hashing.",
+      "properties": {
+        "step_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing step index in trajectory."
+        },
+        "content": {
+          "$ref": "#/definitions/receipt_content"
+        }
+      }
+    },
+    "receipt_content": {
+      "type": "object",
+      "required": [
+        "risk_before",
+        "risk_after",
+        "budget_before",
+        "budget_after",
+        "kappa",
+        "state_hash_before",
+        "state_hash_after"
+      ],
+      "description": "Risk and budget values for ATS verification.",
+      "properties": {
+        "risk_before": {
+          "$ref": "#/definitions/qfixed"
+        },
+        "risk_after": {
+          "$ref": "#/definitions/qfixed"
+        },
+        "budget_before": {
+          "$ref": "#/definitions/qfixed"
+        },
+        "budget_after": {
+          "$ref": "#/definitions/qfixed"
+        },
+        "kappa": {
+          "$ref": "#/definitions/qfixed",
+          "description": "Risk coefficient κ for budget law."
+        },
+        "state_hash_before": {
+          "$ref": "#/definitions/sha256_hex"
+        },
+        "state_hash_after": {
+          "$ref": "#/definitions/sha256_hex"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"],
+          "description": "Decision made by the reasoning step."
+        },
+        "action_hash": {
+          "$ref": "#/definitions/sha256_hex",
+          "description": "Optional: SHA-256 of canonical action bytes for action verification."
+        }
+      }
+    },
+    "qfixed": {
+      "type": "object",
+      "required": ["raw"],
+      "description": "QFixed(18) representation: integer raw value / 10^18. NO FLOATS allowed in consensus.",
+      "properties": {
+        "raw": {
+          "type": "integer",
+          "description": "Raw integer value in QFixed(18) representation."
+        }
+      }
+    },
+    "sha256_hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hex digest (64 hex characters)."
+    },
+    "chain_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Chain hash binding this receipt to previous. Computed as: sha256(prev_chain_hash || canonical_bytes(receipt_core))"
+    },
+    "telemetry": {
+      "type": "object",
+      "description": "Non-consensus metadata. This field MUST be excluded from canonical bytes and MUST NOT affect any hash.",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp. FOR DEBUGGING ONLY - NOT CONSENSUS."
+        },
+        "episode_id": {
+          "type": "string",
+          "description": "Episode identifier. FOR DEBUGGING ONLY - NOT CONSENSUS."
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Origin information. FOR DEBUGGING ONLY - NOT CONSENSUS."
+        },
+        "signature": {
+          "type": "object",
+          "description": "Signature data. FOR DEBUGGING ONLY - NOT CONSENSUS."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata. FOR DEBUGGING ONLY - NOT CONSENSUS."
+        }
+      }
+    }
+  }
+}

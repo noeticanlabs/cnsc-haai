@@ -24,38 +24,44 @@ from .numeric import QFixed
 # Action Types (from docs/ats/10_mathematical_core/action_algebra.md)
 # =============================================================================
 
+# Per Gap C: Action codec versioning
+# Versioned action type strings for deterministic parsing
+ACTION_TYPE_VERSION = "v1"
+ACTION_TYPE_PREFIX = "ats.action"
+
+
 class ActionType(Enum):
     """Types of actions in the action algebra A."""
     # Belief operations
-    BELIEF_UPDATE = auto()
-    BELIEF_MERGE = auto()
-    BELIEF_DELETE = auto()
-    BELIEF_RECALL = auto()
+    BELIEF_UPDATE = "ats.action.belief_update.v1"
+    BELIEF_MERGE = "ats.action.belief_merge.v1"
+    BELIEF_DELETE = "ats.action.belief_delete.v1"
+    BELIEF_RECALL = "ats.action.belief_recall.v1"
     
     # Memory operations
-    MEMORY_WRITE = auto()
-    MEMORY_READ = auto()
-    MEMORY_ALLOC = auto()
-    MEMORY_FREE = auto()
+    MEMORY_WRITE = "ats.action.memory_write.v1"
+    MEMORY_READ = "ats.action.memory_read.v1"
+    MEMORY_ALLOC = "ats.action.memory_alloc.v1"
+    MEMORY_FREE = "ats.action.memory_free.v1"
     
     # Planning operations
-    PLAN_APPEND = auto()
-    PLAN_PREPEND = auto()
-    PLAN_REMOVE = auto()
-    PLAN_CLEAR = auto()
+    PLAN_APPEND = "ats.action.plan_append.v1"
+    PLAN_PREPEND = "ats.action.plan_prepend.v1"
+    PLAN_REMOVE = "ats.action.plan_remove.v1"
+    PLAN_CLEAR = "ats.action.plan_clear.v1"
     
     # Policy operations
-    POLICY_UPDATE = auto()
-    POLICY_COPY = auto()
-    POLICY_ROLLBACK = auto()
+    POLICY_UPDATE = "ats.action.policy_update.v1"
+    POLICY_COPY = "ats.action.policy_copy.v1"
+    POLICY_ROLLBACK = "ats.action.policy_rollback.v1"
     
     # I/O operations
-    IO_INPUT = auto()
-    IO_OUTPUT = auto()
-    IO_FLUSH = auto()
+    IO_INPUT = "ats.action.io_input.v1"
+    IO_OUTPUT = "ats.action.io_output.v1"
+    IO_FLUSH = "ats.action.io_flush.v1"
     
-    # Custom/generic
-    CUSTOM = auto()
+    # Custom/generic (only for testing, not production)
+    CUSTOM = "ats.action.custom"
 
 
 @dataclass(frozen=True)
@@ -63,10 +69,39 @@ class Action:
     """
     An action in the action algebra A.
     
+    Per Gap C: Action codec versioning
+    - action_type is versioned (e.g., "ats.action.belief_update.v1")
+    - Each type has deterministic codec
+    - ATS verifier checks type and only accepts known codecs
+    
     Actions are deterministic functions: X → X
     """
     action_type: ActionType
+    version: str = ACTION_TYPE_VERSION  # "v1" by default
     parameters: Tuple[Any, ...] = field(default_factory=tuple)
+    
+    def validate_codec(self) -> bool:
+        """
+        Validate that this action uses a supported codec version.
+        
+        Per Gap C: Reject unknown/old versions.
+        """
+        SUPPORTED_VERSIONS = {"v1"}
+        return self.version in SUPPORTED_VERSIONS
+    
+    def canonical_bytes(self) -> bytes:
+        """
+        Serialize action to canonical bytes for hashing.
+        
+        Includes version for deterministic encoding.
+        """
+        import json
+        data = {
+            'action_type': self.action_type.value,
+            'version': self.version,
+            'parameters': self.parameters,
+        }
+        return json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
     
     def __hash__(self) -> int:
         return hash((self.action_type, self.parameters))
@@ -145,6 +180,65 @@ class IOState:
         }, separators=(',', ':')).encode('utf-8')
 
 
+@dataclass(frozen=True)
+class StateCore:
+    """
+    CONSENSUS-CRITICAL state.
+    
+    Only fields here affect state_hash and risk computation.
+    This is the "canonical state" that RV verifies against.
+    
+    Per Gap A: StateCore contract
+    """
+    belief: BeliefState
+    memory: MemoryState
+    plan: PlanState
+    policy: PolicyState
+    io: IOState
+    
+    def canonical_bytes(self) -> bytes:
+        """Exact format for state_hash computation."""
+        return (
+            self.belief.canonical_bytes() +
+            self.memory.canonical_bytes() +
+            self.plan.canonical_bytes() +
+            self.policy.canonical_bytes() +
+            self.io.canonical_bytes()
+        )
+    
+    def state_hash(self) -> str:
+        """SHA-256 state hash (consensus identifier)."""
+        import hashlib
+        return hashlib.sha256(self.canonical_bytes()).hexdigest()
+    
+    @classmethod
+    def from_state(cls, state: 'State') -> 'StateCore':
+        """Create StateCore from full State."""
+        return cls(
+            belief=state.belief,
+            memory=state.memory,
+            plan=state.plan,
+            policy=state.policy,
+            io=state.io
+        )
+
+
+@dataclass
+class StateExtension:
+    """
+    NON-CONSENSUS state data.
+    
+    These fields NEVER affect state_hash or risk computation.
+    They are for runtime optimization only (caching, hints, etc.).
+    
+    Per Gap A: StateCore contract
+    """
+    cache: Dict[str, Any] = field(default_factory=dict)
+    runtime_hints: Dict[str, Any] = field(default_factory=dict)
+    # Merkle root option for large states (when full state not shipped)
+    commitment: Optional[str] = None
+
+
 @dataclass
 class State:
     """
@@ -153,6 +247,9 @@ class State:
     X = X_belief × X_memory × X_plan × X_policy × X_io
     
     Per docs/ats/10_mathematical_core/state_space.md
+    
+    For consensus purposes, use StateCore (extracted via .as_core()).
+    Non-consensus data is in .extension.
     """
     belief: BeliefState = field(default_factory=BeliefState)
     memory: MemoryState = field(default_factory=MemoryState)
@@ -181,6 +278,16 @@ class State:
         """Compute SHA-256 state hash."""
         import hashlib
         return hashlib.sha256(self.canonical_bytes()).hexdigest()
+    
+    def as_core(self) -> 'StateCore':
+        """Extract consensus-critical StateCore from this State."""
+        return StateCore(
+            belief=self.belief,
+            memory=self.memory,
+            plan=self.plan,
+            policy=self.policy,
+            io=self.io
+        )
 
 
 # =============================================================================
@@ -219,39 +326,96 @@ class ReceiptContent:
         }, sort_keys=True, separators=(',', ':')).encode('utf-8')
 
 
+class ReceiptType(Enum):
+    """Type of receipt for distinguishing ATS vs telemetry."""
+    ATS_V2 = "ats_v2"  # Consensus-safe (v2 schema)
+    TELEMETRY_V1 = "telemetry_v1"  # Non-consensus (v1 schema)
+
+
+@dataclass
+class ReceiptMeta:
+    """
+    Non-consensus metadata (excluded from canonical bytes).
+    
+    Per the ATS kernel invariant: meta fields never affect hashes.
+    """
+    timestamp: Optional[str] = None
+    episode_id: Optional[str] = None
+    provenance: Dict[str, Any] = field(default_factory=dict)
+    signature: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
 @dataclass
 class Receipt:
     """
     A receipt proving ATS compliance for a state transition.
     
-    Per docs/ats/20_coh_kernel/receipt_schema.md
+    Supports both v1 (telemetry) and v2 (ATS consensus-safe) formats.
+    
+    Per docs/ats/20_coh_kernel/receipt_schema.md:
+    - v2 (ATS): receipt_core is used for canonical bytes
+    - v1 (Telemetry): full receipt including timestamps (NOT consensus-safe)
     """
-    version: str = "1.0.0"
+    version: str = "2.0.0"  # Default to ATS v2
+    receipt_type: ReceiptType = ReceiptType.ATS_V2
     receipt_id: str = ""
-    timestamp: Optional[str] = None
-    episode_id: Optional[str] = None
+    step_index: int = 0  # For v2: monotonically increasing
     content: Optional[ReceiptContent] = None
-    provenance: Dict[str, Any] = field(default_factory=dict)
-    signature: Dict[str, Any] = field(default_factory=dict)
+    meta: ReceiptMeta = field(default_factory=ReceiptMeta)
     previous_receipt_id: str = "00000000"
     previous_receipt_hash: str = ""
     chain_hash: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def canonical_bytes_core(self) -> bytes:
+        """
+        Compute canonical bytes from receipt_core only (for v2 ATS).
+        
+        Per docs/ats/20_coh_kernel/receipt_identity.md:
+        - Only receipt_core affects receipt_id
+        - Meta fields (timestamp, provenance, etc.) are EXCLUDED
+        """
+        if self.content:
+            content_bytes = self.content.canonical_bytes()
+        else:
+            content_bytes = b''
+        
+        data = {
+            'step_index': self.step_index,
+            'content': content_bytes.decode('utf-8') if content_bytes else '',
+        }
+        return json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
     
     def canonical_bytes(self) -> bytes:
-        """Serialize for hashing."""
-        data = {
-            'version': self.version,
-            'timestamp': self.timestamp or '',
-            'episode_id': self.episode_id or '',
-            'content': json.loads(self.content.canonical_bytes().decode()) if self.content else {},
-            'provenance': self.provenance,
-            'signature': self.signature,
-            'previous_receipt_id': self.previous_receipt_id,
-            'previous_receipt_hash': self.previous_receipt_hash,
-            'chain_hash': self.chain_hash,
-            'metadata': self.metadata,
-        }
+        """
+        Serialize for hashing.
+        
+        For ATS v2: uses canonical_bytes_core() (excludes meta)
+        For Telemetry v1: includes all fields (NOT consensus-safe)
+        """
+        if self.receipt_type == ReceiptType.ATS_V2:
+            # ATS v2: only core fields
+            data = {
+                'version': self.version,
+                'step_index': self.step_index,
+                'content': json.loads(self.content.canonical_bytes().decode()) if self.content else {},
+                'previous_receipt_id': self.previous_receipt_id,
+                'previous_receipt_hash': self.previous_receipt_hash,
+            }
+        else:
+            # Telemetry v1: all fields (NOT consensus-safe)
+            data = {
+                'version': self.version,
+                'timestamp': self.meta.timestamp or '',
+                'episode_id': self.meta.episode_id or '',
+                'content': json.loads(self.content.canonical_bytes().decode()) if self.content else {},
+                'provenance': self.meta.provenance,
+                'signature': self.meta.signature,
+                'previous_receipt_id': self.previous_receipt_id,
+                'previous_receipt_hash': self.previous_receipt_hash,
+                'metadata': self.meta.metadata,
+            }
+        
         # Include receipt_id only if already computed (non-empty)
         # This allows computing receipt_id without circular dependency
         if self.receipt_id:
@@ -262,37 +426,58 @@ class Receipt:
         """
         Compute receipt_id = first8(sha256(canonical_bytes(receipt)))
         
-        Per docs/ats/20_coh_kernel/receipt_identity.md
+        Per docs/ats/20_coh_kernel/receipt_identity.md:
+        - For ATS v2: uses canonical_bytes_core() (no timestamps/provenance)
+        - For Telemetry v1: uses full canonical_bytes()
         
-        Note: Excludes receipt_id and chain_hash from canonical_bytes to avoid
+        Note: Excludes receipt_id and chain_hash from canonical bytes to avoid
         circular dependency (chain_hash depends on receipt_id).
         """
         import hashlib
-        # Build data WITHOUT receipt_id and chain_hash (they depend on each other)
-        data = {
-            'version': self.version,
-            'timestamp': self.timestamp or '',
-            'episode_id': self.episode_id or '',
-            'content': json.loads(self.content.canonical_bytes().decode()) if self.content else {},
-            'provenance': self.provenance,
-            'signature': self.signature,
-            'previous_receipt_id': self.previous_receipt_id,
-            'previous_receipt_hash': self.previous_receipt_hash,
-            'metadata': self.metadata,
-        }
-        canonical = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        
+        if self.receipt_type == ReceiptType.ATS_V2:
+            # ATS v2: only core
+            canonical = self.canonical_bytes_core()
+        else:
+            # Telemetry v1: build without receipt_id/chain_hash
+            data = {
+                'version': self.version,
+                'timestamp': self.meta.timestamp or '',
+                'episode_id': self.meta.episode_id or '',
+                'content': json.loads(self.content.canonical_bytes().decode()) if self.content else {},
+                'provenance': self.meta.provenance,
+                'signature': self.meta.signature,
+                'previous_receipt_id': self.previous_receipt_id,
+                'previous_receipt_hash': self.previous_receipt_hash,
+                'metadata': self.meta.metadata,
+            }
+            canonical = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        
         hash_bytes = hashlib.sha256(canonical)
         return hash_bytes.hexdigest()[:8]
     
-    def compute_chain_hash(self, prev_receipt_id: str) -> str:
+    def compute_chain_hash(self, prev_chain_hash: str) -> str:
         """
-        Compute chain_hash = sha256(prev_id || receipt_id)
+        Compute chain_hash that BINDS to receipt content.
         
-        Per docs/ats/20_coh_kernel/chain_hash_rule.md
+        Per docs/ats/20_coh_kernel/chain_hash_rule.md:
+        - For v2 (ATS): sha256(prev_chain_hash || canonical_bytes_core())
+        - For v1 (Telemetry): sha256(prev_receipt_id || receipt_id)
+        
+        The v2 formula binds to receipt content, not just IDs.
+        This prevents chain forks where content differs but IDs match.
         """
         import hashlib
-        chain_input = prev_receipt_id + self.receipt_id
-        return hashlib.sha256(chain_input.encode()).hexdigest()
+        
+        if self.receipt_type == ReceiptType.ATS_V2:
+            # ATS v2: bind to content (secure)
+            core_bytes = self.canonical_bytes_core()
+            chain_input = prev_chain_hash.encode() + core_bytes
+        else:
+            # Telemetry v1: legacy formula (less secure)
+            chain_input = (self.previous_receipt_id + self.receipt_id).encode()
+        
+        return hashlib.sha256(chain_input).hexdigest()
 
 
 # =============================================================================

@@ -8,6 +8,21 @@ Per docs/ats/20_coh_kernel/deterministic_numeric_domain.md:
 - QFixed(18) = { n / 10^18 | n ∈ ℤ, n ≥ 0 }
 - No floats allowed in consensus-critical paths
 - All operations must be deterministic
+
+===============================================================================
+UNIT CONVENTIONS (Per Gap E)
+===============================================================================
+
+- V (risk) measured in "risk micro-units" = 1 QFixed unit
+- B (budget) measured in "budget micro-units" = 1 QFixed unit
+- κ (kappa) maps risk → budget with fixed scale
+
+Allowed κ range:
+- MIN_KAPPA = 1 (minimum stiffness)
+- MAX_KAPPA = 1000 (maximum stiffness)  
+- DEFAULT_KAPPA = 1 (default stiffness)
+
+These are INVARIANT under rescaling - the kernel enforces them directly.
 """
 
 from __future__ import annotations
@@ -20,6 +35,11 @@ SCALE_BITS = 60  # 2^60 ≈ 10^18
 # Maximum integer value (allows values up to MAX_INT in QFixed representation)
 MAX_INT = 10000  # Allows up to 10000.0 in QFixed(18)
 MAX_VALUE = MAX_INT * SCALE  # Maximum internal value
+
+# Unit conventions (Per Gap E: κ unit conventions)
+MIN_KAPPA = 1       # Minimum κ
+MAX_KAPPA = 1000    # Maximum κ
+DEFAULT_KAPPA = 1   # Default κ
 
 
 class QFixedOverflow(Exception):
@@ -297,6 +317,68 @@ class QFixed:
 QFixed._init_class_constants()
 
 
+class QFixedDelta:
+    """
+    Signed delta for proper budget law computation.
+    
+    This class exists because QFixed disallows negative values (for consensus safety),
+    but the budget law needs to know the sign of risk deltas.
+    
+    Per docs/ats/10_mathematical_core/budget_law.md:
+    - If ΔV ≤ 0: B_next = B_prev (budget preserved)
+    - If ΔV > 0: B_next = B_prev - κ × ΔV (budget consumed)
+    """
+    
+    __slots__ = ('raw_delta',)
+    
+    def __init__(self, raw_delta: int):
+        """
+        Create a signed delta from raw integer difference.
+        
+        Args:
+            raw_delta: Can be negative, zero, or positive.
+        """
+        self.raw_delta = raw_delta
+    
+    def is_positive(self) -> bool:
+        """Return True if delta > 0."""
+        return self.raw_delta > 0
+    
+    def is_negative(self) -> bool:
+        """Return True if delta < 0."""
+        return self.raw_delta < 0
+    
+    def is_zero(self) -> bool:
+        """Return True if delta == 0."""
+        return self.raw_delta == 0
+    
+    def sign(self) -> int:
+        """Return -1, 0, or 1."""
+        if self.raw_delta > 0:
+            return 1
+        elif self.raw_delta < 0:
+            return -1
+        return 0
+    
+    def plus(self) -> QFixed:
+        """
+        Return max(0, delta) for budget law.
+        
+        This is ΔV⁺ in the budget law formula.
+        """
+        return QFixed(max(0, self.raw_delta))
+    
+    def abs_value(self) -> QFixed:
+        """Return absolute value as QFixed."""
+        return QFixed(abs(self.raw_delta))
+    
+    def __repr__(self) -> str:
+        return f"QFixedDelta({self.raw_delta})"
+    
+    def __str__(self) -> str:
+        return f"Δ={self.raw_delta / SCALE:+.18f}"
+
+
 def qfixed_cmp(a: QFixed, b: QFixed) -> int:
     """Compare two QFixed numbers. Returns -1, 0, or 1."""
     if a < b:
@@ -305,3 +387,61 @@ def qfixed_cmp(a: QFixed, b: QFixed) -> int:
         return 1
     else:
         return 0
+
+
+def compute_signed_delta(a: QFixed, b: QFixed) -> QFixedDelta:
+    """
+    Compute signed delta between two QFixed values.
+    
+    This is the CORRECT way to compute ΔV for budget law verification,
+    as it preserves sign information that QFixed subtraction loses.
+    
+    Args:
+        a: Ending value (e.g., risk_after)
+        b: Starting value (e.g., risk_before)
+    
+    Returns:
+        QFixedDelta with sign information preserved.
+    
+    Example:
+        >>> r_before = QFixed(1000000000000000000)  # 1.0
+        >>> r_after = QFixed(500000000000000000)   # 0.5 (decreased)
+        >>> delta = compute_signed_delta(r_after, r_before)
+        >>> delta.is_positive()
+        False
+        >>> delta.is_negative()
+        True
+        >>> delta.plus()  # max(0, delta)
+        QFixed(0)
+    """
+    return QFixedDelta(a.value - b.value)
+
+
+# =============================================================================
+# Per Gap I: Tensor Composition Semantics
+# =============================================================================
+
+"""
+TENSOR COMPOSITION LAWS (Per Gap I)
+
+For parallel subsystems S₁ ⊗ S₂:
+
+### Budget Additivity
+B_total = B₁ + B₂  (simple addition)
+
+### Risk... NOT additive!
+V_total ≠ V₁ + V₂  (risk is not a resource)
+
+Instead:
+- If independent: V_total = max(V₁, V₂)
+- If interacting: V_total requires interaction matrix
+
+### Counterexample
+
+Cartesian product X × Y fails because:
+- (x₁, y₁) and (x₂, y₂) can have individual risk < threshold
+- But (x₁, y₂) can have combined risk >> threshold
+- Therefore no simple product law exists
+
+For ATS v1: Only support sequential composition (⊕), not tensor (⊗)
+"""
