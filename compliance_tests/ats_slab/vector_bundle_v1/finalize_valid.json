@@ -1,0 +1,26 @@
+{
+  "schema_id": "receipt.ats.v3",
+  "step_type": "STEP_FINALIZE",
+  "receipt_body": {
+    "finalize_id": "fin_001",
+    "slab_receipt_hash": "sha256:d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+    "window_end_height": 2000,
+    "authorization": {
+      "deletion_allowed": true,
+      "budget_check": {
+        "current_budget": 1500000000000000000,
+        "minimum_required": 1000000000000000000,
+        "passed": true
+      },
+      "dispute_check": {
+        "has_disputes": false,
+        "dispute_count": 0,
+        "passed": true
+      }
+    }
+  },
+  "chain": {
+    "prev_chain_hash": "sha256:f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6f6a1b2c",
+    "chain_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d"
+  }
+}

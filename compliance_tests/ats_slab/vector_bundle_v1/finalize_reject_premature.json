@@ -1,0 +1,27 @@
+{
+  "schema_id": "receipt.ats.v3",
+  "step_type": "STEP_FINALIZE",
+  "receipt_body": {
+    "finalize_id": "fin_002_premature",
+    "slab_receipt_hash": "sha256:d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+    "window_end_height": 1500,
+    "authorization": {
+      "deletion_allowed": false,
+      "budget_check": {
+        "current_budget": 800000000000000000,
+        "minimum_required": 1000000000000000000,
+        "passed": false
+      },
+      "dispute_check": {
+        "has_disputes": false,
+        "dispute_count": 0,
+        "passed": true
+      }
+    },
+    "rejection_reason": "PREMATURE: window_end_height 1500 < expected 2000, budget too low"
+  },
+  "chain": {
+    "prev_chain_hash": "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d",
+    "chain_hash": "sha256:b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6b2c3d4e"
+  }
+}

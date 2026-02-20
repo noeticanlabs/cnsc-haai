@@ -1,144 +1,56 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cnsc-haai.io/schemas/receipt.ats.v3.schema.json",
-  "title": "ATS Consensus Receipt Schema v3.0.0",
-  "description": "Deterministic, consensus-safe receipt for ATS kernel verification v3. This schema uses JCS (RFC8785) canonicalization and universal chain hashing with domain separation.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://noetica.com/schema/receipt.ats.v3.json",
+  "title": "ATS Canonical Receipt v3",
+  "description": "Deterministic, consensus-tight receipt for ATS kernel verification. Uses JCS canonicalization and domain-separated chain hashing.",
   "type": "object",
-  "required": ["version", "receipt_id", "receipt_core", "chain_hash", "merkle_rule_id"],
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "step_type",
+    "receipt_body",
+    "chain"
+  ],
   "properties": {
-    "version": {
+    "schema_id": {
       "type": "string",
-      "const": "3.0.0",
-      "description": "ATS receipt schema version. Must be '3.0.0' for consensus-tight receipts."
+      "const": "receipt.ats.v3"
     },
-    "receipt_id": {
-      "$ref": "#/definitions/sha256_prefixed"
-    },
-    "receipt_core": {
-      "$ref": "#/definitions/receipt_core"
-    },
-    "chain_hash": {
-      "$ref": "#/definitions/chain_hash_v1"
-    },
-    "merkle_rule_id": {
+    "step_type": {
       "type": "string",
-      "const": "coh.merkle.v1",
-      "description": "Merkle rule identifier for inclusion proofs."
+      "enum": [
+        "STEP_MICRO",
+        "STEP_SLAB",
+        "STEP_FRAUD_PROOF",
+        "STEP_FINALIZE"
+      ]
     },
-    "telemetry": {
-      "$ref": "#/definitions/telemetry",
-      "description": "Non-consensus metadata. MUST be excluded from canonical bytes and MUST NOT affect receipt_id or chain_hash."
+    "receipt_body": {
+      "type": "object",
+      "description": "Step-specific payload. Structure defined by step_type."
+    },
+    "chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prev_chain_hash",
+        "chain_hash"
+      ],
+      "properties": {
+        "prev_chain_hash": {
+          "$ref": "#/definitions/sha256_digest"
+        },
+        "chain_hash": {
+          "$ref": "#/definitions/sha256_digest"
+        }
+      }
     }
   },
   "definitions": {
-    "sha256_prefixed": {
+    "sha256_digest": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "SHA-256 hex digest with 'sha256:' prefix. This is the standard format for all digests in v3."
-    },
-    "receipt_core": {
-      "type": "object",
-      "required": ["step_index", "content", "timestamp"],
-      "description": "Consensus-critical receipt data. This is the ONLY part used for canonical hashing.",
-      "properties": {
-        "step_index": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Monotonically increasing step index in trajectory."
-        },
-        "content": {
-          "$ref": "#/definitions/receipt_content"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO 8601 timestamp. Required for v3 canonicalization."
-        }
-      }
-    },
-    "receipt_content": {
-      "type": "object",
-      "required": [
-        "risk_before",
-        "risk_after",
-        "budget_before",
-        "budget_after",
-        "kappa",
-        "state_hash_before",
-        "state_hash_after"
-      ],
-      "description": "Risk and budget values for ATS verification.",
-      "properties": {
-        "risk_before": {
-          "$ref": "#/definitions/qfixed"
-        },
-        "risk_after": {
-          "$ref": "#/definitions/qfixed"
-        },
-        "budget_before": {
-          "$ref": "#/definitions/qfixed"
-        },
-        "budget_after": {
-          "$ref": "#/definitions/qfixed"
-        },
-        "kappa": {
-          "$ref": "#/definitions/qfixed",
-          "description": "Risk coefficient κ for budget law."
-        },
-        "state_hash_before": {
-          "$ref": "#/definitions/sha256_prefixed"
-        },
-        "state_hash_after": {
-          "$ref": "#/definitions/sha256_prefixed"
-        },
-        "decision": {
-          "type": "string",
-          "enum": ["PASS", "FAIL"],
-          "description": "Decision made by the reasoning step."
-        },
-        "action_hash": {
-          "$ref": "#/definitions/sha256_prefixed",
-          "description": "Optional: SHA-256 of canonical action bytes for action verification."
-        }
-      }
-    },
-    "qfixed": {
-      "type": "object",
-      "required": ["raw"],
-      "description": "QFixed(18) representation: integer raw value / 10^18. NO FLOATS allowed in consensus.",
-      "properties": {
-        "raw": {
-          "type": "integer",
-          "description": "Raw integer value in QFixed(18) representation."
-        }
-      }
-    },
-    "chain_hash_v1": {
-      "type": "string",
-      "pattern": "^sha256:[a-f0-9]{64}$",
-      "description": "Chain hash v1 using domain separation. Computed as: sha256(sha256(COH_CHAIN_V1 || JCS(receipt_core))). MUST use 'sha256:' prefix."
-    },
-    "telemetry": {
-      "type": "object",
-      "description": "Non-consensus metadata. This field MUST be excluded from canonical bytes and MUST NOT affect any hash.",
-      "properties": {
-        "episode_id": {
-          "type": "string",
-          "description": "Episode identifier. FOR DEBUGGING ONLY - NOT CONSENSUS."
-        },
-        "provenance": {
-          "type": "object",
-          "description": "Origin information. FOR DEBUGGING ONLY - NOT CONSENSUS."
-        },
-        "signature": {
-          "type": "object",
-          "description": "Signature data. FOR DEBUGGING ONLY - NOT CONSENSUS."
-        },
-        "metadata": {
-          "type": "object",
-          "description": "Additional metadata. FOR DEBUGGING ONLY - NOT CONSENSUS."
-        }
-      }
+      "description": "SHA-256 hex digest with 'sha256:' prefix. This is the ONLY allowed format for v3."
     }
   }
 }

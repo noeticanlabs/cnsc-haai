@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "policy_id": "pol_standard_retention",
+  "retention_period_blocks": 1000,
+  "deletion_authorization": {
+    "min_budget": 1000000000000000000,
+    "no_disputes": true,
+    "window_end_verified": true
+  },
+  "dispute_window_blocks": 100
+}
