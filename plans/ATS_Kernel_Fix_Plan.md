@@ -1,7 +1,7 @@
 # ATS Kernel Fix Plan
 
 **Created:** 2026-02-20  
-**Status:** Draft - Ready for Implementation  
+**Status:** ✅ MOSTLY COMPLETED - QFixed issues remain
 **Purpose:** Make ATS kernel "true in code" — not just true in docs
 
 > **The Acid Test:** Can an untrusted runtime propose a transition that RV accepts *without* actually respecting the risk/budget law? If yes → "logging" not "kernel."
@@ -22,11 +22,11 @@ Each item threatens to make ATS "a clever demo" rather than a real stability ker
 
 | # | Severity | Issue | Current State |
 |---|----------|-------|---------------|
-| 1 | CRITICAL | Receipt schema v1 is consensus-unsafe | Timestamps + floats required |
-| 2 | CRITICAL | canonical_bytes() includes non-deterministic fields | timestamp, provenance, signature, metadata |
-| 3 | CRITICAL | chain_hash doesn't bind to content | Only `prev_id + receipt_id` |
-| 4 | CRITICAL | verify_trajectory uses placeholder state/action | No actual verification |
-| 5 | CRITICAL | QFixed has silent saturation + floors negatives | Breaks ATS math |
+| 1 | CRITICAL | Receipt schema v1 is consensus-unsafe | ✅ FIXED - v2/v3 schemas exist |
+| 2 | CRITICAL | canonical_bytes() includes non-deterministic fields | ✅ FIXED - canonical_bytes_core() exists |
+| 3 | CRITICAL | chain_hash doesn't bind to content | ✅ FIXED - content-bound formula implemented |
+| 4 | CRITICAL | verify_trajectory uses placeholder state/action | ✅ FIXED - uses receipt data only |
+| 5 | CRITICAL | QFixed has silent saturation + floors negatives | ⚠️ PARTIAL - QFixedDelta exists, silent cap remains |
 
 ---
 

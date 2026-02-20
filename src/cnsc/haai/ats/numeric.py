@@ -80,12 +80,17 @@ class QFixed:
     ONE = None   # Will be set after class definition
     
     def __init__(self, value: int):
-        """Create QFixed from internal scaled value (0 to MAX_VALUE inclusive)."""
+        """
+        Create QFixed from internal scaled value (0 to MAX_VALUE inclusive).
+        
+        IMPORTANT: In consensus paths, negative and overflow values cause explicit
+        rejection via exceptions rather than silent saturation/flooring.
+        """
         if value < 0:
-            raise QFixedInvalid(f"Negative values forbidden: {value}")
-        # Cap at MAX_VALUE to prevent overflow
+            raise QFixedInvalid(f"Negative values forbidden in consensus: {value}")
+        # Explicit overflow rejection (not silent capping)
         if value > MAX_VALUE:
-            value = MAX_VALUE
+            raise QFixedOverflow(f"Value exceeds MAX_VALUE in consensus: {value} > {MAX_VALUE}")
         self.value = value
     
     @classmethod
@@ -96,7 +101,33 @@ class QFixed:
     
     def __repr__(self) -> str:
         return f"QFixed({self.value})"
-    
+
+    def compute_delta(self, other: QFixed) -> QFixedDelta:
+        """
+        Compute signed delta between two QFixed values.
+        
+        Returns a QFixedDelta that preserves sign information, allowing correct
+        budget law enforcement without silent negative→zero conversion.
+        
+        This is the preferred method for budget law computation.
+        
+        Args:
+            other: The QFixed value to compare against.
+            
+        Returns:
+            QFixedDelta with sign information preserved (can be negative).
+            
+        Example:
+            >>> r_before = QFixed.from_int(1)   # 1.0
+            >>> r_after = QFixed.from_int(2)    # 2.0 (increased)
+            >>> delta = r_after.compute_delta(r_before)
+            >>> delta.is_positive()
+            True
+            >>> delta.plus()  # max(0, delta) for budget law
+            QFixed(1000000000000000000)
+        """
+        return QFixedDelta(self.value - other.value)  # Can be negative!
+
     def __str__(self) -> str:
         # Convert to decimal string
         if self.value == 0:
@@ -143,13 +174,19 @@ class QFixed:
         return QFixed(result)
     
     def __sub__(self, other: QFixed) -> QFixed:
-        """Subtract two QFixed numbers, flooring at 0."""
+        """
+        Subtraction for consensus paths.
+        
+        NOTE: For budget law, use compute_delta() instead to get signed result.
+        This method raises an exception for negative results (consensus paths).
+        For non-consensus paths that need flooring, use sub_raw() method.
+        """
         if not isinstance(other, QFixed):
             return NotImplemented
         result = self.value - other.value
-        # Floor at 0 (no negative values allowed)
+        # Raise exception for negative results (consensus-appropriate behavior)
         if result < 0:
-            result = 0
+            raise QFixedInvalid(f"Negative result not allowed in consensus: {self} - {other}")
         return QFixed(result)
     
     def __mul__(self, other: QFixed) -> QFixed:
@@ -180,12 +217,16 @@ class QFixed:
         return self.__add__(other)
     
     def __rsub__(self, other: QFixed) -> QFixed:
-        """Reverse subtraction: other - self"""
+        """
+        Reverse subtraction: other - self
+        
+        For consensus paths, raises exception for negative results.
+        """
         if not isinstance(other, QFixed):
             return NotImplemented
         result = other.value - self.value
         if result < 0:
-            result = 0
+            raise QFixedInvalid(f"Negative result not allowed in consensus: {other} - {self}")
         return QFixed(result)
     
     def __rmul__(self, other: QFixed) -> QFixed:

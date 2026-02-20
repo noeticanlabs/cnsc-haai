@@ -86,6 +86,10 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | Spec File | Code Module | Status |
 |-----------|-------------|--------|
 | `continuous_manifold_flow.md` | `src/cnsc_haai/consensus/continuous.py` | ✅ Implemented |
+| `GraphGML_Specification.md` | `src/cnsc/haai/graphgml/` | ✅ Implemented |
+| `graphgml_types.md` | `src/cnsc/haai/graphgml/types.py` | ✅ Implemented |
+| `graphgml_builder.md` | `src/cnsc/haai/graphgml/builder.py` | ✅ Implemented |
+| `graphgml_core.md` | `src/cnsc/haai/graphgml/core.py` | ✅ Implemented |
 
 ---
 
@@ -107,6 +111,7 @@ src/
 │       ├── ghll/                   # GHLL (High-Level Language)
 │       ├── glll/                   # GLLL (Low-Level Language)
 │       ├── gml/                    # GML (Governance Metadata)
+│       ├── graphgml/               # GraphGML (Graph-based GML)
 │       ├── nsc/                    # NSC (Neural State Controller)
 │       └── tgs/                    # TGS (Time Governor System)
 │
