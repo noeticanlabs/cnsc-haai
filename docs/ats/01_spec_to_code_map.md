@@ -90,6 +90,12 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | `graphgml_types.md` | `src/cnsc/haai/graphgml/types.py` | ✅ Implemented |
 | `graphgml_builder.md` | `src/cnsc/haai/graphgml/builder.py` | ✅ Implemented |
 | `graphgml_core.md` | `src/cnsc/haai/graphgml/core.py` | ✅ Implemented |
+| `tgs.md` | `src/cnsc/haai/tgs/` | ✅ Implemented (Debug/Telemetry) |
+| `tgs_clock.md` | `src/cnsc/haai/tgs/clock.py` | ✅ Implemented |
+| `tgs_governor.md` | `src/cnsc/haai/tgs/governor.py` | ✅ Implemented |
+| `tgs_snapshot.md` | `src/cnsc/haai/tgs/snapshot.py` | ✅ Implemented |
+| `tgs_proposal.md` | `src/cnsc/haai/tgs/proposal.py` | ✅ Implemented |
+| `tgs_rails.md` | `src/cnsc/haai/tgs/rails.py` | ✅ Implemented |
 
 ---
 
@@ -113,6 +119,7 @@ src/
 │       ├── gml/                    # GML (Governance Metadata)
 │       ├── graphgml/               # GraphGML (Graph-based GML)
 │       ├── nsc/                    # NSC (Neural State Controller)
+│       ├── tgs/                    # TGS (Debug/Telemetry - NOT consensus)
 │       └── tgs/                    # TGS (Time Governor System)
 │
 ├── cnsc_haai/

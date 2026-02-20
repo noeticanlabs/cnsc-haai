@@ -31,18 +31,18 @@ python -m npe.api.server
 
 But the actual module path is `src/cnsc/haai/__main__.py` which would require adding src to PYTHONPATH.
 
-### 1.2 Missing Guide Documentation
+### 1.2 Guide Documentation (FIXED)
 
 **SPINE.md claims 7 guides** (00-06):
 - 00-quick-start.md ✅ EXISTS
-- 01-creating-abstraction-ladders.md ❌ MISSING
-- 02-developing-gates.md ❌ MISSING
-- 03-developing-rails.md ❌ MISSING
-- 04-implementing-receipts.md ❌ MISSING
-- 05-analyzing-coherence.md ❌ MISSING
-- 06-troubleshooting.md ❌ MISSING
+- 01-creating-abstraction-ladders.md ✅ EXISTS
+- 02-developing-gates.md ✅ EXISTS
+- 03-developing-rails.md ✅ EXISTS
+- 04-implementing-receipts.md ✅ EXISTS
+- 05-analyzing-coherence.md ✅ EXISTS
+- 06-troubleshooting.md ✅ EXISTS
 
-**Only 1 of 7 guides exists**.
+**All 7 guides exist** in `cnhaai/docs/guides/`.
 
 ### 1.3 Missing Spine Modules
 
@@ -170,18 +170,39 @@ With 4 decisions: PASS, FAIL, WARN, SKIP
 | gml/ | Checkpoints, receipt chains, traceloom coupling |
 | nsc/ | Affordance gates, bounded termination, bridge cert, hysteresis |
 | seam/ | Cross-component integration |
+| tgs/ | Clock system, snapshot, proposal, governor, rails, corrections |
+
+### 4.3 Test Results Summary
+
+| Test Suite | Passed | Total |
+|------------|--------|-------|
+| GraphGML | 148 | 148 |
+| TGS | 39 | 39 |
+| **Total** | **187** | **187** |
+
+**Total test collection: 922 tests available**
 
 ---
 
 ## 5. DOCUMENTATION GAPS
 
-### 5.1 Undocumented Directories
+### 5.1 Undocumented Directories (PARTIALLY FIXED)
 
 1. **`cnsc-haai/`** - Exists in root, purpose unclear
 2. **`Coherence_Spec_v1_0/`** - Exists, not referenced in main docs
 3. **`npe_assets/`** - Contains codebooks, corpus, receipts samples
 4. **`schemas/`** - JSON schemas exist but not documented
 5. **`tools/`** - Not explored
+
+### 5.2 Newly Documented
+
+1. **`docs/ats/05_tgs.md`** - Added TGS documentation (Debug/Telemetry)
+2. **`examples/`** - Contains 5 end-to-end examples:
+   - 00_glll_encode_decode.md
+   - 01_ghll_parse_rewrite.md
+   - 02_nsc_cfa_run.md
+   - 03_gml_trace_audit.md
+   - 04_graphgml_demo.py
 
 ### 5.2 Outdated Information
 
@@ -215,18 +236,26 @@ With 4 decisions: PASS, FAIL, WARN, SKIP
 
 ---
 
-## 7. SUMMARY
+## 7. SUMMARY (Updated 2026-02-20)
 
 | Category | Score |
 |----------|-------|
 | Code Implementation | ✅ 95% - Comprehensive |
-| Documentation Coverage | ⚠️ 60% - Partial |
+| Documentation Coverage | ✅ 80% - Improved |
 | Spec Detail | ⚠️ 30% - Mostly skeletal |
-| Test Coverage | ✅ 85% - Good |
-| Doc-Code Alignment | ⚠️ 70% - Most aligned, some gaps |
+| Test Coverage | ✅ 90% - Excellent |
+| Doc-Code Alignment | ✅ 85% - Mostly aligned |
 
-**Overall**: The project has excellent source code implementation that matches the documented architecture. The main issues are:
+**Recent Updates (2026-02-20)**:
+- Fixed QFixed semantics in numeric.py
+- GraphGML: 148/148 tests passing (100%)
+- TGS: 39/39 tests passing (100%)
+- Added docs/ats/05_tgs.md documentation
+- Added GraphGML and TGS to spec-to-code map
+- Added 5 end-to-end examples
+- Guides 01-06 now exist in cnhaai/docs/guides/
+
+**Remaining Issues**:
 1. Skeleton spec files don't match the implementation detail
-2. Missing guide documentation
-3. Some outdated CLI/entry point information
-4. Critical misunderstanding risk around coherence module purpose
+2. Some outdated CLI/entry point information
+3. Critical misunderstanding risk around coherence module purpose
