@@ -606,3 +606,19 @@ def create_nsc_block(name: str) -> NSCBlock:
         block_id=block_id,
         name=name,
     )
+
+
+# Primitive type constants for convenience
+# These are also available as NSCType.INT, NSCType.STRING, etc.
+INT = NSCType(type_id="int", name="int", is_primitive=True)
+STRING = NSCType(type_id="string", name="string", is_primitive=True)
+BOOL = NSCType(type_id="bool", name="bool", is_primitive=True)
+FLOAT = NSCType(type_id="float", name="float", is_primitive=True)
+UNIT = NSCType(type_id="unit", name="unit", is_primitive=True)
+
+# Add as class attributes for convenience
+NSCType.INT = INT
+NSCType.STRING = STRING
+NSCType.BOOL = BOOL
+NSCType.FLOAT = FLOAT
+NSCType.UNIT = UNIT

@@ -18,6 +18,12 @@ from cnsc.haai.nsc.ir import (
     NSCValue,
     NSCBlock,
     NSCFunction,
+    # Primitive type constants
+    INT,
+    STRING,
+    BOOL,
+    FLOAT,
+    UNIT,
 )
 from cnsc.haai.nsc.cfa import (
     CFAPhase,

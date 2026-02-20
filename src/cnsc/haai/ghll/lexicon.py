@@ -477,7 +477,8 @@ class LexiconManager:
         
         # Operators
         operators = [
-            ("op_assign", ":=", "operator"),
+            ("op_assign", "=", "operator"),
+            ("op_assign_dcolon", ":=", "operator"),
             ("op_eq", "==", "operator"),
             ("op_neq", "!=", "operator"),
             ("op_lt", "<", "operator"),

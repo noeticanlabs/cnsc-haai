@@ -165,7 +165,7 @@ class TestFullPipeline(unittest.TestCase):
     def test_error_injection_recovery(self):
         """Test error injection and recovery mechanisms."""
         codec = create_hadamard_codec(32)
-        data = [1, 0, 1, 0]
+        data = [1, 0, 1, 1, 0]  # 5 bits for n=32
         
         # Encode
         codeword = codec.encode(data)

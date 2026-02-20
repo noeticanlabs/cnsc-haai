@@ -112,6 +112,7 @@ KEYWORDS = {
 }
 
 OPERATORS = {
+    "=": TokenType.OP_ASSIGN,
     ":=": TokenType.OP_ASSIGN,
     "==": TokenType.OP_EQ,
     "!=": TokenType.OP_NEQ,
@@ -625,7 +626,7 @@ class GHLLParser:
         self._advance()
         
         if not self._match(TokenType.OP_ASSIGN):
-            self._error("Expected ':=' after identifier", expected=":=")
+            self._error("Expected '=' after identifier", expected="=")
             return None
         
         value = self._parse_expr()
@@ -735,7 +736,7 @@ class GHLLParser:
         self._advance()
         
         if not self._match(TokenType.OP_ASSIGN):
-            self._error("Expected ':=' after identifier", expected=":=")
+            self._error("Expected '=' after identifier", expected="=")
             return None
         
         start = self._parse_expr()
@@ -890,7 +891,7 @@ class GHLLParser:
             op_map = {
                 TokenType.OP_PLUS: "+",
                 TokenType.OP_MINUS: "-",
-                TokenType.OP_ASSIGN: ":=",
+                TokenType.OP_ASSIGN: "=",
             }
             
             left = {
