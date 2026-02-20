@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/coh.receipt.topology_jump.v1.schema.json",
+  "title": "Coh Topology Jump Receipt Schema v1.0.0",
+  "description": "Receipt for topology changes (expand/prune) in the Atlas with budget verification.",
+  "type": "object",
+  "required": [
+    "version",
+    "receipt_id",
+    "A_prev_hash",
+    "A_next_hash",
+    "delta_struct",
+    "budget_deduction",
+    "chain_hash"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Unique receipt identifier."
+    },
+    "A_prev_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the atlas before topology change."
+    },
+    "A_next_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the atlas after topology change."
+    },
+    "delta_struct": {
+      "type": "integer",
+      "description": "Change in atlas rank (positive = expansion, negative = pruning)."
+    },
+    "budget_deduction": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Budget deducted for expansion (QFixed)."
+    },
+    "distortion_bound": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Distortion bound for pruning operations (QFixed)."
+    },
+    "spectral_signature_claim": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Claimed spectral signature hash."
+    },
+    "transport_distortion_bound": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Transport distortion bound (QFixed)."
+    },
+    "hysteresis_verified": {
+      "type": "boolean",
+      "description": "Whether hysteresis threshold was verified."
+    },
+    "slab_boundary_verified": {
+      "type": "boolean",
+      "description": "Whether this jump occurs at a slab boundary."
+    },
+    "chain_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Chain hash using universal rule."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

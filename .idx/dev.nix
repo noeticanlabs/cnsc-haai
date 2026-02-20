@@ -1,5 +1,17 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://firebase.google.com/docs/studio/customize-workspace
+# CNHAAI Development Environment - GOOGLE IDX (CLOUD IDE)
+#
+# PURPOSE: This dev.nix is for Google IDX cloud development environment.
+#          Use this when developing in the IDX web-based IDE.
+#
+# USAGE:
+#   Automatic - IDX reads this file automatically when starting workspace
+#   No manual commands needed - packages are installed on workspace start
+#
+# ENVIRONMENT: Google IDX cloud IDE (idx.google.com)
+# NIX CHANNEL: stable-24.05 (configurable)
+#
+# NOTE: For local development, use the root dev.nix instead
+# RELATED: For local machine development, see ../dev.nix
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-24.05"; # or "unstable"

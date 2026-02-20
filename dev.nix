@@ -1,9 +1,17 @@
-# CNHAAI Development Environment (Nix)
+# CNHAAI Development Environment (Nix) - LOCAL DEVELOPMENT
 #
-# Usage:
-#   nix-shell                    # Enter development shell
+# PURPOSE: This is the primary dev.nix for local machine development.
+#          Use this when working on your local machine with Nix installed.
+#
+# USAGE:
+#   nix-shell                    # Enter development shell (legacy nix)
+#   nix develop                  # Using flakes (nix 2.4+ recommended)
 #   nix-shell --run "pytest"     # Run command directly
-#   nix develop                  # Using flakes (nix 2.4+)
+#
+# ENVIRONMENT: Local machine (laptop/desktop)
+# NIX VERSION: 2.4+ recommended (flakes), 2.0+ (legacy)
+#
+# RELATED: For Google IDX cloud development, see .idx/dev.nix
 
 { pkgs ? import <nixpkgs> {} }:
 

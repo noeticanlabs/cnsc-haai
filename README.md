@@ -75,7 +75,8 @@ CNSC-HAAI combines **Triaxis** (the three-layer abstraction hierarchy) with **NS
 | **GLLL** (Graphical Low-Level Language) | Reversible packetization & encoding for integrity |
 | **GML** (Graph Machine Language) | Trace, receipts, and replay verification for forensics |
 | **NSC** (Neural State Controller) | Execution substrate with IR, VM, gates, and rails |
-| **TGS** (Time Governor System) | Temporal governance and bounded execution |
+| **TGS** (Time Governor System) | Temporal governance and bounded execution (debug/telemetry only) |
+| **ATS/Coh** | Consensus receipts with JCS, Merkle, and universal chain hash |
 | **NPE** (Neural Planning Engine) | Planning and reasoning with coherence constraints |
 
 ---
