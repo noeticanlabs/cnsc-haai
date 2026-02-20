@@ -1,5 +1,13 @@
 # Canonical Serialization
 
+> **⚠️ DEPRECATED**: This specification is deprecated as of 2026-02-20.
+>
+> **Use RFC8785 JCS (JSON Canonicalization Scheme) instead.**
+>
+> This spec describes a custom serializer. Use the standard RFC8785 for universal compatibility.
+
+---
+
 **Deterministic Byte Representation for All ATS Types**
 
 | Field | Value |
@@ -7,6 +15,7 @@
 | **Module** | 20_coh_kernel |
 | **Section** | Canonical Serialization |
 | **Version** | 1.0.0 |
+| **Status** | DEPRECATED |
 
 ---
 

@@ -1,5 +1,14 @@
 # Chain Hash Rule
 
+> **⚠️ DEPRECATED**: This specification is deprecated as of 2026-02-20.
+>
+> **Use [chain_hash_universal.md](chain_hash_universal.md) instead.**
+>
+> This spec uses `sha256(prev_id || curr_id)` style chaining which is NOT consensus-tight.
+> The new spec uses JCS + domain separation for universal compatibility.
+
+---
+
 **Receipt Chaining via Deterministic Hash Links**
 
 | Field | Value |
@@ -7,6 +16,7 @@
 | **Module** | 20_coh_kernel |
 | **Section** | Chain Hash Rule |
 | **Version** | 1.0.0 |
+| **Status** | DEPRECATED |
 
 ---
 

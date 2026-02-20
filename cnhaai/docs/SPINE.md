@@ -1,14 +1,29 @@
 # CNHAAI Doc Spine Index
 
+> **⚠️ DEPRECATED**: This documentation is deprecated as of 2026-02-20.
+> 
+> **Canonical documentation has moved to `docs/ats/`**
+> 
+> This legacy spine will remain for reference but no new content should be added here.
+> 
+> Migration:
+> - Core specs → `docs/ats/10_mathematical_core/`
+> - Kernel specs → `docs/ats/20_coh_kernel/`
+> - Runtime specs → `docs/ats/30_ats_runtime/`
+> - Security specs → `docs/ats/50_security_model/`
+
+---
+
 **Coherence Noetican Hierarchical Abstraction AI**
 
 | Field | Value |
 |-------|-------|
 | **Version** | 1.0.0 |
 | **Release Date** | 2024-01-01 |
+| **Status** | DEPRECATED |
 | **Total Modules** | 24 |
 | **Total Appendices** | 8 |
-| **Total Guides** | 6 |
+| **Total Guides** | 6 (1 of 6 implemented) |
 | **Max Lines per Module** | 800 |
 
 ---

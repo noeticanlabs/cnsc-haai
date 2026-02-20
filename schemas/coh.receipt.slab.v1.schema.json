@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/coh.receipt.slab.v1.schema.json",
+  "title": "Coh Slab Receipt Schema v1.0.0",
+  "description": "Receipt for aggregated slab data including merkle root and micro receipts.",
+  "type": "object",
+  "required": ["version", "slab_id", "merkle_root", "micro_receipt_hashes", "window_start", "window_end"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "slab_id": {
+      "type": "string",
+      "description": "Unique slab identifier."
+    },
+    "episode_id": {
+      "type": "string",
+      "description": "Associated episode identifier."
+    },
+    "merkle_root": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Merkle root hash of micro receipts. MUST use sha256: prefix."
+    },
+    "micro_receipt_hashes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^sha256:[a-f0-9]{64}$"
+      },
+      "description": "List of micro receipt hashes included in slab."
+    },
+    "window_start": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Starting block height for this window."
+    },
+    "window_end": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ending block height for this window."
+    },
+    "receipt_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of receipts in slab."
+    },
+    "initial_state_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "final_state_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "compressed_receipts": {
+      "type": "string",
+      "description": "Base64-encoded compressed receipts."
+    }
+  }
+}

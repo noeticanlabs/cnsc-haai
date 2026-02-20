@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run_certificate.schema.json",
+  "title": "Run Certificate",
+  "type": "object",
+  "required": ["run_id", "status", "max_debt", "max_residuals", "final_hash", "config_hash", "policy_hash"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["pass", "fail"] },
+    "max_debt": { "type": "number" },
+    "max_residuals": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "number" }
+    },
+    "final_hash": { "type": "string" },
+    "config_hash": { "type": "string" },
+    "policy_hash": { "type": "string" }
+  },
+  "additionalProperties": false
+}

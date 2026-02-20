@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/coh.policy.retention.v1.schema.json",
+  "title": "Coh Retention Policy Schema v1.0.0",
+  "description": "Defines retention policies for slab receipts including retention periods, deletion authorization, and dispute windows.",
+  "type": "object",
+  "required": ["version", "policy_id", "retention_period_blocks", "deletion_authorization", "dispute_window_blocks"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^pol_[a-z0-9_]+$",
+      "description": "Unique policy identifier."
+    },
+    "retention_period_blocks": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of blocks to retain receipts before deletion is authorized."
+    },
+    "deletion_authorization": {
+      "type": "object",
+      "required": ["min_budget", "no_disputes"],
+      "properties": {
+        "min_budget": {
+          "type": "integer",
+          "description": "Minimum budget required for deletion authorization."
+        },
+        "no_disputes": {
+          "type": "boolean",
+          "description": "Must have no active disputes."
+        },
+        "window_end_verified": {
+          "type": "boolean",
+          "description": "Window end height must be verified."
+        }
+      }
+    },
+    "dispute_window_blocks": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of blocks during which disputes can be raised."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional policy metadata."
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/coh.receipt.finalize.v1.schema.json",
+  "title": "Coh Finalize Receipt Schema v1.0.0",
+  "description": "Finalization receipt authorizing deletion of slab data after retention period.",
+  "type": "object",
+  "required": ["version", "finalize_id", "slab_receipt_hash", "window_end_height", "authorization"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "finalize_id": {
+      "type": "string",
+      "description": "Unique finalization receipt identifier."
+    },
+    "slab_receipt_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the slab receipt being finalized. MUST use sha256: prefix."
+    },
+    "window_end_height": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The window end height that was verified before finalization."
+    },
+    "authorization": {
+      "type": "object",
+      "required": ["deletion_allowed", "budget_check", "dispute_check"],
+      "properties": {
+        "deletion_allowed": {
+          "type": "boolean",
+          "description": "True if deletion is authorized."
+        },
+        "budget_check": {
+          "type": "object",
+          "properties": {
+            "current_budget": {
+              "type": "integer"
+            },
+            "minimum_required": {
+              "type": "integer"
+            },
+            "passed": {
+              "type": "boolean"
+            }
+          },
+          "description": "Budget authorization check results."
+        },
+        "dispute_check": {
+          "type": "object",
+          "properties": {
+            "has_disputes": {
+              "type": "boolean"
+            },
+            "dispute_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "passed": {
+              "type": "boolean"
+            }
+          },
+          "description": "Dispute check results."
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when finalization was authorized."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional finalization metadata."
+    }
+  }
+}

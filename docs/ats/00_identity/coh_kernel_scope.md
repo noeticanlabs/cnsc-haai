@@ -10,6 +10,35 @@
 
 ---
 
+## 0. CRITICAL: Coherence Module Distinction
+
+> **WARNING**: There are TWO coherence implementations in this codebase with DIFFERENT purposes.
+
+### 0.1 UI/Display Coherence (DO NOT USE FOR VERIFICATION)
+```
+src/cnhaai/core/coherence.py
+```
+- **Purpose**: Heuristic coherence scoring for UI display only
+- **Status**: NOT used in ATS kernel verification
+- **Warning**: Do NOT import this in any ATS kernel modules
+
+### 0.2 ATS Kernel Coherence (DETERMINISTIC - USE THIS)
+```
+src/cnsc/haai/ats/risk.py       # Coherence risk functional
+src/cnsc/haai/ats/numeric.py     # QFixed arithmetic
+src/cnsc/haai/ats/rv.py          # Receipt verification
+```
+- **Purpose**: Deterministic coherence verification
+- **Status**: The canonical coherence for the ATS stack
+
+### 0.3 Import Restrictions
+DO NOT import `cnhaai.core.coherence` in:
+- `src/cnsc/haai/ats/rv.py`
+- `src/cnsc/haai/ats/risk.py`
+- `src/cnsc/haai/ats/types.py`
+
+---
+
 ## 1. Kernel Boundary
 
 The Coh kernel is the **verification layer** of the ATS. It sits between the hosted cognitive system and the execution environment, ensuring all state transitions satisfy the ATS invariants.

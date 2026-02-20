@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cnsc-haai.io/schemas/coh.receipt.fraudproof.v1.schema.json",
+  "title": "Coh Fraud Proof Schema v1.0.0",
+  "description": "Fraud proof for disputing invalid slab receipts.",
+  "type": "object",
+  "required": ["version", "fraudproof_id", "slab_receipt_hash", "disputed_leaf_index", "proof", "evidence"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "fraudproof_id": {
+      "type": "string",
+      "description": "Unique fraud proof identifier."
+    },
+    "slab_receipt_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the disputed slab receipt. MUST use sha256: prefix."
+    },
+    "disputed_leaf_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Index of the disputed leaf in the merkle tree."
+    },
+    "proof": {
+      "type": "object",
+      "required": ["merkle_proof", "claimed_value"],
+      "properties": {
+        "merkle_proof": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "side": {
+                "type": "string",
+                "enum": ["left", "right"]
+              },
+              "hash": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              }
+            }
+          },
+          "description": "Merkle inclusion proof path."
+        },
+        "claimed_value": {
+          "type": "string",
+          "description": "The claimed value that should be at the disputed position."
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Evidence supporting the fraud claim.",
+      "properties": {
+        "correct_value": {
+          "type": "string",
+          "description": "The correct value that should be at the disputed position."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Human-readable explanation of the fraud."
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when fraud proof was created."
+    }
+  }
+}

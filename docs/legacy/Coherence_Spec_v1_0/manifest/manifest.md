@@ -1,0 +1,29 @@
+# Coherence Spec v1.0 Manifest
+
+* **Version:** v1.0.0
+* **Build date (UTC):** 2026-02-06
+
+## File list and SHA-256 hashes
+
+```
+41387bd67c4259bcda37ba5ddf7863f40671085a1059b9d882a2bf739cdaf0fd  ./README.md
+e5151a144fc42c15375da8695850ee290c8a4b330aeb9aefde39382c4febbf39  ./docs/01_Coherence_Principle.md
+966f6850fe69e327c6e3b70d40cd315b1a72f7648421d6736cbf5f0da3212e8d  ./docs/02_Formal_Definitions.md
+49d0eb9c6e8d5d45f5042cf027b24807c7cdb4bbb5470066568b5b08414d653f  ./docs/03_Axioms_and_Postulates.md
+7f73a359bead0d5d316970b405244b73183f4c788643866ba76de9c666ffdb97  ./docs/04_Coherence_Functionals.md
+c4afb90fe55b25dde093964e78dea438434f249dedb74e643675068bef3d3b7f  ./docs/05_Coherence_Transport_and_Balance.md
+24f8cd1e9a686daa1f80ed8f60acabb4a9ce55a0f60bed0d27d4140306ee840f  ./docs/06_Gates_Rails_and_Affordability.md
+e8a42a1654f9de2e250ebe37a3f4b87c3f945ca2600d135842e599407ad80f04  ./docs/07_Coherence_Lemmas_Operational.md
+e008e14745083af45e2bfd657f4c8e5b8feef1a9a422abe4c383f2877036e233  ./docs/08_Algorithms_Canonical.md
+704db69ad3f7d3993a42d3ed93a567abd6841a0b6a1d610d1ca0693305618385  ./docs/09_Receipts_Ledgers_and_Certificates.md
+da056b0ba8dd56a07c8c0097beee1ca98d4b4cf93ecdacaa13b5d9a472a44f38  ./docs/10_Verification_and_Test_Plan.md
+b8bae7b3eeff85c5df151e4ed9dc8c6c9382296626f9376a5a831b6750c3ffea  ./docs/11_Failure_Modes_and_Recovery.md
+6b69cd4a14bab90d7bd38d5dc1ba307af2306222418e399bd4eba46c7f7f5dd7  ./docs/12_Glossary_and_Lexicon.md
+74adf3f11f8b0299acfcde3ba7e605b47328a8a8f013e1dc4c705e5b0837dc27  ./docs/13_Bridge_Notes_Time_GR_PDE_AI.md
+8d0bef212cb6e91f19cd7f89cb5a79fcb092c68ff83efe6e3759af10ec5d1b01  ./examples/certificate.example.json
+ffd6eadcb469a82de3a7b56b49a2994141610eb75f4b22c8a31119b2409fc25c  ./examples/gate_policy.example.json
+178e27789aa2ac7f6df6e314266b96aba0fdf1666e6b05a7232617087f5b6c14  ./examples/receipt.example.json
+9128914c7af9f8b69bc1814baaf708a32d30737866f658e7e8065a4950a924b3  ./schemas/coherence_receipt.schema.json
+952984ede01c7e7a73baa908cd63e48df62ae1961cd118fdb303082b85d68f74  ./schemas/gate_policy.schema.json
+51ace6c8e26fe2c6fd461f73ca61d50c0b8d63065bfce61969917069bda20fc4  ./schemas/run_certificate.schema.json
+```
