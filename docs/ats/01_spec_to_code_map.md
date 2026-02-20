@@ -21,7 +21,9 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | `budget_law.md` | `src/cnsc/haai/ats/budget.py` | ✅ Implemented |
 | `risk_functional_V.md` | `src/cnsc/haai/ats/risk.py` | ✅ Implemented |
 | `admissibility_predicate.md` | `src/cnsc/haai/ats/rv.py` | ✅ Implemented |
-| `continuous_manifold_flow.md` | N/A | 🔲 Pending |
+| `continuous_manifold_flow.md` | `src/cnsc_haai/consensus/continuous.py` | ✅ Implemented |
+| `autonomic_regulation.md` | `src/cnsc_haai/consensus/autonomic.py` | ✅ Implemented |
+| `topology_change_budget.md` | `src/cnsc_haai/consensus/topology.py` | ✅ Implemented |
 
 ---
 
@@ -30,9 +32,12 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | Spec File | Code Module | Status |
 |-----------|-------------|--------|
 | `chain_hash_rule.md` | DEPRECATED | ⚠️ Use `chain_hash_universal.md` |
-| `chain_hash_universal.md` | `src/cnsc_haai/consensus/chain.py` | 🔲 Pending |
+| `chain_hash_universal.md` | `src/cnsc_haai/consensus/chain.py` | ✅ Implemented |
 | `canonical_serialization.md` | DEPRECATED | ⚠️ Use JCS (RFC8785) |
-| `coh.merkle.v1.md` | `src/cnsc_haai/consensus/merkle.py` | 🔲 Pending |
+| `coh.merkle.v1.md` | `src/cnsc_haai/consensus/merkle.py` | ✅ Implemented |
+| `retention_policy.md` | `src/cnsc_haai/consensus/retention.py` | ✅ Implemented |
+| `fraud_proof_rules.md` | `src/cnsc_haai/consensus/fraudproof.py` | ✅ Implemented |
+| `finalize_rules.md` | `src/cnsc_haai/consensus/finalize.py` | ✅ Implemented |
 | `receipt_schema.md` | `schemas/receipt.ats.v2.schema.json` | ⚠️ v3 pending |
 | `deterministic_numeric_domain.md` | `src/cnsc/haai/ats/numeric.py` | ✅ Implemented |
 | `receipt_identity.md` | `src/cnsc/haai/ats/types.py` | ✅ Implemented |
@@ -46,7 +51,7 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 |-----------|-------------|--------|
 | `budget_transition_spec.md` | `src/cnsc/haai/ats/budget.py` | ✅ Implemented |
 | `action_emission_contract.md` | `src/cnsc/haai/tgs/proposal.py` | ✅ Implemented |
-| `slab_compression_rules.md` | `src/cnsc_haai/consensus/slab.py` | 🔲 Pending |
+| `slab_compression_rules.md` | `src/cnsc_haai/consensus/slab.py` | ✅ Implemented |
 | `replay_verification.md` | `src/cnsc/haai/gml/replay.py` | ✅ Implemented |
 | `risk_witness_generation.md` | `src/cnsc/haai/ats/risk.py` | ✅ Implemented |
 | `state_digest_model.md` | `src/cnsc/haai/ats/types.py` | ✅ Implemented |
@@ -73,6 +78,14 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | `float_prohibition.md` | `src/cnsc/haai/ats/numeric.py` | ✅ Implemented |
 | `timestamp_nonconsensus_rule.md` | `src/cnsc/haai/tgs/clock.py` | ✅ Implemented |
 | `rejection_reason_codes.md` | `src/cnsc/haai/ats/errors.py` | ✅ Implemented |
+
+---
+
+### Advanced Features (Coh-AGI)
+
+| Spec File | Code Module | Status |
+|-----------|-------------|--------|
+| `continuous_manifold_flow.md` | `src/cnsc_haai/consensus/continuous.py` | ✅ Implemented |
 
 ---
 
