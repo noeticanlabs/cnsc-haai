@@ -239,9 +239,9 @@ class ReceiptVerifier:
                 actual_risk_after.to_json()
             )
         
-        # Verify delta_plus
-        delta = actual_risk_after - actual_risk_before
-        delta_plus = delta if delta > QFixed.ZERO else QFixed.ZERO
+        # Verify delta_plus - use compute_delta to handle negative results safely
+        delta_obj = actual_risk_after.compute_delta(actual_risk_before)
+        delta_plus = delta_obj.plus()  # max(0, delta)
         expected_delta_plus = receipt.content.delta_plus_q
         
         if delta_plus != expected_delta_plus:

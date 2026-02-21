@@ -113,15 +113,15 @@ def test_descent_trace():
     risk_before = QFixed(200000000000000000)  # 0.2
     risk_after = Q.ZERO  # 0.0
     
-    # Delta (negative = descent: 0 - 0.2 = -0.2)
-    delta = risk_after - risk_before  # -0.2
-    delta_plus = Q.ZERO  # max(0, -0.2) = 0
+    # Use compute_delta which handles negative results correctly for risk computation
+    delta = risk_after.compute_delta(risk_before)  # Returns QFixedDelta
+    delta_plus = delta.plus()  # max(0, delta) = 0 for descent
     
     # Budget unchanged (descent)
     budget_before = B0
     budget_after = B0
     
-    # Create receipt
+    # Create receipt - use v2 for consensus
     content = ReceiptContent(
         step_type="VM_EXECUTION",
         risk_before_q=risk_before,
@@ -136,7 +136,7 @@ def test_descent_trace():
     )
     
     receipt = Receipt(
-        version="1.0.0",
+        version="v2",
         receipt_id="",  # Will be computed
         content=content,
         previous_receipt_id="00000000",
@@ -199,11 +199,12 @@ def test_amplification():
     # Step: Risk increase 0 → 0.3
     risk_before = Q.ZERO
     risk_after = Q.from_int(3) / Q.from_int(10)  # 0.3
-    delta = risk_after - risk_before  # 0.3
-    delta_plus = delta  # max(0, 0.3) = 0.3
+    # Use compute_delta for proper delta computation
+    delta_obj = risk_after.compute_delta(risk_before)
+    delta_plus = delta_obj.plus()  # max(0, delta) = 0.3 for ascent
     
     budget_before = B0
-    budget_after = B0 - kappa * delta  # 1.0 - 0.3 = 0.7
+    budget_after = B0 - kappa * delta_plus  # 1.0 - 0.3 = 0.7
     
     content = ReceiptContent(
         step_type="VM_EXECUTION",
@@ -219,7 +220,7 @@ def test_amplification():
     )
     
     receipt = Receipt(
-        version="1.0.0",
+        version="v2",
         receipt_id="",  # Will be computed
         content=content,
         previous_receipt_id="00000000",
@@ -318,7 +319,7 @@ def test_chain_verification():
     
     state_hash = state.state_hash()
     
-    # Create receipt
+    # Create receipt - use v2 for consensus
     content = ReceiptContent(
         step_type="VM_EXECUTION",
         risk_before_q=Q.ZERO,
@@ -333,7 +334,7 @@ def test_chain_verification():
     )
     
     receipt = Receipt(
-        version="1.0.0",
+        version="v2",
         receipt_id="",  # Will be computed
         content=content,
         previous_receipt_id="00000000",
