@@ -186,7 +186,7 @@ class NPEService:
             domain=request.domain,
             determinism_tier=request.determinism_tier,
             seed=request.seed,
-            corpus_snapshot_hash="",  # TODO: Get from corpus
+            corpus_snapshot_hash="",  # TODO: See TODO-002 in plans/TODO.md - Get corpus hash
             registry_hash=self._registry.registry_hash,
             candidates=candidates,
             diagnostics={

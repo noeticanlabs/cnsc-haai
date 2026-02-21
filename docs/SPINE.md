@@ -2,7 +2,7 @@
 
 > **⚠️ DEPRECATED**: This documentation is deprecated as of 2026-02-20.
 > 
-> **Canonical documentation has moved to `docs/ats/`**
+> **Canonical documentation has moved to `cnhaai/docs/`**
 > 
 > This legacy spine will remain for reference but no new content should be added here.
 > 

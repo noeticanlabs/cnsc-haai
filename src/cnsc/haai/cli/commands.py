@@ -657,7 +657,7 @@ def cmd_trace(args: argparse.Namespace) -> int:
     trace_manager = TraceManager()
     receipt_system = ReceiptSystem()
     
-    # TODO: Implement full GML tracing with coherence tracking
+    # TODO: See TODO-001 in plans/TODO.md - Implement full GML tracing with coherence tracking
     # For now, create a trace event
     trace_manager.log_event(
         event_type="trace_execution",
