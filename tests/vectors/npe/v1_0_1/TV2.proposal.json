@@ -1,0 +1,19 @@
+{
+  "cert_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "certs_b64": "",
+  "delta_bytes_b64": "AAAAAwAAAAAAAAAKAAAAAAAAABQAAAAAAAAAHg==",
+  "delta_hash": "c9089454ef7efea0989e248bb66f80053826cb9d1e5867fc9bb61dc735cf3685",
+  "domain_separator": "NPE|1.0.1",
+  "npe_state_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "parent_slab_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "proposal_id": "0000000000000002",
+  "proposal_type": "CONTINUOUS_FLOW",
+  "timestamp_unix_sec": 1708516900,
+  "version": "1.0.1",
+  "budget_post": {
+    "max_cost": 8589934592,
+    "max_debits": 4294967296,
+    "max_refunds": 2147483648,
+    "max_steps": 17179869184
+  }
+}

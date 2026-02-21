@@ -1,165 +1,185 @@
 """
-Typed Hashing Functions.
+NPE v1.0.1 Hashing Functions.
 
-Implements SHA256 hashing with type prefixes for different NPE objects.
-All hashes follow the format: sha256("NPE|1.0|" + <type> + "|" + CJ0(payload))
+Implements SHA256 hashing with NPE v1.0.1 domain separation:
+- Proposal hashing: sha256(jcs_bytes(proposal_envelope))
+- Delta hashing: sha256(delta_bytes) after base64 decode
+- Cert hashing: sha256(cert_bytes)
+
+All hashing uses RFC8785 JCS canonicalization (via canon.py wrapper).
 """
 
+import base64
 import hashlib
-from typing import Any, List, Optional
+from typing import Any, Optional
 
-from .canon import canonicalize, canonicalize_typed
+from .canon import jcs_bytes, jcs_string
 
 
-def _compute_sha256(data: str) -> str:
-    """Compute SHA256 hash of a string.
+def _compute_sha256(data: bytes) -> str:
+    """
+    Compute SHA256 hash of bytes.
     
     Args:
-        data: The string to hash
+        data: Bytes to hash
         
     Returns:
-        Hexadecimal hash string
+        Lowercase hexadecimal hash string
     """
-    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+    return hashlib.sha256(data).hexdigest()
 
+
+def hash_proposal(envelope: dict) -> str:
+    """
+    Hash a proposal envelope using RFC8785 JCS.
+    
+    This is the primary NPE proposal hash function. It uses JCS canonicalization
+    to ensure byte-identical hashes regardless of JSON formatting.
+    
+    Args:
+        envelope: Proposal envelope dict
+        
+    Returns:
+        Lowercase hex SHA256 hash
+        
+    Raises:
+        ValueError: If envelope contains floats or invalid fields
+    """
+    # jcs_bytes applies NPE-specific guards (no floats, required fields, etc.)
+    canonical = jcs_bytes(envelope)
+    return _compute_sha256(canonical)
+
+
+def hash_delta(delta_bytes_b64: str) -> str:
+    """
+    Compute delta_hash from base64-encoded delta bytes.
+    
+    Per spec: delta_hash = sha256(raw_delta_bytes)
+    
+    Args:
+        delta_bytes_b64: Base64-encoded delta bytes
+        
+    Returns:
+        Lowercase hex SHA256 hash
+    """
+    delta_bytes = base64.b64decode(delta_bytes_b64)
+    return _compute_sha256(delta_bytes)
+
+
+def hash_cert(cert_bytes_b64: str) -> str:
+    """
+    Compute cert_hash from base64-encoded cert block.
+    
+    Per spec: cert_hash = sha256(cert_bytes_for_hash)
+    
+    Args:
+        cert_bytes_b64: Base64-encoded cert block (or empty string)
+        
+    Returns:
+        Lowercase hex SHA256 hash
+    """
+    if cert_bytes_b64:
+        cert_bytes = base64.b64decode(cert_bytes_b64)
+    else:
+        cert_bytes = b""
+    return _compute_sha256(cert_bytes)
+
+
+def verify_proposal_hash(envelope: dict, expected_hash: str) -> bool:
+    """
+    Verify that proposal envelope hash matches expected.
+    
+    Args:
+        envelope: Proposal envelope dict
+        expected_hash: Expected hash value
+        
+    Returns:
+        True if hash matches, False otherwise
+    """
+    try:
+        actual = hash_proposal(envelope)
+        return actual == expected_hash
+    except (ValueError, Exception):
+        return False
+
+
+def verify_delta_hash(delta_bytes_b64: str, expected_hash: str) -> bool:
+    """
+    Verify that delta hash matches expected.
+    
+    Args:
+        delta_bytes_b64: Base64-encoded delta bytes
+        expected_hash: Expected hash value
+        
+    Returns:
+        True if hash matches, False otherwise
+    """
+    try:
+        actual = hash_delta(delta_bytes_b64)
+        return actual == expected_hash
+    except Exception:
+        return False
+
+
+# ============================================================================
+# Legacy Compatibility Functions
+# ============================================================================
 
 def hash_request(payload: Any) -> str:
-    """Hash an NPE request.
-    
-    Args:
-        payload: The request payload
-        
-    Returns:
-        Request ID (hash)
-    """
-    cj0 = canonicalize_typed("request", payload)
-    return _compute_sha256(cj0)
+    """Hash an NPE request (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(payload)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
 def hash_evidence(payload: Any) -> str:
-    """Hash an evidence item.
-    
-    Args:
-        payload: The evidence payload
-        
-    Returns:
-        Evidence ID (hash)
-    """
-    cj0 = canonicalize_typed("evidence", payload)
-    return _compute_sha256(cj0)
+    """Hash an evidence item (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(payload)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
 def hash_candidate_payload(payload: Any) -> str:
-    """Hash a candidate payload.
-    
-    Args:
-        payload: The candidate payload
-        
-    Returns:
-        Payload hash
-    """
-    cj0 = canonicalize_typed("candidate_payload", payload)
-    return _compute_sha256(cj0)
+    """Hash a candidate payload (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(payload)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
 def hash_candidate(envelope: Any) -> str:
-    """Hash a candidate envelope.
-    
-    Args:
-        envelope: The candidate envelope
-        
-    Returns:
-        Candidate hash
-    """
-    cj0 = canonicalize_typed("candidate", envelope)
-    return _compute_sha256(cj0)
+    """Hash a candidate envelope (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(envelope)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
 def hash_response(payload: Any) -> str:
-    """Hash an NPE response.
-    
-    Args:
-        payload: The response payload
-        
-    Returns:
-        Response ID (hash)
-    """
-    cj0 = canonicalize_typed("response", payload)
-    return _compute_sha256(cj0)
+    """Hash an NPE response (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(payload)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
 def hash_registry(manifest_normalized: Any) -> str:
-    """Hash a registry manifest.
-    
-    Args:
-        manifest_normalized: The normalized manifest
-        
-    Returns:
-        Registry hash
-    """
-    cj0 = canonicalize_typed("registry", manifest_normalized)
-    return _compute_sha256(cj0)
+    """Hash a registry manifest (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(manifest_normalized)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
-def hash_corpus_snapshot(sorted_chunk_hashes: List[str]) -> str:
-    """Hash a corpus snapshot from sorted chunk hashes.
-    
-    Args:
-        sorted_chunk_hashes: Sorted list of chunk hashes
-        
-    Returns:
-        Corpus snapshot hash
-    """
-    payload = {"chunks": sorted_chunk_hashes}
-    cj0 = canonicalize_typed("corpus_snapshot", payload)
-    return _compute_sha256(cj0)
+def hash_string(data: str) -> str:
+    """Hash a string (legacy interface)."""
+    return _compute_sha256(data.encode("utf-8"))
 
 
-def hash_receipts_snapshot(sorted_receipt_hashes: List[str]) -> str:
-    """Hash a receipts snapshot from sorted receipt hashes.
-    
-    Args:
-        sorted_receipt_hashes: Sorted list of receipt hashes
-        
-    Returns:
-        Receipts snapshot hash
-    """
-    payload = {"receipts": sorted_receipt_hashes}
-    cj0 = canonicalize_typed("receipts_snapshot", payload)
-    return _compute_sha256(cj0)
+def hash_dict(data: dict) -> str:
+    """Hash a dict (legacy interface)."""
+    from npe.core.canon import jcs_string_legacy
+    canonical = jcs_string_legacy(data)
+    return _compute_sha256(canonical.encode("utf-8"))
 
 
-def hash_string(content: str) -> str:
-    """Hash a plain string content.
-    
-    Args:
-        content: The string content
-        
-    Returns:
-        Hash string
-    """
-    return _compute_sha256(content)
-
-
-def hash_dict(obj: dict) -> str:
-    """Hash a dictionary (sorted keys).
-    
-    Args:
-        obj: The dictionary to hash
-        
-    Returns:
-        Hash string
-    """
-    return _compute_sha256(canonicalize(obj))
-
-
-def hash_list(arr: List[Any]) -> str:
-    """Hash a list (preserves order).
-    
-    Args:
-        arr: The list to hash
-        
-    Returns:
-        Hash string
-    """
-    return _compute_sha256(canonicalize(arr))
+def hash_list(data: list) -> str:
+    """Hash a list (legacy interface)."""
+    canonical = jcs_string(data)
+    return _compute_sha256(canonical.encode("utf-8"))

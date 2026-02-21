@@ -182,8 +182,13 @@ class NPEService:
         # Get corpus snapshot hash if corpus index is available
         corpus_snapshot_hash = ""
         if self._corpus_index is not None:
-            if hasattr(self._corpus_index, 'get_snapshot_hash'):
+            # Handle dictionary-based index (from load_index)
+            if isinstance(self._corpus_index, dict):
+                corpus_snapshot_hash = self._corpus_index.get("corpus_snapshot_hash", "")
+            # Handle object-based index with get_snapshot_hash method
+            elif hasattr(self._corpus_index, 'get_snapshot_hash'):
                 corpus_snapshot_hash = self._corpus_index.get_snapshot_hash()
+            # Handle object with corpus_store attribute
             elif hasattr(self._corpus_index, 'corpus_store') and hasattr(self._corpus_index.corpus_store, 'get_snapshot_hash'):
                 corpus_snapshot_hash = self._corpus_index.corpus_store.get_snapshot_hash()
         

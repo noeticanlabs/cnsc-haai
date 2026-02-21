@@ -1,0 +1,15 @@
+{
+  "proposal_hash": "6e8145c658f9153ee5f1fedd2f008c25631a07bac83a9f5886d323eeb53f262a",
+  "delta_hash": "c9089454ef7efea0989e248bb66f80053826cb9d1e5867fc9bb61dc735cf3685",
+  "cert_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "seed_hash": "da170053f82d8fd2c1f88ac12b0c498112a4d78149db1ee4d075da364d8f0fb6",
+  "nonce_hex": "4438e280ba5000fbfef296d01d2b6be3",
+  "jcs_bytes_len": 665,
+  "delta_bytes_len": 28,
+  "budget_post": {
+    "max_cost": 8589934592,
+    "max_debits": 4294967296,
+    "max_refunds": 2147483648,
+    "max_steps": 17179869184
+  }
+}

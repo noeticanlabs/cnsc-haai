@@ -1,7 +1,7 @@
 # TODO Tracker
 
 **Last Updated:** 2026-02-21  
-**Total Items:** 5 | Pending: 4 | In Progress: 0 | Completed: 1
+**Total Items:** 5 | Pending: 1 | In Progress: 0 | Completed: 2 | Deprecated: 2
 
 ---
 
@@ -19,28 +19,32 @@
 
 | ID | Status | Item | Owner | Created | Updated |
 |----|--------|------|-------|---------|---------|
-| TODO-002 | [ ] | Get corpus snapshot hash from corpus store | TBD | 2026-02-21 | 2026-02-21 |
+| TODO-002 | [x] | Get corpus snapshot hash from corpus store | - | 2026-02-21 | 2026-02-21 |
 
-**Details:** See `src/npe/api/routes.py:189` - Currently returning empty string
+**Details:** Fixed in `src/npe/api/routes.py:181-191` - Now correctly retrieves corpus_snapshot_hash from index dictionary
 
 ---
 
 ## Priority: Medium
 
-| ID | Status | Item | Owner | Created | Updated |
-|----|--------|------|-------|---------|---------|
-| TODO-003 | [ ] | Execute TODO Organization Plan (Phases 1-4) | TBD | 2026-02-21 | 2026-02-21 |
-| TODO-004 | [ ] | Execute Documentation Reorganization Plan | TBD | 2026-02-21 | 2026-02-21 |
-
-**Details:** See [`plans/TODO_Organization_Plan.md`](plans/TODO_Organization_Plan.md) and [`plans/Documentation_Reorganization_Plan.md`](plans/Documentation_Reorganization_Plan.md)
-
-**Details:** See `plans/TODO_Organization_Plan.md` for full implementation plan
+*No active items*
 
 ---
 
 ## Priority: Low
 
 *No items*
+
+---
+
+## Deprecated
+
+| ID | Status | Item | Owner | Deprecated |
+|----|--------|------|-------|-----------|
+| TODO-003 | [~] | Execute TODO Organization Plan (Phases 1-4) | - | 2026-02-21 |
+| TODO-004 | [~] | Execute Documentation Reorganization Plan | - | 2026-02-21 |
+
+**Reason:** These structural tasks have been superseded by modular updates to individual components. Focus has shifted to targeted fixes and feature implementation.
 
 ---
 
