@@ -449,6 +449,18 @@ def parse_op(opcode: int, flags: int, arg_bytes: bytes) -> Any:
 
 
 # =============================================================================
+# Resource Caps (Consensus Safety)
+# =============================================================================
+
+# Maximum program size to prevent resource exhaustion attacks
+MAX_OP_COUNT = 1024
+MAX_DELTA_BYTES = 64 * 1024  # 64 KB
+MAX_NESTED_IF_CERT_DEPTH = 8
+MAX_SPARSE_INDICES_PER_PROGRAM = 16384
+MAX_CERT_COUNT = 256
+
+
+# =============================================================================
 # Delta Program Parser (v1.0)
 # =============================================================================
 
@@ -513,11 +525,23 @@ def parse_delta_program(data: bytes) -> DeltaProgram:
     if kind not in [0x00, 0x01, 0x02, 0x03]:
         raise ValueError(f"Delta program: unknown kind {kind}")
     
+    # Resource cap: total program size
+    if len(data) > MAX_DELTA_BYTES:
+        raise ValueError(
+            f"Delta program: exceeds max size {MAX_DELTA_BYTES} bytes, got {len(data)}"
+        )
+    
     # 3. op_count (u16_be)
     if len(data) < offset + 2:
         raise ValueError("Delta program: insufficient data for op_count")
     op_count = struct.unpack('>H', data[offset:offset+2])[0]
     offset += 2
+    
+    # Resource cap: op count
+    if op_count > MAX_OP_COUNT:
+        raise ValueError(
+            f"Delta program: exceeds max op count {MAX_OP_COUNT}, got {op_count}"
+        )
     
     # 4. Parse ops
     ops = []
@@ -574,6 +598,12 @@ def parse_delta_program(data: bytes) -> DeltaProgram:
             raise ValueError("Delta program: insufficient data for cert_count")
         cert_count = struct.unpack('>H', data[offset:offset+2])[0]
         offset += 2
+        
+        # Resource cap: cert count
+        if cert_count > MAX_CERT_COUNT:
+            raise ValueError(
+                f"Delta program: exceeds max cert count {MAX_CERT_COUNT}, got {cert_count}"
+            )
         
         for _ in range(cert_count):
             # cert_type (u8)
