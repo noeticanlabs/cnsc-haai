@@ -6,10 +6,10 @@ venv:
 	. venv/bin/activate && pip install pytest pytest-cov black flake8
 
 test:
-	pytest -q
+	PYTHONPATH=./src pytest -q
 
 npe-serve:
-	python -m npe.api.server
+	PYTHONPATH=./src python -m npe.api.server
 
 install:
 	pip install -e .

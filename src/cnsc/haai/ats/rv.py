@@ -122,6 +122,15 @@ class ReceiptVerifier:
         """
         kappa = kappa or self.kappa
         
+        # Version check: v1 receipts are telemetry-only, not consensus-safe
+        # Per consensus boundary: GML receipts are for debugging/telemetry
+        if hasattr(receipt, 'version') and receipt.version:
+            if receipt.version.startswith("1."):
+                return False, ATSError(
+                    code=RejectionCode.INVALID_ACTION_TYPE,  # Reuse code for clarity
+                    reason=f"Receipt version {receipt.version} is telemetry-only (v1). Use v2+ for consensus."
+                )
+        
         # Step 1: Verify state hash before
         error = self._verify_state_hash_before(state_before, receipt)
         if error:

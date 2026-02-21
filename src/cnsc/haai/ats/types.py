@@ -19,6 +19,36 @@ import json
 
 from .numeric import QFixed
 
+# JCS for canonical serialization (consensus-safe)
+from cnsc_haai.consensus.jcs import jcs_canonical_bytes
+
+
+def _serialize_memory_cells(cells: List[Optional[bytes]]) -> List[Optional[str]]:
+    """Serialize memory cells to base64 for JSON serialization."""
+    import base64
+    result = []
+    for cell in cells:
+        if cell is None:
+            result.append(None)
+        else:
+            result.append(base64.b64encode(cell).decode('ascii'))
+    return result
+
+
+def _serialize_action_params(params: Tuple[Any, ...]) -> List[Any]:
+    """Serialize action parameters for JCS, converting QFixed to raw ints."""
+    result = []
+    for p in params:
+        if isinstance(p, QFixed):
+            result.append(p.to_raw())
+        elif isinstance(p, tuple):
+            result.append(_serialize_action_params(p))
+        elif isinstance(p, list):
+            result.append(_serialize_action_params(tuple(p)))
+        else:
+            result.append(p)
+    return result
+
 
 # =============================================================================
 # Action Types (from docs/ats/10_mathematical_core/action_algebra.md)
@@ -103,6 +133,14 @@ class Action:
         }
         return json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
     
+    def to_canonical_dict(self) -> Dict[str, Any]:
+        """Return dict representation for JCS serialization."""
+        return {
+            'action_type': self.action_type.value,
+            'version': self.version,
+            'parameters': _serialize_action_params(self.parameters)
+        }
+    
     def __hash__(self) -> int:
         return hash((self.action_type, self.parameters))
     
@@ -118,6 +156,13 @@ class Action:
 class BeliefState:
     """X_belief: ConceptID → BeliefVector mapping."""
     beliefs: Dict[str, List[QFixed]] = field(default_factory=dict)
+    
+    def to_canonical_dict(self) -> dict:
+        """Convert to canonical dictionary for JCS serialization."""
+        return {
+            key: [v.to_raw() for v in values]
+            for key, values in sorted(self.beliefs.items())
+        }
     
     def canonical_bytes(self) -> bytes:
         """Serialize to canonical bytes for hashing."""
@@ -156,6 +201,13 @@ class PolicyState:
     """X_policy: State → ActionDistribution mapping."""
     mappings: Dict[str, Dict[str, QFixed]] = field(default_factory=dict)
     
+    def to_canonical_dict(self) -> dict:
+        """Convert to canonical dictionary for JCS serialization."""
+        return {
+            key: {k: v.to_raw() for k, v in sorted(action_dist.items())}
+            for key, action_dist in sorted(self.mappings.items())
+        }
+    
     def canonical_bytes(self) -> bytes:
         """Serialize to canonical bytes for hashing."""
         # Sort keys for deterministic ordering
@@ -171,6 +223,13 @@ class IOState:
     """X_io: Input/Output buffers."""
     input_buffer: List[bytes] = field(default_factory=list)
     output_buffer: List[bytes] = field(default_factory=list)
+    
+    def to_canonical_dict(self) -> dict:
+        """Convert to canonical dictionary for JCS serialization."""
+        return {
+            "input_buffer": [b.decode('utf-8', errors='replace') for b in self.input_buffer],
+            "output_buffer": [b.decode('utf-8', errors='replace') for b in self.output_buffer]
+        }
     
     def canonical_bytes(self) -> bytes:
         """Serialize to canonical bytes for hashing."""
@@ -197,14 +256,20 @@ class StateCore:
     io: IOState
     
     def canonical_bytes(self) -> bytes:
-        """Exact format for state_hash computation."""
-        return (
-            self.belief.canonical_bytes() +
-            self.memory.canonical_bytes() +
-            self.plan.canonical_bytes() +
-            self.policy.canonical_bytes() +
-            self.io.canonical_bytes()
-        )
+        """
+        Exact format for state_hash computation.
+        
+        Uses JCS (RFC8785) wrapping to ensure deterministic serialization
+        and prevent hash collisions from raw byte concatenation.
+        """
+        state_dict = {
+            "belief": self.belief.to_canonical_dict(),
+            "memory": {"cells": _serialize_memory_cells(self.memory.cells)},
+            "plan": {"steps": [s.to_canonical_dict() for s in self.plan.steps]},
+            "policy": self.policy.to_canonical_dict(),
+            "io": self.io.to_canonical_dict()
+        }
+        return jcs_canonical_bytes(state_dict)
     
     def state_hash(self) -> str:
         """SHA-256 state hash (consensus identifier)."""

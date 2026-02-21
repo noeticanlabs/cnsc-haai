@@ -32,8 +32,11 @@ from __future__ import annotations
 SCALE = 10**18
 SCALE_BITS = 60  # 2^60 ≈ 10^18
 
-# Maximum integer value (allows values up to MAX_INT in QFixed representation)
-MAX_INT = 10000  # Allows up to 10000.0 in QFixed(18)
+# Maximum integer value
+# Per deterministic_numeric_domain.md: QFixed(18) range is [0, 10^18 - 1]
+# Using MAX_INT = 10^7 to keep internal values manageable while allowing
+# values up to 10,000,000.0 in QFixed(18) representation
+MAX_INT = 10**7  # 10 million
 MAX_VALUE = MAX_INT * SCALE  # Maximum internal value
 
 # Unit conventions (Per Gap E: κ unit conventions)
@@ -164,13 +167,19 @@ class QFixed:
     
     # Arithmetic operators
     def __add__(self, other: QFixed) -> QFixed:
-        """Add two QFixed numbers, capping at MAX_VALUE on overflow."""
+        """Add two QFixed numbers.
+        
+        Per deterministic numeric domain spec: overflow causes step REJECTION.
+        This raises QFixedOverflow instead of silently capping.
+        """
         if not isinstance(other, QFixed):
             return NotImplemented
         result = self.value + other.value
-        # Cap at MAX_VALUE instead of raising
+        # Raise on overflow (per spec)
         if result > MAX_VALUE:
-            result = MAX_VALUE
+            raise QFixedOverflow(
+                f"Overflow in QFixed addition: {self} + {other} exceeds MAX_VALUE"
+            )
         return QFixed(result)
     
     def __sub__(self, other: QFixed) -> QFixed:
@@ -190,25 +199,39 @@ class QFixed:
         return QFixed(result)
     
     def __mul__(self, other: QFixed) -> QFixed:
-        """Multiply two QFixed numbers."""
+        """Multiply two QFixed numbers.
+        
+        Per deterministic numeric domain spec: overflow causes step REJECTION.
+        This raises QFixedOverflow instead of silently capping.
+        """
         if not isinstance(other, QFixed):
             return NotImplemented
         # Use integer division by SCALE to get result
         result = (self.value * other.value) // SCALE
-        # Cap at MAX_VALUE
+        # Raise on overflow (per spec)
         if result > MAX_VALUE:
-            result = MAX_VALUE
+            raise QFixedOverflow(
+                f"Overflow in QFixed multiplication: {self} * {other} exceeds MAX_VALUE"
+            )
         return QFixed(result)
     
     def __truediv__(self, other: QFixed) -> QFixed:
-        """Divide two QFixed numbers."""
+        """Divide two QFixed numbers.
+        
+        Per deterministic numeric domain spec: overflow causes step REJECTION.
+        This raises QFixedOverflow instead of silently capping.
+        """
         if not isinstance(other, QFixed):
             return NotImplemented
         if other.value == 0:
             raise QFixedUnderflow("Division by zero")
         # Multiply by SCALE to maintain precision
         result = (self.value * SCALE) // other.value
-        # Cap at MAX_VALUE
+        # Raise on overflow (per spec)
+        if result > MAX_VALUE:
+            raise QFixedOverflow(
+                f"Overflow in QFixed division: {self} / {other} exceeds MAX_VALUE"
+            )
         if result > MAX_VALUE:
             result = MAX_VALUE
         return QFixed(result)

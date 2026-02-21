@@ -18,9 +18,28 @@ Module Structure:
 
 Usage:
     from cnsc.haai.ats import ReceiptVerifier, State, QFixed
-    
+
     verifier = ReceiptVerifier(initial_budget=QFixed.from_int(1), kappa=QFixed.ONE)
-    accepted, error = verifier.verify_step(state_before, state_after, action, receipt, budget_before, budget_after)
+    accepted, error = verifier.verify_step(state_before, state_after, action, receipt, budget_before, budget_bottom)
+
+================================================================================
+CONSENSUS BOUNDARY GUARD
+================================================================================
+
+THIS MODULE IS CONSENSUS-CRITICAL.
+
+DO NOT import from the following modules (they may contain non-deterministic code):
+- src/cnsc/haai/gml/*      (telemetry/tracing)
+- src/cnsc/haai/tgs/*      (debug/telemetry)
+- src/cnhaai/*             (UI heuristics, non-consensus)
+
+The ATS kernel relies on:
+- QFixed (deterministic fixed-point arithmetic)
+- JCS canonicalization (deterministic serialization)
+- Domain-separated chain hashing (consensus-safe)
+
+Importing floats, timestamps, or UUIDs from non-consensus modules may break
+the determinism guarantees required for consensus verification.
 """
 
 # Core exports

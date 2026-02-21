@@ -225,7 +225,12 @@ class BytecodeEmitter:
         self.labels: Dict[str, int] = {}
     
     def emit(self, opcode: NSCOpcode, *operands: Any) -> int:
-        """Emit instruction to bytecode."""
+        """Emit instruction to bytecode.
+        
+        NOTE: Float operands are NOT supported in NSC bytecode.
+        Per deterministic numeric domain spec, use QFixed for all consensus-critical
+        numeric values. Float literals should be rejected at parse time.
+        """
         pos = len(self.bytecode)
         self.bytecode.append(opcode.value)
         for operand in operands:
@@ -234,7 +239,11 @@ class BytecodeEmitter:
             elif isinstance(operand, int):
                 self.emit_int(operand)
             elif isinstance(operand, float):
-                self.emit_float(operand)
+                raise ValueError(
+                    "Float operands not permitted in NSC bytecode. "
+                    "Use QFixed from rational representation instead. "
+                    "Float values are non-deterministic and violate consensus requirements."
+                )
             elif isinstance(operand, str):
                 self.emit_string(operand)
             elif isinstance(operand, NSCType):
@@ -249,9 +258,15 @@ class BytecodeEmitter:
         self.bytecode.extend(value.to_bytes(8, 'big', signed=True))
     
     def emit_float(self, value: float) -> None:
-        """Emit float constant."""
-        self.bytecode.extend([0x11])  # FLOAT marker
-        self.bytecode.extend(bytearray(value.to_bytes(8, 'big')))
+        """Emit float constant.
+        
+        DEPRECATED: Float operands are not permitted in NSC bytecode.
+        Use QFixed instead. This method raises an error.
+        """
+        raise ValueError(
+            "Float operands not permitted in NSC bytecode. "
+            "Use QFixed from rational representation instead."
+        )
     
     def emit_string(self, value: str) -> None:
         """Emit string constant."""
@@ -444,13 +459,12 @@ class VM:
                 )
                 self.state.program_counter += 8
                 operands.append(value)
-            elif marker == 0x11:  # FLOAT
-                value = float.from_bytes(
-                    self.bytecode[self.state.program_counter:self.state.program_counter + 8],
-                    'big'
+            elif marker == 0x11:  # FLOAT - deprecated, reject
+                raise ValueError(
+                    "Float operands not permitted in NSC bytecode. "
+                    "If you encounter this error, the bytecode was likely generated "
+                    "with an older version. Recompile the source."
                 )
-                self.state.program_counter += 8
-                operands.append(value)
             elif marker == 0x12:  # STRING
                 length = int.from_bytes(
                     self.bytecode[self.state.program_counter:self.state.program_counter + 4],

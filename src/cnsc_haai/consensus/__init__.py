@@ -10,6 +10,26 @@ This module provides consensus-critical cryptographic utilities:
 - Compat: Backward compatibility layer
 
 All implementations are deterministic and verified against compliance vectors.
+
+================================================================================
+CONSENSUS BOUNDARY GUARD
+================================================================================
+
+THIS MODULE IS CONSENSUS-CRITICAL.
+
+DO NOT import from the following modules (they may contain non-deterministic code):
+- src/cnsc/haai/gml/*      (telemetry/tracing)
+- src/cnsc/haai/tgs/*      (debug/telemetry)
+- src/cnhaai/*             (UI heuristics, non-consensus)
+
+Importing from these modules may introduce:
+- Floating-point arithmetic (non-deterministic)
+- Timestamps (vary across runs)
+- UUIDs (randomness)
+- Non-canonical serialization
+
+If you need to bridge consensus and non-consensus code, use the explicit
+conversion functions in src/cnsc/haai/ats/bridge.py.
 """
 
 from .jcs import jcs_canonical_bytes, JCSEncoder

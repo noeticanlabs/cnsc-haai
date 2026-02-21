@@ -1014,10 +1014,22 @@ class GHLLParser:
             self._advance()
             num_value = token.value
             is_float = '.' in num_value
+            if is_float:
+                # Float literals are not permitted in NSC bytecode
+                # Per deterministic numeric domain spec, use QFixed instead
+                # Example: "0.5" should be represented as QFixed.from_str("0.5")
+                self._error(
+                    f"Float literal '{num_value}' not permitted in NSC bytecode. "
+                    f"Use QFixed representation instead (e.g., QFixed.from_str('{num_value}')). "
+                    f"Float values are non-deterministic and violate consensus requirements.",
+                    expected="integer literal or QFixed representation",
+                    found=f"float literal '{num_value}'"
+                )
+                return None
             return {
                 "type": "literal",
-                "value_type": "float" if is_float else "int",
-                "value": float(num_value) if is_float else int(num_value),
+                "value_type": "int",
+                "value": int(num_value),
                 "span": token.span.to_dict()
             }
         
