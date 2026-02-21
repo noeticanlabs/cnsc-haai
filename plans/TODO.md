@@ -1,7 +1,7 @@
 # TODO Tracker
 
 **Last Updated:** 2026-02-21  
-**Total Items:** 5 | Pending: 4 | In Progress: 1 | Completed: 0
+**Total Items:** 5 | Pending: 4 | In Progress: 0 | Completed: 1
 
 ---
 
@@ -9,9 +9,9 @@
 
 | ID | Status | Item | Owner | Created | Updated |
 |----|--------|------|-------|---------|---------|
-| TODO-001 | [-] | Implement full GML tracing with coherence tracking | TBD | 2026-02-21 | 2026-02-21 |
+| TODO-001 | [x] | Implement full GML tracing with coherence tracking | - | 2026-02-21 | 2026-02-21 |
 
-**Details:** See `src/cnsc/haai/cli/commands.py:660` - Need to replace placeholder trace event with full GML tracing
+**Details:** Implemented in `src/cnsc/haai/cli/commands.py:644` - Full GML tracing with coherence tracking now includes GHLL parsing, coherence analysis of AST nodes, and receipt generation with coherence state.
 
 ---
 

@@ -7,4 +7,4 @@ retrieved evidence from the corpus.
 """
 
 __version__ = "1.0.0"
-__spec__ = "NPE-SERVICE-1.0"
+__service_spec__ = "NPE-SERVICE-1.0"

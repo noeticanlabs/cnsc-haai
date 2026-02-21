@@ -477,6 +477,7 @@ class TraceManager:
             "thread_count": len(self.threads),
             "event_count": len(self.events),
             "events_by_level": {k: len(v) for k, v in self.events_by_level.items()},
+            "events": {eid: event.to_dict() for eid, event in self.events.items()},
         }
     
     @classmethod

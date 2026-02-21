@@ -7,7 +7,7 @@ Implementations for all CLI subcommands.
 import argparse
 import json
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 
@@ -642,9 +642,10 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_trace(args: argparse.Namespace) -> int:
-    """Handle trace command - full GML tracing."""
-    from cnsc.haai.gml.trace import TraceManager, TraceLevel
-    from cnsc.haai.gml.receipts import ReceiptSystem
+    """Handle trace command - full GML tracing with coherence tracking."""
+    from cnsc.haai.gml.trace import TraceManager, TraceLevel, TraceEvent, TraceThread
+    from cnsc.haai.gml.receipts import ReceiptSystem, ReceiptStepType, ReceiptDecision
+    from cnsc.haai.ghll.parser import parse_ghll
     
     # Read input
     if args.input == "-":
@@ -657,16 +658,166 @@ def cmd_trace(args: argparse.Namespace) -> int:
     trace_manager = TraceManager()
     receipt_system = ReceiptSystem()
     
-    # TODO: See TODO-001 in plans/TODO.md - Implement full GML tracing with coherence tracking
-    # For now, create a trace event
-    trace_manager.log_event(
-        event_type="trace_execution",
-        level=TraceLevel.DEBUG,
-        details={"source": args.input, "content_length": len(source)}
+    # Create a trace thread for this execution
+    thread = trace_manager.create_thread(name="main", thread_id="main")
+    
+    # Initial coherence state (1.0 = fully coherent)
+    coherence_state = 1.0
+    
+    # Log start of trace
+    start_event = TraceEvent.create(
+        level=TraceLevel.INFO,
+        event_type="trace_start",
+        message=f"Starting GML trace for {args.input}",
+        details={
+            "source": args.input,
+            "content_length": len(source),
+            "content_preview": source[:100] if len(source) > 100 else source
+        },
+        thread_id=thread.thread_id,
+        coherence_before=None,
+        coherence_after=coherence_state
     )
+    trace_manager.add_event(start_event)
+    
+    # Parse the source with GHLL
+    coherence_before_parse = coherence_state
+    parse_event = TraceEvent.create(
+        level=TraceLevel.DEBUG,
+        event_type="ghll_parse_start",
+        message="Starting GHLL parse",
+        details={"input_length": len(source)},
+        thread_id=thread.thread_id,
+        coherence_before=coherence_before_parse,
+        coherence_after=coherence_state
+    )
+    trace_manager.add_event(parse_event)
+    
+    # Perform the parse
+    parse_result = parse_ghll(source, args.input)
+    
+    if parse_result.success:
+        # Parse succeeded - log with coherence impact
+        coherence_after_parse = coherence_state  # Successful parse maintains coherence
+        
+        parse_success_event = TraceEvent.create(
+            level=TraceLevel.INFO,
+            event_type="ghll_parse_complete",
+            message=f"GHLL parse successful - {len(parse_result.ast)} AST nodes",
+            details={
+                "ast_node_count": len(parse_result.ast),
+                "has_errors": len(parse_result.errors) > 0,
+                "warnings": parse_result.warnings
+            },
+            thread_id=thread.thread_id,
+            coherence_before=coherence_before_parse,
+            coherence_after=coherence_after_parse
+        )
+        trace_manager.add_event(parse_success_event)
+        
+        # Analyze AST for coherence-relevant operations
+        coherence_state = coherence_after_parse
+        coherence_before_analysis = coherence_state
+        
+        analysis_event = TraceEvent.create(
+            level=TraceLevel.DEBUG,
+            event_type="coherence_analysis_start",
+            message="Starting coherence analysis",
+            thread_id=thread.thread_id,
+            coherence_before=coherence_before_analysis,
+            coherence_after=coherence_state
+        )
+        trace_manager.add_event(analysis_event)
+        
+        # Analyze AST nodes for coherence impact
+        analysis_details = _analyze_ast_for_coherence(parse_result.ast)
+        
+        # Update coherence based on analysis
+        coherence_after_analysis = max(0.0, min(1.0, coherence_state - analysis_details.get("coherence_impact", 0.0)))
+        
+        analysis_complete_event = TraceEvent.create(
+            level=TraceLevel.INFO,
+            event_type="coherence_analysis_complete",
+            message="Coherence analysis complete",
+            details=analysis_details,
+            thread_id=thread.thread_id,
+            coherence_before=coherence_before_analysis,
+            coherence_after=coherence_after_analysis
+        )
+        trace_manager.add_event(analysis_complete_event)
+        coherence_state = coherence_after_analysis
+        
+        # Generate receipt if requested
+        if args.receipt:
+            coherence_before_receipt = coherence_state
+            # Use emit_receipt for trace-based receipt
+            receipt = receipt_system.emit_receipt(
+                step_type=ReceiptStepType.CUSTOM,
+                source=args.input,
+                input_data=source,
+                output_data=parse_result.to_dict() if hasattr(parse_result, 'to_dict') else {"ast": parse_result.ast, "success": parse_result.success},
+                decision=ReceiptDecision.PASS if parse_result.success else ReceiptDecision.FAIL,
+                episode_id=None,
+                phase="trace_execution"
+            )
+            
+            receipt_event = TraceEvent.create(
+                level=TraceLevel.INFO,
+                event_type="receipt_generated",
+                message="Receipt generated successfully",
+                details={
+                    "receipt_id": receipt.receipt_id if hasattr(receipt, 'receipt_id') else "unknown",
+                    "chain_hash": receipt.chain_hash if hasattr(receipt, 'chain_hash') else None,
+                    "coherence_state": coherence_state
+                },
+                thread_id=thread.thread_id,
+                coherence_before=coherence_before_receipt,
+                coherence_after=coherence_state
+            )
+            trace_manager.add_event(receipt_event)
+            
+            # Save receipt
+            receipt_dict = receipt.to_dict() if hasattr(receipt, 'to_dict') else {"receipt_id": "unknown"}
+            with open(args.receipt, 'w') as f:
+                json.dump(receipt_dict, f, indent=2)
+            print(f"Receipt saved to {args.receipt}")
+    else:
+        # Parse failed - log errors
+        coherence_after_parse = max(0.0, coherence_state - 0.2)  # Penalty for parse failure
+        
+        parse_error_event = TraceEvent.create(
+            level=TraceLevel.ERROR,
+            event_type="ghll_parse_failed",
+            message=f"GHLL parse failed - {len(parse_result.errors)} errors",
+            details={
+                "errors": [str(e) for e in parse_result.errors],
+                "warnings": [str(w) for w in parse_result.warnings]
+            },
+            thread_id=thread.thread_id,
+            coherence_before=coherence_before_parse,
+            coherence_after=coherence_after_parse
+        )
+        trace_manager.add_event(parse_error_event)
+        coherence_state = coherence_after_parse
+    
+    # Log end of trace
+    end_event = TraceEvent.create(
+        level=TraceLevel.INFO,
+        event_type="trace_end",
+        message="GML trace complete",
+        details={
+            "final_coherence_state": coherence_state,
+            "total_events": len(trace_manager.events),
+            "active_threads": len(trace_manager.threads)
+        },
+        thread_id=thread.thread_id,
+        coherence_before=coherence_state,
+        coherence_after=coherence_state
+    )
+    trace_manager.add_event(end_event)
     
     # Output trace
-    trace_data = trace_manager.export_trace()
+    trace_data = trace_manager.to_dict()
     if args.output:
         with open(args.output, 'w') as f:
             json.dump(trace_data, f, indent=2)
@@ -674,10 +825,50 @@ def cmd_trace(args: argparse.Namespace) -> int:
     else:
         print(json.dumps(trace_data, indent=2))
     
-    if args.receipt:
-        print(f"Receipt: {args.receipt}")
-    
     return 0
+
+
+def _analyze_ast_for_coherence(ast: List) -> Dict:
+    """Analyze AST for coherence-relevant operations."""
+    analysis = {
+        "total_nodes": 0,
+        "operation_types": {},
+        "coherence_impact": 0.0,
+        "high_risk_operations": [],
+        "requires_validation": False
+    }
+    
+    if not ast:
+        return analysis
+    
+    analysis["total_nodes"] = len(ast)
+    
+    # Analyze each node
+    for node in ast:
+        if isinstance(node, dict):
+            node_type = node.get("type", "unknown")
+            
+            # Track operation types
+            if node_type not in analysis["operation_types"]:
+                analysis["operation_types"][node_type] = 0
+            analysis["operation_types"][node_type] += 1
+            
+            # Check for high-risk operations that impact coherence
+            high_risk_types = {"assertion", "assumption", "cut", "unfold", "rewrite"}
+            if node_type in high_risk_types:
+                analysis["coherence_impact"] += 0.05  # Each high-risk op reduces coherence slightly
+                analysis["high_risk_operations"].append(node_type)
+                analysis["requires_validation"] = True
+            
+            # Check for coherence-relevant constructs
+            coherence_relevant = {"branch", "loop", "recursion", "quantum_gate"}
+            if node_type in coherence_relevant:
+                analysis["coherence_impact"] += 0.02
+    
+    # Cap coherence impact
+    analysis["coherence_impact"] = min(analysis["coherence_impact"], 0.5)
+    
+    return analysis
 
 
 def cmd_replay(args: argparse.Namespace) -> int:

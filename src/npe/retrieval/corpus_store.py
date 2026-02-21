@@ -179,6 +179,23 @@ class CorpusStore:
             hashes.append(content_hash)
         return sorted(hashes)
     
+    def get_snapshot_hash(self) -> str:
+        """Compute a snapshot hash of the entire corpus.
+        
+        This creates a deterministic hash based on all chunk content,
+        providing a unique identifier for the current corpus state.
+        
+        Returns:
+            SHA-256 hash of all chunk content hashes combined
+        """
+        chunk_hashes = self.get_chunk_hashes()
+        if not chunk_hashes:
+            return hashlib.sha256(b"empty_corpus").hexdigest()
+        
+        # Combine all hashes and compute final hash
+        combined = "".join(chunk_hashes).encode('utf-8')
+        return hashlib.sha256(combined).hexdigest()
+    
     def _split_into_chunks(
         self,
         content: str,

@@ -19,3 +19,7 @@ npe = "npe.cli.npe:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["npe*"]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-dir]
+npe = "."

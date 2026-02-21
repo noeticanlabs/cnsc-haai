@@ -179,6 +179,14 @@ class NPEService:
         candidates = rank_candidates(candidates)
         
         # Build response
+        # Get corpus snapshot hash if corpus index is available
+        corpus_snapshot_hash = ""
+        if self._corpus_index is not None:
+            if hasattr(self._corpus_index, 'get_snapshot_hash'):
+                corpus_snapshot_hash = self._corpus_index.get_snapshot_hash()
+            elif hasattr(self._corpus_index, 'corpus_store') and hasattr(self._corpus_index.corpus_store, 'get_snapshot_hash'):
+                corpus_snapshot_hash = self._corpus_index.corpus_store.get_snapshot_hash()
+        
         response = NPEResponse(
             spec="NPE-RESPONSE-1.0",
             response_id="",  # Will be computed during serialization
@@ -186,7 +194,7 @@ class NPEService:
             domain=request.domain,
             determinism_tier=request.determinism_tier,
             seed=request.seed,
-            corpus_snapshot_hash="",  # TODO: See TODO-002 in plans/TODO.md - Get corpus hash
+            corpus_snapshot_hash=corpus_snapshot_hash,
             registry_hash=self._registry.registry_hash,
             candidates=candidates,
             diagnostics={
