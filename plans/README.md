@@ -9,8 +9,6 @@
 | File | Description | Status |
 |------|-------------|--------|
 | [TODO.md](TODO.md) | Master todo tracker with prioritized work items | Active |
-| [general/TODO_Organization_Plan.md](general/TODO_Organization_Plan.md) | Plan to organize and systematize todo tracking | In Progress |
-| [general/Documentation_Reorganization_Plan.md](general/Documentation_Reorganization_Plan.md) | Plan to consolidate specs and organize docs | Proposed |
 
 ---
 
@@ -19,37 +17,23 @@
 ### General
 | File | Description | Status |
 |------|-------------|--------|
-| [general/CNHAAI_Issue_Fix_Plan.md](general/CNHAAI_Issue_Fix_Plan.md) | General issue fixes | - |
-| [general/cnsc_haai_fix_plan.md](general/cnsc_haai_fix_plan.md) | CNSC-HAAI specific fixes | - |
+| *None currently active* | | |
 
 ### Kernel
 | File | Description | Status |
 |------|-------------|--------|
-| [kernel/ATS_Kernel_Fix_Plan.md](kernel/ATS_Kernel_Fix_Plan.md) | ATS kernel code fixes and improvements | Mostly Complete |
-
-### Documentation
-| File | Description | Status |
-|------|-------------|--------|
-| [docs/CNHAAI_Doc_Spine_Reorganization.md](docs/CNHAAI_Doc_Spine_Reorganization.md) | Documentation restructuring | - |
-
-### Core
-| File | Description | Status |
-|------|-------------|--------|
-| [core/coherence_framework_implementation_plan.md](core/coherence_framework_implementation_plan.md) | Coherence framework implementation | - |
-| [core/Token_to_Graph_Conversion_Plan.md](core/Token_to_Graph_Conversion_Plan.md) | Token to graph conversion | - |
+| *None currently active* | | |
 
 ### Migration
 | File | Description | Status |
 |------|-------------|--------|
-| [migration/COH_AGI_Migration_Completion_Plan.md](migration/COH_AGI_Migration_Completion_Plan.md) | COH-AGI migration completion | - |
-| [migration/GML_Graph_Native_Migration_Plan.md](migration/GML_Graph_Native_Migration_Plan.md) | GML graph native migration | - |
-| [migration/GML_Graph_Native_Migration_Results.md](migration/GML_Graph_Native_Migration_Results.md) | Migration results and findings | Complete |
+| [migration/CNHAAI_Doc_Spine_Reorganization.md](migration/CNHAAI_Doc_Spine_Reorganization.md) | Documentation restructuring | Not Started |
 
 ### Integration
 | File | Description | Status |
 |------|-------------|--------|
 | [integration/NPE_Implementation_Plan.md](integration/NPE_Implementation_Plan.md) | NPE service integration | In Progress |
-| [integration/TGS_Build_Integration_Plan.md](integration/TGS_Build_Integration_Plan.md) | TGS build integration | - |
+| [integration/TGS_Build_Integration_Plan.md](integration/TGS_Build_Integration_Plan.md) | TGS build integration | In Progress |
 
 ---
 
@@ -64,6 +48,18 @@
    **Purpose:** Brief description
    ```
 4. Add entry to this README.md
+
+---
+
+## Archived Plans
+
+Plans that are completed, superseded, or outdated have been moved to the legacy folder:
+
+| Directory | Description |
+|-----------|-------------|
+| [legacy/](legacy/) | Archived plans organized by category |
+
+See [legacy/README.md](legacy/README.md) for the complete archive index.
 
 ---
 
