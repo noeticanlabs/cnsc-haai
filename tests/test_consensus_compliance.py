@@ -108,11 +108,12 @@ class TestMerkleTree:
         proof = tree.get_proof(1)  # Get proof for leaf at index 1
         assert len(proof) > 0
         
-        # Verify proof
+        # Verify proof - use raw root bytes, NOT sha256_prefixed(root)
+        # The root is already a hash from build(), no need to re-hash
         verified = verify_inclusion_proof_prefixed(
             leaves[1],
             [{"side": s, "hash": f"sha256:{h}"} for s, h in proof],
-            sha256_prefixed(root)
+            root
         )
         assert verified
 

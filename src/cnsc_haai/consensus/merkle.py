@@ -223,7 +223,7 @@ def verify_inclusion_proof(
 def verify_inclusion_proof_prefixed(
     leaf_bytes: bytes,
     proof: List[dict],
-    root: str
+    root
 ) -> bool:
     """
     Verify a Merkle inclusion proof with prefixed hashes.
@@ -231,7 +231,7 @@ def verify_inclusion_proof_prefixed(
     Args:
         leaf_bytes: The leaf data
         proof: List of {side, hash} dicts (with prefixed hashes)
-        root: Expected root hash (prefixed)
+        root: Expected root hash (can be raw bytes or prefixed string)
         
     Returns:
         True if proof is valid
@@ -239,7 +239,12 @@ def verify_inclusion_proof_prefixed(
     from .hash import decode_sha256_prefixed
     
     current = leaf_hash(leaf_bytes)
-    root_raw = decode_sha256_prefixed(root)
+    
+    # Handle both raw bytes and prefixed string for root
+    if isinstance(root, bytes):
+        root_raw = root
+    else:
+        root_raw = decode_sha256_prefixed(root)
     
     for step in proof:
         sibling = decode_sha256_prefixed(step["hash"])
