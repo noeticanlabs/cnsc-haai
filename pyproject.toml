@@ -62,11 +62,24 @@ where = ["src"]
 include = ["cnsc*", "cnhaai*", "npe*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "src/npe/tests", "src/cnsc_haai", "compliance_tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --strict-markers --disable-warnings"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "compliance: Compliance tests (determinism, spec verification)",
+    "slow: Tests that take longer than 1s",
+    "determinism: Determinism verification tests",
+    "npe: NPE-specific tests",
+    "consensus: Consensus kernel tests",
+    "ats: ATS tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
 
 [tool.black]
 line-length = 100
