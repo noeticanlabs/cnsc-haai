@@ -242,6 +242,7 @@ To add a new engine:
 ## 8. References
 
 - [Chain Hash Universal](../ats/20_coh_kernel/chain_hash_universal.md)
+- [Chain Hash Rule (DEPRECATED)](../ats/20_coh_kernel/chain_hash_rule.md)
 - [Deterministic Numeric Domain](../ats/20_coh_kernel/deterministic_numeric_domain.md)
 - [Canonical Serialization](../ats/20_coh_kernel/canonical_serialization.md)
 - [Receipt Schema](../ats/20_coh_kernel/receipt_schema.md)

@@ -53,7 +53,7 @@ class TestRepairFromGateReasons:
                 return [{
                     "type": "parameter_adjustment",
                     "description": "Adjust threshold",
-                    "parameters": {"threshold": 0.8},
+                    "parameters": {"threshold": 800000000000000000},  # QFixed18: 0.8
                     "rationale": "Lower threshold for safety",
                     "preconditions": [],
                     "safety_level": "high",
@@ -160,10 +160,8 @@ class TestRepairScoring:
         action_high = {"safety_level": "high", "impact": "low"}
         action_low = {"safety_level": "low", "impact": "high"}
         
-        base = Scores(risk=0.5, utility=0.5, cost=0.5, confidence=0.5)
-        
-        score_high = _score_repair(action_high, base, None)
-        score_low = _score_repair(action_low, base, None)
+        score_high = _score_repair(action_high)
+        score_low = _score_repair(action_low)
         
         assert score_high.risk < score_low.risk
         assert score_high.confidence > score_low.confidence
@@ -173,10 +171,8 @@ class TestRepairScoring:
         action_low = {"safety_level": "medium", "impact": "low"}
         action_high = {"safety_level": "medium", "impact": "high"}
         
-        base = Scores(risk=0.5, utility=0.5, cost=0.5, confidence=0.5)
-        
-        score_low = _score_repair(action_low, base, None)
-        score_high = _score_repair(action_high, base, None)
+        score_low = _score_repair(action_low)
+        score_high = _score_repair(action_high)
         
         assert score_low.utility < score_high.utility
         assert score_low.cost < score_high.cost

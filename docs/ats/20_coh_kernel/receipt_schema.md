@@ -31,7 +31,7 @@ A receipt is a cryptographic record that proves a step is admissible. Every stat
   "signature": { ... },
   "previous_receipt_id": "9i8j7k6l",
   "previous_receipt_hash": "sha256:...",
-  "chain_hash": "sha256:...",
+  "chain_digest": "sha256:...",
   "metadata": { }
 }
 ```
@@ -134,7 +134,7 @@ These fields are **required for ATS verification**:
 {
   "previous_receipt_id": "9i8j7k6l",
   "previous_receipt_hash": "sha256:...",
-  "chain_hash": "sha256:..."
+  "chain_digest": "sha256:..."
 }
 ```
 

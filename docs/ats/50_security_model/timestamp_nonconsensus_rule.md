@@ -99,5 +99,5 @@ The chain itself provides ordering:
 ## 5. References
 
 - [RV Step Specification](../20_coh_kernel/rv_step_spec.md)
-- [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)
+- [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)
 - [Deterministic Replay Requirements](./deterministic_replay_requirements.md)

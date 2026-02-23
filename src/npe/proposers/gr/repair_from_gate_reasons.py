@@ -44,12 +44,15 @@ def propose(
     for gate_type in failing_gates:
         repair_actions = codebook_store.get_repair_actions("gr", gate_type)
         
-        for action in repair_actions[:budget.max_candidates]:
+        for action in repair_actions:
+            if len(candidates) >= budget.max_candidates:
+                break
             candidate = _create_repair_candidate(gate_type, action, context)
             if candidate:
                 candidates.append(candidate)
     
-    return candidates
+    # Enforce global budget limit
+    return candidates[:budget.max_candidates]
 
 
 def _create_repair_candidate(
@@ -84,8 +87,20 @@ def _create_repair_candidate(
     state_ref = context.get("state_ref")
     constraints_ref = context.get("constraints_ref")
     
-    input_state_hash = state_ref.state_hash if state_ref else ""
-    constraints_hash = constraints_ref.constraints_hash if constraints_ref else ""
+    # Handle both dict (test) and StateRef object (production)
+    if state_ref is None:
+        input_state_hash = ""
+    elif isinstance(state_ref, dict):
+        input_state_hash = state_ref.get("state_hash", "")
+    else:
+        input_state_hash = state_ref.state_hash if hasattr(state_ref, 'state_hash') else ""
+    # Handle both dict (test) and ConstraintsRef object (production)
+    if constraints_ref is None:
+        constraints_hash = ""
+    elif isinstance(constraints_ref, dict):
+        constraints_hash = constraints_ref.get("constraints_hash", "")
+    else:
+        constraints_hash = constraints_ref.constraints_hash if hasattr(constraints_ref, 'constraints_hash') else ""
     
     # Create candidate
     candidate = Candidate(

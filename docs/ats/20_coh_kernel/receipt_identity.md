@@ -164,16 +164,16 @@ Receipts form a chain via:
 
 ```
 receipt_id(k) = first8(sha256(canonical_bytes(receipt_k)))
-chain_hash(k) = sha256(receipt_id(k-1) || receipt_id(k))
+chain_digest(k) = sha256(chain_digest(k-1) || receipt_id(k))
 ```
 
-See [Chain Hash Rule](./chain_hash_rule.md) for details.
+See [Chain Hash Universal](./chain_hash_universal.md) for details.
 
 ---
 
 ## 7. References
 
 - [Receipt Schema](./receipt_schema.md)
-- [Chain Hash Rule](./chain_hash_rule.md)
+- [Chain Hash Universal](./chain_hash_universal.md)
 - [Canonical Serialization](./canonical_serialization.md)
 - [RV Step Specification](./rv_step_spec.md)

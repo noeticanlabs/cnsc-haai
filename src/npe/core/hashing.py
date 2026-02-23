@@ -183,3 +183,39 @@ def hash_list(data: list) -> str:
     """Hash a list (legacy interface)."""
     canonical = jcs_string(data)
     return _compute_sha256(canonical.encode("utf-8"))
+
+
+def hash_corpus_snapshot(chunk_hashes: list) -> str:
+    """
+    Hash a corpus snapshot from chunk hashes.
+    
+    Per spec: snapshot_hash = sha256(jcs_bytes(sorted(chunk_hashes)))
+    
+    Args:
+        chunk_hashes: List of chunk hash strings
+        
+    Returns:
+        Lowercase hex SHA256 hash
+    """
+    # Sort for deterministic ordering
+    sorted_hashes = sorted(chunk_hashes)
+    canonical = jcs_string(sorted_hashes)
+    return _compute_sha256(canonical.encode("utf-8"))
+
+
+def hash_receipts_snapshot(receipt_hashes: list) -> str:
+    """
+    Hash a receipts snapshot from receipt hashes.
+    
+    Per spec: snapshot_hash = sha256(jcs_bytes(sorted(receipt_hashes)))
+    
+    Args:
+        receipt_hashes: List of receipt hash strings
+        
+    Returns:
+        Lowercase hex SHA256 hash
+    """
+    # Sort for deterministic ordering
+    sorted_hashes = sorted(receipt_hashes)
+    canonical = jcs_string(sorted_hashes)
+    return _compute_sha256(canonical.encode("utf-8"))

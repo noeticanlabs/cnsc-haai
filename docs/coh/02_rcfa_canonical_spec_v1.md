@@ -278,7 +278,68 @@ V_RCFA = V ∘ F^(-1)
 
 ---
 
-## 10. References
+## 10. RCFA as Coh Object
+
+This section formally maps RCFA to the Coh object structure (X, V, RV) as defined in [Coh Canonical Spec](00_coh_canonical_spec_v1.md).
+
+### 10.1 State Space (X)
+
+RCFA state space is defined as:
+
+```
+X_RCFA = (S, E, R, M)
+```
+
+Where:
+- `S` = belief state (QFixed vector)
+- `E` = evidence trace (list of witnessed events)
+- `R` = renormalization history (list of renormalization events)
+- `M` = memory allocation (QFixed)
+
+This maps to Coh's X as the computational state.
+
+### 10.2 Coherence Functional (V)
+
+RCFA coherence functional maps to Coh's V:
+
+```
+V_RCFA(x) = α * Φ_coherence(s) + β * Ψ_budget(b) + γ * Ω_memory(m)
+```
+
+Where:
+- `Φ_coherence(s)` = coherence measure of belief state
+- `Ψ_budget(b)` = budget depletion penalty
+- `Ω_memory(m)` = memory efficiency penalty
+- `α, β, γ` = policy weights
+
+### 10.3 Risk Value (RV)
+
+RCFA receipt verifier maps to Coh's RV:
+
+```
+RV_RCFA(x) = risk_witness(x) + verification_cost(x)
+```
+
+Where:
+- `risk_witness(x)` = cryptographic proof of coherence bound
+- `verification_cost(x)` = computational cost of verification
+
+### 10.4 Morphisms
+
+RCFA unfold operations are Coh morphisms:
+
+```
+unfold: X_RCFA → X_RCFA × Receipt
+
+Properties:
+1. V_RCFA(x') ≤ V_RCFA(x)  (coherence non-increasing)
+2. RV_RCFA(x') ≥ RV_RCFA(x) + Δ  (budget accounting)
+3. det(unfold) = true  (deterministic)
+```
+
+---
+
+## 11. References
 
 - [Coh Canonical Spec](00_coh_canonical_spec_v1.md)
 - [Module Interface Contract](01_coh_module_interface_contract_v1.md)
@@ -292,4 +353,5 @@ V_RCFA = V ∘ F^(-1)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.1 | 2026-02-23 | Added "RCFA as Coh Object" section (Section 10) |
 | 1.0.0 | 2026-02-23 | Initial RCFA canonical form |

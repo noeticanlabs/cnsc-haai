@@ -1,11 +1,15 @@
 # Chain Hash Rule
 
-> **⚠️ DEPRECATED**: This specification is deprecated as of 2026-02-20.
+> **🚫 FULLY DEPRECATED - DO NOT USE**: This specification is deprecated as of 2026-02-20.
 >
 > **Use [chain_hash_universal.md](chain_hash_universal.md) instead.**
 >
 > This spec uses `sha256(prev_id || curr_id)` style chaining which is NOT consensus-tight.
 > The new spec uses JCS + domain separation for universal compatibility.
+>
+> **IMPORTANT**: The term "chain_hash" is no longer allowed. Use:
+> - `receipt_id` for content-addressed identifiers
+> - `chain_digest` for sequential history digests
 
 ---
 

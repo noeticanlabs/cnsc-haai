@@ -114,4 +114,4 @@ def verify_composite(receipt):
 ## 7. References
 
 - [Compositionality Theorems](../10_mathematical_core/compositionality_theorems.md)
-- [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)
+- [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)

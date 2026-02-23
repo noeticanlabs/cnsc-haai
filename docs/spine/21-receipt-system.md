@@ -86,7 +86,7 @@ receipt:
   # Chain fields
   previous_receipt_id: "9i8j7k6l"
   previous_receipt_hash: "sha256:..."
-  chain_hash: "sha256:..."    # Chain hash
+  chain_digest: "sha256:..."    # Chain digest (prev-dependent)
   metadata: {}               # Extensibility
 ```
 

@@ -92,7 +92,13 @@ def _create_explanation(
     
     payload_hash = hash_candidate_payload(payload)
     
-    input_state_hash = state_ref.state_hash if state_ref else ""
+    # Handle both dict (test) and StateRef object (production)
+    if state_ref is None:
+        input_state_hash = ""
+    elif isinstance(state_ref, dict):
+        input_state_hash = state_ref.get("state_hash", "")
+    else:
+        input_state_hash = state_ref.state_hash if hasattr(state_ref, 'state_hash') else ""
     
     # Create evidence items from receipts
     evidence = []
@@ -185,9 +191,14 @@ def _compare_outcomes(
     Returns:
         Comparison dict
     """
+    total = len(failing) + len(passing)
+    # Use QFixed18 integers (scale by 10^18)
+    pass_rate = (len(passing) * 1_000_000_000_000_000_000) // max(total, 1)
+    fail_rate = (len(failing) * 1_000_000_000_000_000_000) // max(total, 1)
+    
     return {
-        "pass_rate": len(passing) / (len(failing) + len(passing) + 0.001),
-        "fail_rate": len(failing) / (len(failing) + len(passing) + 0.001),
+        "pass_rate": pass_rate,
+        "fail_rate": fail_rate,
     }
 
 

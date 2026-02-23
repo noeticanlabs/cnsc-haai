@@ -105,5 +105,5 @@ Even if one receipt is tampered:
 ## 6. References
 
 - [Receipt Identity](../20_coh_kernel/receipt_identity.md)
-- [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)
+- [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)
 - [Rejection Reason Codes](../50_security_model/rejection_reason_codes.md)

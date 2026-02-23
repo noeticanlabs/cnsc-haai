@@ -27,7 +27,7 @@ The ATS (Autonomic Transaction System) is the core coherence kernel that enforce
 
 - **Receipt Schema**: [receipt_schema.md](20_coh_kernel/receipt_schema.md)
 - **Budget Law**: [budget_law.md](10_mathematical_core/budget_law.md)
-- **Chain Hash Rule**: [chain_hash_rule.md](20_coh_kernel/chain_hash_rule.md)
+- **Chain Hash Universal**: [chain_hash_universal.md](20_coh_kernel/chain_hash_universal.md)
 - **Security Model**: [adversary_model.md](50_security_model/adversary_model.md)
 
 ## Related Documentation

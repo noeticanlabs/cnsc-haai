@@ -31,7 +31,7 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 
 | Spec File | Code Module | Status |
 |-----------|-------------|--------|
-| `chain_hash_rule.md` | DEPRECATED | ⚠️ Use `chain_hash_universal.md` |
+| `chain_hash_rule.md` | DEPRECATED | ⚠️ Use `chain_hash_universal.md` (term "chain_hash" banned) |
 | `chain_hash_universal.md` | `src/cnsc_haai/consensus/chain.py` | ✅ Implemented |
 | `canonical_serialization.md` | DEPRECATED | ⚠️ Use JCS (RFC8785) |
 | `coh.merkle.v1.md` | `src/cnsc_haai/consensus/merkle.py` | ✅ Implemented |

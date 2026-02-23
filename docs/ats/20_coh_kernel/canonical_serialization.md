@@ -190,7 +190,7 @@ def canonical_bytes(receipt: Receipt) -> bytes:
     envelope += serialize_dict(receipt.signature)
     envelope += serialize_string(receipt.previous_receipt_id)
     envelope += serialize_string(receipt.previous_receipt_hash)
-    envelope += serialize_string(receipt.chain_hash)
+    envelope += serialize_string(receipt.chain_digest)
     envelope += serialize_dict(receipt.metadata)
     
     return envelope
@@ -245,4 +245,4 @@ canonical_bytes(state1) == canonical_bytes(state2)  # True
 - [State Space](../10_mathematical_core/state_space.md)
 - [Deterministic Numeric Domain](./deterministic_numeric_domain.md)
 - [Receipt Schema](./receipt_schema.md)
-- [Chain Hash Rule](./chain_hash_rule.md)
+- [Chain Hash Universal](./chain_hash_universal.md)

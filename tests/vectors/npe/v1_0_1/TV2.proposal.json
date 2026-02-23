@@ -7,7 +7,7 @@
   "npe_state_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
   "parent_slab_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "proposal_id": "0000000000000002",
-  "proposal_type": "CONTINUOUS_FLOW",
+  "proposal_type": "BATCH_EXECUTION",
   "timestamp_unix_sec": 1708516900,
   "version": "1.0.1",
   "budget_post": {

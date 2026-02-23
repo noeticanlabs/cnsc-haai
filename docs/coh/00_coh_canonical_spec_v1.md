@@ -120,7 +120,7 @@ Then τ = (f₁, ..., fₖ, g₁, ..., gₘ) is also coherent
 Each trace generates a canonical hash:
 
 ```
-chain_hash(τ) = H(chain_hash(τ[:-1]), receipt_id(fₙ))
+chain_digest(τ) = H(chain_digest(τ[:-1]), receipt_id(fₙ))
 ```
 
 Where `receipt_id` is the canonical content hash of the morphism fₙ.

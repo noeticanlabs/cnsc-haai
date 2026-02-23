@@ -105,7 +105,7 @@ All SHA256 digests in JSON use the `sha256:` prefix:
 ```json
 {
   "receipt_id": "sha256:a1b2c3d4e5f6...",
-  "chain_hash": "sha256:..."
+  "chain_digest": "sha256:..."
 }
 ```
 
@@ -130,8 +130,8 @@ def jcs_canonical_bytes(obj) -> bytes:
     # ... implementation
     pass
 
-def chain_hash(prev_chain_hash: bytes, receipt_core: dict) -> bytes:
-    """Compute chain hash v1."""
+def compute_chain_digest(prev_digest: bytes, receipt_id: bytes) -> bytes:
+    """Compute chain digest (prev-dependent history hash)."""
     # 1. JCS serialize
     serialized = jcs_canonical_bytes(receipt_core)
     
@@ -149,7 +149,7 @@ def chain_hash(prev_chain_hash: bytes, receipt_core: dict) -> bytes:
 ### 5.1 v1.0 Format (DEPRECATED)
 ```
 # Old - NOT a real chain (no prev dependency)
-chain_hash = SHA256(COH_CHAIN_V1 || JCS(receipt_core))
+# Used "chain_hash" terminology incorrectly
 receipt_id = chain_hash  # This was confused!
 ```
 

@@ -69,13 +69,21 @@ class TestCanonicalization:
         assert '"zero":0' in canon
         assert '"negative":-10' in canon
     
-    def test_floats_fixed_precision(self):
-        """Floats are serialized with fixed precision."""
-        data = {"pi": 3.14159, "small": 0.001}
-        canon = canonicalize(data)
+    def test_floats_rejected_in_consensus(self):
+        """Floats are rejected in consensus paths - use QFixed integers."""
+        # Floats are NOT allowed in consensus - they must be converted to QFixed
+        data_float = {"pi": 3.14159, "small": 0.001}
         
-        # Should have consistent float representation
-        assert '3.14159' in canon or '3.141590000000000' in canon
+        # The canonicalize function should reject floats in consensus mode
+        # (This is the correct behavior per spec - floats = security risk)
+        with pytest.raises(TypeError, match="float|Float|QFixed"):
+            canonicalize(data_float)
+        
+        # For data that needs floats, convert to QFixed integers first
+        # QFixed18: multiply by 10^18
+        data_qfixed = {"pi": 3141590000000000000, "small": 1000000000000}
+        canon = canonicalize(data_qfixed)
+        assert '"pi":3141590000000000000' in canon
 
 
 class TestHashing:

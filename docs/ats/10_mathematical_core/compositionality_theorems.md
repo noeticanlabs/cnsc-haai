@@ -30,7 +30,7 @@ receipt_id(ρ₁₂) = first8(sha256(
 ))
 ```
 
-**Proof:** By definition of chain hash (see [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)), receipts chain via SHA-256 concatenation. ∎
+**Proof:** By definition of chain digest (see [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)), receipts chain via SHA-256 concatenation. ∎
 
 ---
 
@@ -163,5 +163,5 @@ Verification is linear in trajectory length because:
 - [ATS Definition](../00_identity/ats_definition.md)
 - [Budget Law](./budget_law.md)
 - [Risk Functional V](./risk_functional_V.md)
-- [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)
+- [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)
 - [RV Step Specification](../20_coh_kernel/rv_step_spec.md)

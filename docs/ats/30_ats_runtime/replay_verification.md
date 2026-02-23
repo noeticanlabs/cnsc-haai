@@ -133,7 +133,7 @@ def verify_chain(receipts: List[Receipt]) -> bool:
             expected_chain = sha256(
                 receipts[i-1].receipt_id + receipts[i].receipt_id
             )
-            if receipts[i].chain_hash != expected_chain:
+            if receipts[i].chain_digest != expected_chain_digest:
                 return False
     
     return True
@@ -166,6 +166,6 @@ def verify_chain(receipts: List[Receipt]) -> bool:
 ## 6. References
 
 - [RV Step Specification](../20_coh_kernel/rv_step_spec.md)
-- [Chain Hash Rule](../20_coh_kernel/chain_hash_rule.md)
+- [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)
 - [Receipt Identity](../20_coh_kernel/receipt_identity.md)
 - [Action Emission Contract](./action_emission_contract.md)

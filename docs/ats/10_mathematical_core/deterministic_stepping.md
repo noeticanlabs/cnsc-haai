@@ -150,7 +150,78 @@ chain_digest = SHA256(DOMAIN_CHAIN || prev_chain_digest || receipt_id)
 
 ---
 
-## 6. References
+## 6. Continuous Flow Discretization (MANDATORY)
+
+This section specifies the mandatory discretization rules for continuous manifold flow to ensure deterministic execution across all compliant nodes.
+
+### 6.1 Fixed Time Step Δτ
+
+| Parameter | Value | Units |
+|-----------|-------|-------|
+| **Δτ (tau)** | 1 | QFixed(18) - representing 1.0 unit of virtual time |
+| **Rationale** | Fixed step ensures deterministic trajectory across nodes |
+
+The time step is NOT based on wall-clock time. It is a logical unit that maps to one computational step in the state machine.
+
+### 6.2 Mandatory Integrator
+
+**Only implicit Euler integration is permitted:**
+
+```
+x_{n+1} = x_n + Δτ * F(x_{n+1})
+```
+
+Where F is the coherence vector field. This implicit form ensures stability and uniqueness.
+
+**Explicit Euler is PROHIBITED** as it does not guarantee the uniqueness required for consensus.
+
+### 6.3 Rounding Policy
+
+All arithmetic MUST follow these rules:
+
+1. **QFixed(18) boundary**: All intermediate results are rounded to 18 decimal places
+2. **Rounding mode**: Banker's rounding (round-to-even) to avoid systematic bias
+3. **Outward rounding**: When a constraint is on the boundary, round AGAINST the transition (more conservative)
+
+```
+# Example: budget check with outward rounding
+if budget_after < 0:
+    # Round UP (more negative) to be conservative
+    budget_check = floor(budget_after * 1e18) / 1e18
+```
+
+### 6.4 Event Ordering Tie-Breaking
+
+When multiple constraints activate simultaneously, use deterministic priority ordering:
+
+| Priority | Constraint | Rationale |
+|----------|------------|-----------|
+| 1 | Budget exhaustion (B < 0) | Halting condition |
+| 2 | Coherence violation (V' > V) | State invalid |
+| 3 | Memory overflow (M > M_max) | Resource limit |
+| 4 | Affordability (ΔV > κ) | Economic constraint |
+
+The highest-priority constraint wins. This ensures identical receipts.
+
+### 6.5 Slab Boundary Detection
+
+A slab boundary (micro-receipt batch) is triggered when:
+
+```
+SLAB_BOUNDARY iff:
+    (step_index mod SLAB_SIZE == 0) OR
+    (budget_after < B_CRITICAL) OR
+    (V_after > V_UPPER_BOUND)
+```
+
+Where:
+- `SLAB_SIZE` = 100 (fixed)
+- `B_CRITICAL` = 1000 QFixed (configurable policy)
+- `V_UPPER_BOUND` = policy-defined threshold
+
+---
+
+## 7. References
 
 - [Continuous Manifold Flow](continuous_manifold_flow.md)
 - [Chain Hash Universal](../20_coh_kernel/chain_hash_universal.md)

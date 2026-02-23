@@ -56,12 +56,12 @@ class TestScenarioScopeFilter:
         """Evidence without scenario is considered universal."""
         evidence = [
             {"evidence_id": "e1", "scope": {}},
-            {"evidence_id": "e2", "scope": {"scenario_id": "scenario_X"}},
+            {"evidence_id": "e2", "scope": {"scenario_id": "scenario_Y"}},
         ]
         
         filtered = scenario_scope_filter(evidence, "scenario_Y")
         
-        # Both should be included (e1 is universal, e2 is scenario_X)
+        # Both should be included (e1 is universal, e2 matches scenario_Y)
         assert len(filtered) == 2
 
 

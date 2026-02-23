@@ -130,7 +130,7 @@ If this is first receipt:
     Verify: receipt.previous_receipt_id == "00000000"
 Else:
     Verify: receipt.previous_receipt_id == previous_receipt_id
-    Verify: receipt.chain_hash == sha256(prev_id || receipt_id)
+    Verify: receipt.chain_digest == sha256(prev_digest || receipt_id)
 ```
 
 ---
@@ -191,7 +191,7 @@ def RV(state_before, state_after, action, receipt,
     # === Step 8: Chain Link ===
     if receipt.previous_receipt_id != "00000000":
         # (Assumes previous_receipt_id is available)
-        if receipt.chain_hash != sha256(prev_id + receipt.receipt_id):
+        if receipt.chain_digest != sha256(prev_digest + receipt.receipt_id):
             return REJECT("INVALID_CHAIN_LINK")
     
     # === All Checks Passed ===
@@ -268,5 +268,5 @@ Any verification failure results in rejection:
 - [Risk Functional V](../10_mathematical_core/risk_functional_V.md)
 - [Receipt Schema](./receipt_schema.md)
 - [Receipt Identity](./receipt_identity.md)
-- [Chain Hash Rule](./chain_hash_rule.md)
+- [Chain Hash Universal](./chain_hash_universal.md)
 - [Rejection Reason Codes](../50_security_model/rejection_reason_codes.md)

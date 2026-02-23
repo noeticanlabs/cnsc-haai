@@ -148,7 +148,7 @@
   },
   "previous_receipt_id": "9i8j7k6l",
   "previous_receipt_hash": "sha256:previous...",
-  "chain_hash": "sha256:current..."
+  "chain_digest": "sha256:current..."
 }
 ```
 
