@@ -233,9 +233,9 @@ def create_fraud_proof(
         merkle_root=merkle_root,
     )
     
-    # Compute fraud proof ID
+    # Compute fraud proof ID (single hash, no double-hash)
     proof_bytes = jcs_canonical_bytes(fraud_proof.to_dict())
-    proof_id = sha256_prefixed(sha256(proof_bytes))
+    proof_id = sha256_prefixed(proof_bytes)
     fraud_proof.fraud_proof_id = proof_id
     
     return fraud_proof

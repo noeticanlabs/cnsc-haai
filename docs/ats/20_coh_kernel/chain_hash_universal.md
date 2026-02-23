@@ -1,55 +1,94 @@
-# Chain Hash Universal (v1)
+# Chain Hash Universal (v1.0.1)
 
-**Universal Chain Hashing with JCS + Domain Separation**
+**Universal Hashing with JCS + Domain Separation**
+
+**REVISED**: 2026-02-23
 
 | Field | Value |
 |-------|-------|
 | **Module** | 20_coh_kernel |
 | **Section** | Chain Hash Universal |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **Status** | ACTIVE |
 
 ---
 
 ## 1. Overview
 
-This spec defines the universal chain hash rule using JCS (RFC8785) for canonical serialization and domain separation for universal compatibility.
+This spec defines the canonical hashing rules using JCS (RFC8785) for canonical serialization and domain separation. 
+
+**CRITICAL**: This spec distinguishes between two different hash concepts:
+- `receipt_id` - content-addressed identifier (no history)
+- `chain_digest` - sequential history digest (includes previous)
 
 ---
 
-## 2. Chain Hash v1 Specification
+## 2. Terminology Split
 
-### 2.1 Domain Separator
+### 2.1 receipt_id (Content Hash)
 
-```
-COH_CHAIN_V1\n
-```
-
-This 12-byte domain separator ensures chain hashes are unique to this version.
-
-### 2.2 Chain Hash Algorithm
+A **content-addressed identifier** that uniquely identifies this receipt's content. Does NOT depend on previous state.
 
 ```
-chain_hash(prev_chain_hash_raw32, receipt_core) -> bytes32:
+receipt_id(receipt_core) -> str:
     1. Serialize receipt_core using JCS (RFC8785)
-    2. Prepend domain separator: domain || serialized
-    3. Double-hash: SHA256(SHA256(domain || serialized))
-    4. Return raw 32 bytes
+    2. Prepend domain: COH_RECEIPT_ID_V1\n || serialized
+    3. Hash: SHA256(domain || serialized)
+    4. Return prefixed: "sha256:" || hex
 ```
 
-### 2.3 Genesis Receipt
+### 2.2 chain_digest (History Hash)
+
+A **sequential history digest** that depends on the previous chain state. Provides tamper-evident ordering.
+
+```
+chain_digest(prev_digest, receipt_id) -> str:
+    1. Decode prev_digest (32 bytes) and receipt_id (32 bytes)
+    2. Prepend domain: COH_CHAIN_DIGEST_V1\n || prev_digest || receipt_id
+    3. Hash: SHA256(domain || prev || receipt_id)
+    4. Return prefixed: "sha256:" || hex
+```
+
+---
+
+## 3. Chain Hash v1 Specification (REVISED)
+
+### 3.1 Domain Separators
+
+| Purpose | Domain | Bytes |
+|---------|--------|-------|
+| receipt_id | `COH_RECEIPT_ID_V1\n` | 19 bytes |
+| chain_digest | `COH_CHAIN_DIGEST_V1\n` | 20 bytes |
+| Merkle leaf | `0x00` | 1 byte |
+| Merkle internal | `0x01` | 1 byte |
+
+### 3.2 receipt_id Algorithm
+
+```
+receipt_id = "sha256:" || SHA256(COH_RECEIPT_ID_V1 || JCS(receipt_core)).hex()
+```
+
+### 3.3 chain_digest Algorithm
+
+```
+chain_digest_next = "sha256:" || SHA256(COH_CHAIN_DIGEST_V1 || prev_digest || receipt_id).hex()
+```
+
+### 3.4 Genesis Receipt
 
 For the first receipt (no previous):
 ```
-prev_chain_hash = 32 zero bytes
+prev_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 ```
 
-### 2.4 Receipt Core Structure
+### 3.5 Receipt Core Structure
 
 The receipt core must contain:
 ```json
 {
   "receipt_id": "sha256:...",
+  "chain_digest_prev": "sha256:...",
+  "chain_digest_next": "sha256:...",
   "step_index": 1,
   "timestamp": "2026-02-20T12:00:00Z",
   "content": { ... }
@@ -105,22 +144,28 @@ def chain_hash(prev_chain_hash: bytes, receipt_core: dict) -> bytes:
 
 ---
 
-## 5. Migration from v0
+## 5. Migration from v1.0
 
-### 5.1 Old Format (DEPRECATED)
+### 5.1 v1.0 Format (DEPRECATED)
 ```
-chain_hash = sha256(prev_id || curr_id)
+# Old - NOT a real chain (no prev dependency)
+chain_hash = SHA256(COH_CHAIN_V1 || JCS(receipt_core))
+receipt_id = chain_hash  # This was confused!
 ```
 
-### 5.2 New Format (v1)
+### 5.2 v1.0.1 Format (CURRENT)
 ```
-chain_hash = sha256(sha256(COH_CHAIN_V1 || JCS(receipt_core)))
+# New - CLEAR DISTINCTION
+receipt_id = SHA256(COH_RECEIPT_ID_V1 || JCS(receipt_core))
+chain_digest_next = SHA256(COH_CHAIN_DIGEST_V1 || prev_digest || receipt_id)
 ```
 
 ### 5.3 Migration Notes
 
-- v0 receipts remain valid but should be migrated
-- New receipts MUST use v1
+- v1.0 receipts remain valid but are DEPRECATED
+- New receipts MUST use v1.0.1 format
+- `receipt_id` is for content-addressing (indexing, dedup)
+- `chain_digest` is for tamper-evident history
 - Verify migration with test vectors
 
 ---

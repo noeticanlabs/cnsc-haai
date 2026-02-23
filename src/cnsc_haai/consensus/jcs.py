@@ -37,8 +37,14 @@ def _encode_value(value: Any) -> str:
         return "null"
     elif isinstance(value, bool):
         return "true" if value else "false"
-    elif isinstance(value, (int, float)):
+    elif isinstance(value, int):
+        # Integers are allowed (QFixed domain)
         return _encode_number(value)
+    elif isinstance(value, float):
+        # Floats are NOT allowed in consensus - reject them
+        raise TypeError(
+            f"Floats not allowed in consensus - use QFixed int: got {type(value)}"
+        )
     elif isinstance(value, str):
         return _encode_string(value)
     elif isinstance(value, (list, tuple)):

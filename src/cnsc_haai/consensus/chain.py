@@ -1,53 +1,59 @@
 """
 Chain Hash v1 Implementation
 
-Provides universal chain hashing per the spec:
-- Domain separator: b"COH_CHAIN_V1\n"
-- Chain hash = SHA256(SHA256(domain || JCS(receipt_core)))
-- Double-hash for security
+Provides canonical chain hashing with proper receipt_id vs chain_digest distinction:
+- receipt_id: Content hash for stable receipt identification (no prev)
+- chain_digest: Actual chain with order binding (includes prev)
+
+This module provides backward compatibility functions while also exposing
+the new canonical primitives from hash_primitives.
 """
 
-import hashlib
 from typing import List, Optional
 
+# Import the new canonical primitives
+from .hash_primitives import (
+    receipt_id,
+    receipt_id_bytes,
+    chain_digest,
+    chain_digest_bytes,
+    GENESIS_CHAIN_DIGEST,
+    GENESIS_CHAIN_DIGEST_BYTES,
+    is_genesis,
+    sha256_prefixed,
+    decode_sha256_prefixed,
+)
+
+# Import JCS for backward compatibility
 from .jcs import jcs_canonical_bytes
-from .hash import sha256, sha256_prefixed, decode_sha256_prefixed
 
-
-# Domain separator for chain hash v1
+# Keep legacy domain for backward compatibility
 DOMAIN_SEPARATOR = b"COH_CHAIN_V1\n"
 
 
 def chain_hash_v1(prev_chain_hash: bytes, receipt_core: dict) -> bytes:
     """
-    Compute chain hash v1 per the universal chain hashing spec.
+    Compute chain hash v1 per the UPDATED universal chain hashing spec.
     
-    Chain hash = SHA256(SHA256(DOMAIN || JCS(receipt_core)))
-    
-    This uses:
-    - JCS (RFC8785) for canonical serialization
-    - Domain separation to prevent cross-protocol attacks
-    - Double-hash for security
+    This function now CORRECTLY incorporates prev_chain_hash:
+    1. Compute receipt_id = SHA256(DOMAIN || JCS(receipt_core))
+    2. Compute chain_digest = SHA256(DOMAIN || prev_chain_hash || receipt_id)
     
     Args:
-        prev_chain_hash: Previous chain hash (32 bytes) or 32 zero bytes for genesis
+        prev_chain_hash: Previous chain digest (32 bytes) or 32 zero bytes for genesis
         receipt_core: Receipt core dictionary (must be JSON-serializable)
         
     Returns:
-        32-byte chain hash
+        32-byte chain digest
     """
     if len(prev_chain_hash) != 32:
         raise ValueError(f"Invalid prev_chain_hash length: {len(prev_chain_hash)}")
     
-    # JCS serialize the receipt core
-    serialized = jcs_canonical_bytes(receipt_core)
+    # Step 1: Compute receipt_id (content hash)
+    receipt_id = receipt_id_bytes(receipt_core)
     
-    # Prepend domain separator
-    to_hash = DOMAIN_SEPARATOR + serialized
-    
-    # Double-hash: SHA256(SHA256(...))
-    inner = hashlib.sha256(to_hash).digest()
-    return hashlib.sha256(inner).digest()
+    # Step 2: Compute chain_digest (includes prev)
+    return chain_digest_bytes(prev_chain_hash, receipt_id)
 
 
 def chain_hash_v1_prefixed(prev_chain_hash: str, receipt_core: dict) -> str:
@@ -59,11 +65,12 @@ def chain_hash_v1_prefixed(prev_chain_hash: str, receipt_core: dict) -> str:
         receipt_core: Receipt core dictionary
         
     Returns:
-        Chain hash with 'sha256:' prefix
+        Chain digest with 'sha256:' prefix
     """
     prev_raw = decode_sha256_prefixed(prev_chain_hash)
     result = chain_hash_v1(prev_raw, receipt_core)
-    return sha256_prefixed(result)
+    # Convert raw bytes to prefixed string
+    return "sha256:" + result.hex()
 
 
 def chain_hash_sequence(
@@ -116,7 +123,8 @@ def chain_hash_sequence_prefixed(
     genesis_raw = decode_sha256_prefixed(genesis_hash)
     raw_hashes = chain_hash_sequence(receipt_cores, genesis_raw)
     
-    return [sha256_prefixed(h) for h in raw_hashes]
+    # Convert raw bytes to prefixed strings
+    return ["sha256:" + h.hex() for h in raw_hashes]
 
 
 def verify_chain_link(

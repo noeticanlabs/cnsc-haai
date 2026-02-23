@@ -42,10 +42,9 @@ class RetentionPolicy:
         # Make a copy to avoid mutating original
         policy_data = dict(data)
         
-        # Compute policy_id by hashing full document with JCS
+        # Compute policy_id (single hash, no double-hash)
         policy_bytes = jcs_canonical_bytes(policy_data)
-        policy_hash = sha256(policy_bytes)
-        computed_policy_id = sha256_prefixed(policy_hash)
+        computed_policy_id = sha256_prefixed(policy_bytes)
         
         return cls(
             version=policy_data.get("version", "1.0.0"),

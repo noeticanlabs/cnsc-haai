@@ -238,3 +238,12 @@ class BudgetEnforcer:
             "used": self._accounting.to_dict(),
             "remaining": remaining,
         }
+
+
+# Backwards compatibility: re-export Budgets from types
+# This allows imports like: from npe.core.budgets import Budgets
+# (Budgets is defined in npe.core.types)
+try:
+    from .types import Budgets
+except ImportError:
+    pass  # types may not have Budgets, which is fine

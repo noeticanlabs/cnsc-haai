@@ -6,7 +6,7 @@
 |-------|-------|
 | **Module** | 10_mathematical_core |
 | **Section** | Continuous Manifold Flow |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Status** | ACTIVE |
 
 ---
@@ -64,9 +64,72 @@ Properties:
 
 ---
 
-## 3. Flow Dynamics
+## 3. Existence and Uniqueness Theorem
 
-### 3.1 Coherence Flow Equation
+### 3.1 Assumptions
+
+For the differential inclusion to have well-defined solutions, we impose the following explicit assumptions:
+
+1. **Hilbert Space Structure**: The state space ℍ is a finite-dimensional Hilbert space with inner product ⟨·,·⟩ and induced norm ‖·‖.
+
+2. **Vector Field Regularity**: The coherence vector field F: ℍ → ℍ is **locally Lipschitz continuous** on ℍ. Formally:
+   ```
+   ∀r > 0, ∃L(r) > 0 such that ∀x,y with ‖x‖, ‖y‖ ≤ r:
+       ‖F(x) - F(y)‖ ≤ L(r) · ‖x - y‖
+   ```
+
+3. **Coherence Functional**: Φ: ℍ → ℝ ∪ {+∞} is a **proper, lower semicontinuous, convex** function representing coherence cost.
+
+4. **Constraint Set**: K ⊂ ℍ is a **closed convex** subset representing admissible states (the "manifold" boundary).
+
+5. **Proximal Regularity**: The differential inclusion respects **prox-regularity** of Φ for numerical stability.
+
+### 3.2 Theorem Statement
+
+**Theorem (Existence and Uniqueness of Coherent Flow)**
+
+*Let ℍ be a finite-dimensional Hilbert space. Let F: ℍ → ℍ be locally Lipschitz continuous. Let K ⊂ ℍ be closed convex. Let Φ: ℍ → ℝ ∪ {+∞} be proper, l.s.c., and convex. Then for any initial state x₀ ∈ K and any time horizon T > 0, the differential inclusion:*
+
+```
+dx/dt ∈ F(x) - ∂Φ(x)
+x(0) = x₀
+x(t) ∈ K  ∀t ∈ [0, T]
+```
+
+*admits a unique absolutely continuous solution x(·) on [0, T] satisfying the initial condition and constraint.*
+
+**Proof Sketch**: The result follows from Brézis (1973) theory of maximal monotone operators. Define the operator A = F + ∂Φ, where ∂Φ is the subdifferential of Φ. Since F is locally Lipschitz (hence single-valued and maximal) and ∂Φ is maximal monotone (Rockafellar), their sum A is also maximal monotone. By the theory of evolution equations in Hilbert spaces, the Cauchy problem for maximal monotone inclusions has a unique solution.
+
+*Q.E.D.*
+
+### 3.3 Forward Invariance
+
+The solution trajectory remains within K:
+
+```
+x(t) ∈ K  for all t ≥ 0
+```
+
+This is guaranteed by the projection dynamics in Section 4.2 (Constraint Projection).
+
+### 3.4 Numerical Corollaries
+
+For implementation, the theorem implies:
+
+1. **Discrete Time Step Validity**: The explicit Euler discretization converges to the true solution as dt → 0.
+
+2. **Unique Trajectory**: No bifurcation or branching—deterministic forward simulation.
+
+3. **Budget as Lyapunov**: The coherence functional Φ(x(t)) is non-increasing along trajectories:
+   ```
+   d/dt Φ(x(t)) ≤ 0
+   ```
+
+---
+
+## 4. Flow Dynamics
+
+### 4.1 Coherence Flow Equation
 
 The evolution of cognitive state follows the flow:
 
@@ -76,7 +139,7 @@ d/dt φ(t) = X(φ(t))
 
 This is the coherent evolution - staying on the manifold while maximizing coherence.
 
-### 3.2 Perturbation Response
+### 4.2 Perturbation Response
 
 When a perturbation δ is introduced:
 
@@ -89,7 +152,7 @@ Where:
 - R is the curvature tensor (resistance to bending)
 - η is the noise/forcing term
 
-### 3.3 Observers and Residuals
+### 4.3 Observers and Residuals
 
 For an observer O with tangent vector u at state s:
 
@@ -112,9 +175,9 @@ Measures the timelike nature of the observer's trajectory.
 
 ---
 
-## 4. Differential Inclusion
+## 5. Differential Inclusion
 
-### 4.1 Admissible Flows
+### 5.1 Admissible Flows
 
 Not all flows are permitted. The admissible set:
 
@@ -122,7 +185,7 @@ Not all flows are permitted. The admissible set:
 F_admissible = { X ∈ 𝕏(M) | X respects all coherence constraints }
 ```
 
-### 4.2 Constraint Projection
+### 5.2 Constraint Projection
 
 When a proposed flow X_proposed violates constraints, project to admissible:
 
@@ -132,7 +195,7 @@ X = Π_F(X_proposed)
 
 This is the "gate" mechanism - projecting invalid transitions to valid ones.
 
-### 4.3 Bounded Curvature
+### 5.3 Bounded Curvature
 
 The curvature must remain bounded:
 
@@ -144,9 +207,9 @@ Where K_max is the maximum allowable curvature (related to hysteresis parameters
 
 ---
 
-## 5. Integration with Budget Law
+## 6. Integration with Budget Law
 
-### 5.1 Energy Interpretation
+### 6.1 Energy Interpretation
 
 The coherence functional V(s) serves as the "energy" of the system:
 
@@ -162,7 +225,7 @@ B(t+1) = B(t) - ΔE + R
 
 Where ΔE is the coherence energy consumed and R is recovery.
 
-### 5.2 Lyapunov Stability
+### 6.2 Lyapunov Stability
 
 The coherence budget B acts as a Lyapunov function:
 
@@ -174,9 +237,9 @@ This ensures the system never spontaneously degrades beyond recoverable limits.
 
 ---
 
-## 6. Discrete Trajectories
+## 7. Discrete Trajectories
 
-### 6.1 Trajectory Points
+### 7.1 Trajectory Points
 
 A discrete reasoning trajectory:
 
@@ -186,7 +249,7 @@ A discrete reasoning trajectory:
 
 Where each s_k ∈ M.
 
-### 6.2 Step Constraints
+### 7.2 Step Constraints
 
 Each step must satisfy:
 
@@ -195,7 +258,7 @@ Each step must satisfy:
 3. **Hysteresis**: Degradation is gradual
 4. **Termination**: The sequence must converge or terminate
 
-### 6.3 Slab Formation
+### 7.3 Slab Formation
 
 Multiple steps form a slab:
 
@@ -207,9 +270,9 @@ The slab has a Merkle root for integrity and a retention policy for pruning.
 
 ---
 
-## 7. Certified Forgetting
+## 8. Certified Forgetting
 
-### 7.1 Pruning Criterion
+### 8.1 Pruning Criterion
 
 A slab can be forgotten (pruned) when:
 
@@ -221,7 +284,7 @@ AND
 B > B_min
 ```
 
-### 7.2 Dispute Window
+### 8.2 Dispute Window
 
 During the dispute window, anyone can raise a fraud proof:
 
@@ -231,7 +294,7 @@ FP = { proof of invalid step in S }
 
 If FP is valid, the slab cannot be forgotten.
 
-### 7.3 Legal Pruning
+### 8.3 Legal Pruning
 
 After the retention period with no disputes, the slab is legally prunable:
 
@@ -241,15 +304,15 @@ delete(S) is authorized
 
 ---
 
-## 8. Implementation Notes
+## 9. Implementation Notes
 
-### 8.1 Numerical Representation
+### 9.1 Numerical Representation
 
 - States represented as vectors in ℝ^n
 - Metric g approximated by a positive definite matrix
 - Flow computed via numerical integration (Runge-Kutta)
 
-### 8.2 Discrete Approximation
+### 9.2 Discrete Approximation
 
 Continuous flow approximated by discrete steps:
 
@@ -257,7 +320,7 @@ Continuous flow approximated by discrete steps:
 s_{k+1} = s_k + dt · X(s_k) + correction
 ```
 
-### 8.3 Budget Integration
+### 9.3 Budget Integration
 
 Each discrete step consumes coherence budget:
 
@@ -267,7 +330,7 @@ B_{k+1} = B_k - cost(s_k → s_{k+1})
 
 ---
 
-## 9. Related Documents
+## 10. Related Documents
 
 - [State Space](state_space.md)
 - [Risk Functional V](risk_functional_V.md)

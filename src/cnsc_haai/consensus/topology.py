@@ -267,9 +267,9 @@ def verify_topology_jump(
         "slab_boundary_verified": True,
     }
     
-    # 8. Compute receipt ID
+    # 8. Compute receipt ID (single hash, no double-hash)
     receipt_bytes = jcs_canonical_bytes(receipt_data)
-    receipt_id = sha256_prefixed(sha256(receipt_bytes))
+    receipt_id = sha256_prefixed(receipt_bytes)
     
     # 9. Compute chain hash (using genesis as placeholder)
     chain_hash = chain_hash_v1_prefixed(

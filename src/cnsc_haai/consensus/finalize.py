@@ -214,9 +214,9 @@ def create_finalize_receipt(
     from cnsc_haai.consensus.hash import sha256, sha256_prefixed
     from cnsc_haai.consensus.chain import chain_hash_v1_prefixed
     
+    # Compute finalize_id (single hash, no double-hash)
     receipt_bytes = jcs_canonical_bytes(receipt_data)
-    receipt_hash = sha256(receipt_bytes)
-    finalize_id = sha256_prefixed(receipt_hash)
+    finalize_id = sha256_prefixed(receipt_bytes)
     
     # Compute chain hash
     chain_hash = chain_hash_v1_prefixed(prev_chain_hash, receipt_data)

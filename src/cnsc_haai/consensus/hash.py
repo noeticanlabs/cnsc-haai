@@ -1,12 +1,31 @@
 """
-SHA256 Hash Utilities
+SHA256 Hash Utilities [DEPRECATED]
 
-Provides SHA256 operations with the 'sha256:' prefix convention required for ATS v3 receipts.
-All digests in JSON use the 'sha256:' prefix for clarity.
+**WARNING: This module is deprecated. Use hash_primitives.py instead.**
+
+This module is kept for backward compatibility only. All new code should use
+hash_primitives which provides:
+- Domain-separated hashing (receipt_id, chain_digest, merkle_leaf, merkle_internal)
+- Proper JCS integration with float rejection
+- Receipt core extraction
+
+Migration:
+  from cnsc_haai.consensus import sha256  →  from cnsc_haai.consensus import hp_sha256
+  from cnsc_haai.consensus import sha256_prefixed  →  from cnsc_haai.consensus import hp_sha256_prefixed
+
+This module will be removed in a future version.
 """
 
 import hashlib
+import warnings
 from typing import Union
+
+# Emit deprecation warning on import
+warnings.warn(
+    "cnsc_haai.consensus.hash is deprecated. Use hash_primitives instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 # Prefix constant

@@ -13,8 +13,9 @@ from dataclasses import dataclass, field
 
 from cnsc_haai.consensus.jcs import jcs_canonical_bytes
 from cnsc_haai.consensus.hash import sha256, sha256_prefixed, decode_sha256_prefixed
-from cnsc_haai.consensus.merkle import compute_merkle_root, MerkleTree
+from cnsc_haai.consensus.merkle import compute_merkle_root, MerkleTree, merkle_leaf_hash
 from cnsc_haai.consensus.chain import chain_hash_v1_prefixed
+from cnsc_haai.consensus.codec import encode_micro_leaf
 from cnsc_haai.consensus.retention import (
     compute_window_end_height,
     get_policy,
@@ -102,11 +103,12 @@ class SlabReceipt:
             SlabReceipt with computed merkle root and chain hash
         """
         # Compute leaf hashes from micro receipts
+        # Use codec + merkle_leaf_hash for proper domain separation
         leaf_hashes: List[bytes] = []
         for receipt in micro_receipts:
-            # Serialize each micro receipt with JCS
-            receipt_bytes = jcs_canonical_bytes(receipt)
-            receipt_hash = sha256(receipt_bytes)
+            # Use codec to strip to core, then merkle_leaf_hash for domain separation
+            leaf_bytes = encode_micro_leaf(receipt)
+            receipt_hash = merkle_leaf_hash(leaf_bytes)
             leaf_hashes.append(receipt_hash)
         
         # Compute Merkle root
@@ -134,9 +136,9 @@ class SlabReceipt:
             "retention_policy_id": retention_policy_id,
         }
         
-        # Compute slab_id from core
+        # Compute slab_id from core (single hash, no double-hash)
         core_bytes = jcs_canonical_bytes(slab_core)
-        slab_id = sha256_prefixed(sha256(core_bytes))
+        slab_id = sha256_prefixed(core_bytes)
         
         # Build full receipt for chain hashing
         full_receipt = dict(slab_core)
@@ -169,16 +171,20 @@ class SlabReceipt:
         Compute minimal basis from micro receipts.
         
         Extracts the minimum information needed for fraud proof verification.
+        
+        Note: B_end_q is the FINAL budget (last receipt), not max.
         """
+        # B_end = final budget (last receipt's budget_after_q), not max
         B_end_q = 0
+        if micro_receipts:
+            last_receipt = micro_receipts[-1]
+            B_end_q = int(last_receipt.get("budget_after_q", 0))
+        
+        # V_max and M_max are still maxima
         V_max_q = 0
         M_max_int = 0
         
         for receipt in micro_receipts:
-            # Extract budget end
-            if "budget_after_q" in receipt:
-                B_end_q = max(B_end_q, int(receipt["budget_after_q"]))
-            
             # Extract max risk
             if "risk_after_q" in receipt:
                 V_max_q = max(V_max_q, int(receipt["risk_after_q"]))

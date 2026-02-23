@@ -74,26 +74,26 @@ class ContinuousTrajectory:
             step_engine: Function that executes one discrete step
             slab_buffer: Buffer for accumulating micro receipts
         """
-        self._state = initial_state
+        self._x_state = initial_state  # Cognitive state dict (for step engine)
         self._budget_q = initial_budget_q
         self._step_engine = step_engine
         self._slab_buffer = slab_buffer
         
         self._trajectory: List[TrajectoryPoint] = []
         self._step_index = 0
-        self._state = TrajectoryState.IDLE
+        self._traj_state = TrajectoryState.IDLE  # Trajectory state enum (separate from _x_state)
     
     def start(self) -> None:
         """Start the trajectory."""
-        self._state = TrajectoryState.RUNNING
+        self._traj_state = TrajectoryState.RUNNING
     
     def pause(self) -> None:
         """Pause the trajectory."""
-        self._state = TrajectoryState.PAUSED
+        self._traj_state = TrajectoryState.PAUSED
     
     def resume(self) -> None:
         """Resume the trajectory."""
-        self._state = TrajectoryState.RUNNING
+        self._traj_state = TrajectoryState.RUNNING
     
     def advance(self, dt_q: int) -> Optional[Dict[str, Any]]:
         """
@@ -107,7 +107,7 @@ class ContinuousTrajectory:
         Returns:
             Micro receipt if step was executed, None otherwise
         """
-        if self._state != TrajectoryState.RUNNING:
+        if self._traj_state != TrajectoryState.RUNNING:
             return None
         
         # Convert dt to discrete steps
@@ -119,7 +119,7 @@ class ContinuousTrajectory:
             receipt = self._execute_step()
             if receipt is None:
                 # Step rejected - stop trajectory
-                self._state = TrajectoryState.COMPLETED
+                self._traj_state = TrajectoryState.COMPLETED
                 break
         
         return receipt
@@ -156,7 +156,7 @@ class ContinuousTrajectory:
         # Execute the step
         try:
             result = self._step_engine(
-                state=self._state,
+                state=self._x_state,
                 budget_q=self._budget_q,
                 step_index=self._step_index,
             )
@@ -170,8 +170,8 @@ class ContinuousTrajectory:
             risk_q = result.get("risk_q", 0)
             receipt = result.get("receipt")
             
-            # Update state
-            self._state = new_state
+            # Update cognitive state (not trajectory state)
+            self._x_state = new_state
             self._budget_q = new_budget_q
             
             # Record trajectory point
@@ -204,15 +204,15 @@ class ContinuousTrajectory:
         """
         # This is a placeholder - in practice, this would
         # project the state onto the admissible set
-        return self._state
+        return self._x_state
     
     def get_trajectory(self) -> List[TrajectoryPoint]:
         """Get the full trajectory."""
         return self._trajectory
     
     def get_current_state(self) -> Dict[str, Any]:
-        """Get current state."""
-        return self._state
+        """Get current cognitive state."""
+        return self._x_state
     
     def get_current_budget_q(self) -> int:
         """Get current budget (QFixed)."""
@@ -224,7 +224,7 @@ class ContinuousTrajectory:
     
     def get_state(self) -> TrajectoryState:
         """Get trajectory state."""
-        return self._state
+        return self._traj_state
 
 
 class ContinuousSolver:

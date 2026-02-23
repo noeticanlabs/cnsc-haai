@@ -6,7 +6,9 @@
 |-------|-------|
 | **Module** | 30_ats_runtime |
 | **Section** | Slab Compression Rules |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
+| **Status** | ACTIVE |
+| **Revised** | 2026-02-23 |
 
 ---
 
@@ -24,16 +26,22 @@ Slab compression allows aggregating multiple receipts into a single "slab" for e
 {
   "slab": {
     "version": "1.0.0",
-    "slab_id": "slab001",
+    "slab_id": "sha256:...",
     "episode_id": "ep001",
-    "first_receipt_id": "a1b2c3d4",
-    "last_receipt_id": "i9j0k1l2",
+    "merkle_root": "sha256:...",
+    "micro_receipt_hashes": ["sha256:...", ...],
+    "window_start": 1000,
+    "window_end": 1100,
     "receipt_count": 100,
     "initial_state_hash": "sha256:...",
     "final_state_hash": "sha256:...",
-    "initial_budget": "1000000000000000000",
-    "final_budget": "500000000000000000",
-    "compressed_receipts": "base64:..."
+    "minimal_basis": {
+      "B_end_q": 500000000000000000,
+      "V_max_q": 1000000000000000,
+      "M_max_int": 10000,
+      "micro_step_count": 100,
+      "retention_policy_id": "policy001"
+    }
   }
 }
 ```
@@ -42,14 +50,49 @@ Slab compression allows aggregating multiple receipts into a single "slab" for e
 
 | Property | Description |
 |----------|-------------|
-| **receipt_count** | Number of receipts in slab |
-| **first_receipt_id** | First receipt in slab |
-| **last_receipt_id** | Last receipt in slab |
-| **compressed_receipts** | LZ4/FLATE compressed receipt list |
+| **slab_id** | Content hash of slab (receipt_id style): `sha256:...` |
+| **merkle_root** | Merkle root of micro-receipt hashes |
+| **micro_receipt_hashes** | List of merkle leaf hashes |
+| **minimal_basis** | Minimum info for fraud proof verification |
 
 ---
 
-## 3. Compression Rules
+## 3. Minimal Basis
+
+### 3.1 Definition
+
+The **minimal basis** contains the minimum information needed to verify any micro-receipt in the slab without requiring all receipts.
+
+```python
+@dataclass
+class MinimalBasis:
+    B_end_q: int      # FINAL budget (last receipt), NOT max!
+    V_max_q: int     # Maximum risk in slab
+    M_max_int: int   # Maximum memory in slab
+    micro_step_count: int
+    retention_policy_id: str
+```
+
+### 3.2 CRITICAL: B_end is END, not MAX
+
+> **IMPORTANT**: `B_end_q` is the **final budget value** (budget_after of the last receipt in the slab), NOT the maximum budget.
+
+```
+B_end_q = budget_after_q of the LAST micro-receipt in slab
+```
+
+Using `max(budget_after_q)` would be incorrect because budget decreases monotonically - the last receipt has the lowest budget.
+
+### 3.3 V_max and M_max are Maxima
+
+```
+V_max_q = max(risk_after_q for all receipts in slab)
+M_max_int = max(memory_used for all receipts in slab)
+```
+
+---
+
+## 4. Merkle Commitment
 
 ### 3.1 Allowed Algorithms
 

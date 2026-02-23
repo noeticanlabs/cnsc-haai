@@ -13,8 +13,9 @@ from typing import List, Optional, Tuple
 from .hash import sha256, sha256_prefixed
 
 
-# Merkle node prefixes
-LEAF_PREFIX = bytes([0x01])
+# Merkle node prefixes - DOMAIN SEPARATION (0x00 for leaf, 0x01 for internal)
+# This is the canonical convention per hash_primitives module
+LEAF_PREFIX = bytes([0x00])
 INTERNAL_PREFIX = bytes([0x01])
 
 
@@ -165,13 +166,14 @@ class MerkleTree:
             if index % 2 == 0:
                 # Left sibling
                 if index + 1 < len(level_hashes):
-                    proof.append(("right", level_hashes[index + 1].hex()))
+                    # The sibling is on the RIGHT of our leaf
+                    proof.append(("R", level_hashes[index + 1].hex()))
                 else:
-                    # No sibling - use self
-                    proof.append(("left", level_hashes[index].hex()))
+                    # No sibling - use self (shouldn't happen in proper tree)
+                    proof.append(("L", level_hashes[index].hex()))
             else:
-                # Right sibling
-                proof.append(("left", level_hashes[index - 1].hex()))
+                # Right sibling - the sibling is on the LEFT of our leaf
+                proof.append(("L", level_hashes[index - 1].hex()))
             
             index = index // 2
         
@@ -212,9 +214,11 @@ def verify_inclusion_proof(
     for side, hash_str in proof:
         sibling = bytes.fromhex(hash_str)
         
-        if side == "left":
+        if side == "L":
+            # Sibling is on the LEFT: hash(L || current)
             current = internal_hash(sibling, current)
-        else:  # right
+        else:  # "R"
+            # Sibling is on the RIGHT: hash(current || R)
             current = internal_hash(current, sibling)
     
     return current == root
@@ -249,9 +253,11 @@ def verify_inclusion_proof_prefixed(
     for step in proof:
         sibling = decode_sha256_prefixed(step["hash"])
         
-        if step["side"] == "left":
+        if step["side"] == "L":
+            # Sibling is on the LEFT: hash(L || current)
             current = internal_hash(sibling, current)
-        else:  # right
+        else:  # "R"
+            # Sibling is on the RIGHT: hash(current || R)
             current = internal_hash(current, sibling)
     
     return current == root_raw
