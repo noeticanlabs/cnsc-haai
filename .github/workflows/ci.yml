@@ -77,8 +77,20 @@ jobs:
       - name: Run compliance tests
         run: pytest compliance_tests/ -v
 
+      - name: Check for pycache hygiene
+        run: |
+          # Fail if __pycache__ directories exist (excluding venv)
+          if find . -type d -name __pycache__ -not -path "./venv/*" | grep -q .; then
+            echo "ERROR: __pycache__ directories found"
+            find . -type d -name __pycache__ -not -path "./venv/*"
+            exit 1
+          fi
+
       - name: Run determinism tests
         run: pytest -m determinism -v
+
+      - name: Run adversarial tests
+        run: pytest -m adversarial -v
 
   build:
     runs-on: ubuntu-latest

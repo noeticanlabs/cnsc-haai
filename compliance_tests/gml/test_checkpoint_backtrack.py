@@ -9,6 +9,10 @@ from datetime import datetime
 from cnsc.haai.gml.trace import TraceEvent, TraceThread, TraceLevel
 
 
+# Fixed timestamp for deterministic compliance tests
+FIXED_TIMESTAMP = datetime(2024, 1, 1, 0, 0, 0)
+
+
 class TestCheckpointBacktrack:
     """Tests for checkpoint and backtrack functionality."""
 
@@ -18,7 +22,7 @@ class TestCheckpointBacktrack:
             event_id="event_001",
             level=TraceLevel.INFO,
             event_type="ADD_BELIEF",
-            timestamp=datetime.utcnow(),
+            timestamp=FIXED_TIMESTAMP,
             message="Test event"
         )
         assert event.event_id == "event_001"
@@ -41,7 +45,7 @@ class TestCheckpointBacktrack:
             event_id="event_001",
             level=TraceLevel.INFO,
             event_type="ADD_BELIEF",
-            timestamp=datetime.utcnow(),
+            timestamp=FIXED_TIMESTAMP,
             message="Test event"
         )
         event_dict = event.to_dict()
@@ -55,7 +59,7 @@ class TestCheckpointBacktrack:
             event_id="e1",
             level=TraceLevel.INFO,
             event_type="test",
-            timestamp=datetime.utcnow(),
+            timestamp=FIXED_TIMESTAMP,
             message="Test"
         ))
         thread_dict = thread.to_dict()

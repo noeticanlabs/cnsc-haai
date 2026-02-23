@@ -3,7 +3,19 @@ CNHAAI (Coherent Non-Hierarchical Artificial Intelligence)
 
 A framework for implementing coherent reasoning systems with
 abstraction layers, gate validation, and full auditability.
+
+DEPRECATED: This is the legacy namespace.
+Please migrate to cnsc.haai for ATS/Governance components.
 """
+
+import warnings
+
+# Emit deprecation warning when this module is imported
+warnings.warn(
+    "cnhaai is deprecated. Use cnsc.haai for ATS/Governance components.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 __version__ = "1.0.0"
 __author__ = "CNHAAI Team"
