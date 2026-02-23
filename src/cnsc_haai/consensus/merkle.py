@@ -2,7 +2,7 @@
 Merkle Tree Implementation
 
 Provides deterministic Merkle tree construction per Coh Merkle v1 spec:
-- Leaf hash: SHA256(0x01 || leaf_bytes)
+- Leaf hash: SHA256(0x00 || leaf_bytes)
 - Internal hash: SHA256(0x01 || left || right)
 - Odd node handling: duplicate last node
 """
@@ -10,13 +10,28 @@ Provides deterministic Merkle tree construction per Coh Merkle v1 spec:
 import hashlib
 from typing import List, Optional, Tuple
 
-from .hash import sha256, sha256_prefixed
+# Import from hash_primitives for canonical hashing
+from .hash_primitives import sha256 as _hp_sha256, sha256_prefixed as _hp_sha256_prefixed
 
 
 # Merkle node prefixes - DOMAIN SEPARATION (0x00 for leaf, 0x01 for internal)
 # This is the canonical convention per hash_primitives module
 LEAF_PREFIX = bytes([0x00])
 INTERNAL_PREFIX = bytes([0x01])
+
+
+def sha256(data):
+    """DEPRECATED: Use hash_primitives.sha256 directly"""
+    import warnings
+    warnings.warn("Use hash_primitives.sha256 directly", DeprecationWarning, stacklevel=2)
+    return _hp_sha256(data)
+
+
+def sha256_prefixed(data):
+    """DEPRECATED: Use hash_primitives.sha256_prefixed directly"""
+    import warnings
+    warnings.warn("Use hash_primitives.sha256_prefixed directly", DeprecationWarning, stacklevel=2)
+    return _hp_sha256_prefixed(data)
 
 
 def leaf_hash(leaf_bytes: bytes) -> bytes:
