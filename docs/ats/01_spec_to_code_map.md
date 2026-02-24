@@ -1,7 +1,7 @@
 # Spec to Code Map
 
-**Version**: 1.0.0
-**Last Updated**: 2026-02-20
+**Version**: 1.1.0
+**Last Updated**: 2026-02-23
 
 ---
 
@@ -34,6 +34,7 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 | `chain_hash_rule.md` | DEPRECATED | ⚠️ Use `chain_hash_universal.md` (term "chain_hash" banned) |
 | `chain_hash_universal.md` | `src/cnsc_haai/consensus/chain.py` | ✅ Implemented |
 | `canonical_serialization.md` | DEPRECATED | ⚠️ Use JCS (RFC8785) |
+| `jcs_rfc8785.md` | `src/cnsc_haai/consensus/jcs.py` | ✅ Implemented |
 | `coh.merkle.v1.md` | `src/cnsc_haai/consensus/merkle.py` | ✅ Implemented |
 | `retention_policy.md` | `src/cnsc_haai/consensus/retention.py` | ✅ Implemented |
 | `fraud_proof_rules.md` | `src/cnsc_haai/consensus/fraudproof.py` | ✅ Implemented |
@@ -75,9 +76,22 @@ This document maps ATS/Coh specification pages to their corresponding code modul
 |-----------|-------------|--------|
 | `adversary_model.md` | Documentation only | ✅ Documented |
 | `deterministic_replay_requirements.md` | `src/cnsc/haai/gml/replay.py` | ✅ Implemented |
-| `float_prohibition.md` | `src/cnsc/haai/ats/numeric.py` | ✅ Implemented |
+| `float_prohibition.md` | `src/cnsc/haai/ats/numeric.py` + `src/cnsc_haai/consensus/jcs.py` | ✅ Implemented (JCS rejects floats) |
 | `timestamp_nonconsensus_rule.md` | `src/cnsc/haai/tgs/clock.py` | ✅ Implemented |
 | `rejection_reason_codes.md` | `src/cnsc/haai/ats/errors.py` | ✅ Implemented |
+
+---
+
+### NPE (Neural Proposal Engine)
+
+| Spec File | Code Module | Status |
+|-----------|-------------|--------|
+| `npe_hashing_v1.md` | `src/npe/core/hashing.py` | ✅ Implemented |
+| `npe_corpus_snapshot.md` | `src/npe/core/hashing.py` | ✅ Implemented |
+| `npe_receipts_snapshot.md` | `src/npe/core/hashing.py` | ✅ Implemented |
+| `npe_canonicalization.md` | `src/npe/core/canon.py` | ✅ Implemented |
+| `npe_gr_proposers.md` | `src/npe/proposers/gr/` | ✅ Implemented |
+| `npe_retrieval_filters.md` | `src/npe/retrieval/filters.py` | ✅ Implemented |
 
 ---
 

@@ -12,8 +12,11 @@ Security Features:
     - Timeout enforcement and rate limiting placeholders
 """
 
+import hashlib
 import json
+import os
 import re
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,6 +58,9 @@ MIN_BUDGET_VALUE = 1
 MAX_CANDIDATES = 100
 MAX_INPUT_TOKENS = 1000000
 MAX_OUTPUT_TOKENS = 100000
+
+# Process salt for request ID generation (initialized once per module load)
+_PROCESS_SALT = os.urandom(16)
 
 # Valid domains (from schema)
 VALID_DOMAINS = frozenset(["gr", "default"])
@@ -99,18 +105,27 @@ class ProposerClient:
         self,
         base_url: str = DEFAULT_NPE_URL,
         timeout: int = DEFAULT_TIMEOUT,
+        rate_limiter: Optional[object] = "default",
     ) -> None:
         """Initialize the ProposerClient.
         
         Args:
             base_url: Base URL of the NPE service (default: http://localhost:8000)
             timeout: Default timeout for HTTP requests in seconds (default: 30)
+            rate_limiter: Optional rate limiter. Set to None to disable, 
+                          "default" for built-in limiter, or pass a custom limiter.
         """
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
         self._request_count = 0
         self._rate_limit_window_start = datetime.now(timezone.utc)
+        
+        # Rate limiter: None = disabled, "default" = use built-in, object = custom
+        if rate_limiter == "default":
+            self._rate_limiter = object()  # Sentinel for default behavior
+        else:
+            self._rate_limiter = rate_limiter
     
     # =========================================================================
     # Schema Validation Methods
@@ -362,23 +377,13 @@ class ProposerClient:
                 message=f"Request ID exceeds maximum length of {MAX_REQUEST_ID_LENGTH}"
             )
         
-        # Allow UUID format (e.g., "550e8400-e29b-41d4-a716-446655440000")
-        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-        # Allow SHA-256 hex format (64 hex characters)
+        # Only allow SHA-256 hex format per schema requirement: ^[a-f0-9]{64}$
         sha256_pattern = r'^[a-f0-9]{64}$'
-        # Allow timestamp-based format (e.g., "ts_1704067200")
-        timestamp_pattern = r'^ts_[0-9]{10}$'
         
-        is_valid = (
-            re.match(uuid_pattern, request_id.lower()) or
-            re.match(sha256_pattern, request_id.lower()) or
-            re.match(timestamp_pattern, request_id)
-        )
-        
-        if not is_valid:
+        if not re.match(sha256_pattern, request_id.lower()):
             raise ValidationError(
                 field="request_id",
-                message="Invalid request ID format. Must be UUID, SHA-256 hex, or timestamp-based (ts_XXXXXXXXXX)"
+                message="Invalid request ID format. Must be SHA-256 hex (64 characters)"
             )
     
     # =========================================================================
@@ -388,9 +393,17 @@ class ProposerClient:
     def _check_rate_limit(self) -> None:
         """Check if the request rate limit has been exceeded.
         
+        Note: This is a local operational safeguard. It is not a protocol resource,
+        is not receipt-visible, and has no effect on RV validity.
+        Disabling throttling does not change consensus outcomes.
+        
         Raises:
-            SecurityError: If rate limit is exceeded
+            SecurityError: If rate limit is exceeded (when enabled)
         """
+        # Skip rate limiting if disabled
+        if self._rate_limiter is None:
+            return
+        
         now = datetime.now(timezone.utc)
         window_delta = (now - self._rate_limit_window_start).total_seconds()
         
@@ -515,12 +528,22 @@ class ProposerClient:
             ) from e
     
     def _generate_request_id(self) -> str:
-        """Generate a unique request ID.
+        """Generate a unique request ID as SHA-256 hex.
+        
+        Uses: random_32_bytes || timestamp || process_salt
+        Returns 64 hex characters per schema requirement: ^[a-f0-9]{64}$
         
         Returns:
-            Unique request ID string (UUID format)
+            SHA-256 hash string (64 hex characters)
         """
-        return str(uuid.uuid4())
+        # Get timestamp at nanosecond precision for uniqueness
+        timestamp_bytes = str(time.time_ns()).encode('utf-8')
+        
+        # Combine: random || timestamp || salt
+        hash_input = os.urandom(32) + timestamp_bytes + _PROCESS_SALT
+        
+        # Return SHA-256 hex digest (64 chars)
+        return hashlib.sha256(hash_input).hexdigest()
     
     def _generate_timestamp(self) -> str:
         """Generate an ISO 8601 timestamp.

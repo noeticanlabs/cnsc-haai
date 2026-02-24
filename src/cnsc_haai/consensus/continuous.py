@@ -15,6 +15,61 @@ from enum import Enum
 # Use QFixed for all numeric values (no floats)
 QFIXED_SCALE = 10**18  # 18 decimal places
 
+# =============================================================================
+# CANONICAL STEPPING POLICY
+# =============================================================================
+# 
+# This is the ONLY legal way to convert continuous time (dt) to discrete steps.
+# All nodes must use this policy for consensus to be achievable.
+#
+# Policy: DISCRETE_MICRO_STEPS
+#   - 1:1 mapping: dt_q units = dt_q steps
+#   - Each step represents 1 QFixed unit of time
+#   - Rounding: floor (dt_q // STEP_UNIT_Q)
+#
+# CANONICAL CONSTANTS
+CANONICAL_STEPPING_POLICY = "DISCRETE_MICRO_STEPS"
+CANONICAL_STEP_UNIT_Q = QFIXED_SCALE  # 1 step = 10^18 QFixed (1 second)
+MAX_STEPS_PER_ADVANCE = 10000  # Prevent runaway loops
+
+
+# =============================================================================
+# PUBLIC CANONICAL STEPPING API
+# =============================================================================
+
+def compute_canonical_steps(dt_q: int) -> int:
+    """
+    Compute the number of canonical micro-steps for a given dt.
+    
+    This is the ONLY public API for converting continuous time to discrete steps.
+    All nodes must use this function for consensus to be achievable.
+    
+    Policy: DISCRETE_MICRO_STEPS
+    - 1:1 mapping: dt_q units = dt_q steps
+    - Rounding: floor (dt_q // CANONICAL_STEP_UNIT_Q)
+    
+    Args:
+        dt_q: Time delta in QFixed format
+        
+    Returns:
+        Number of canonical micro-steps
+        
+    Raises:
+        ValueError: If dt_q would require more than MAX_STEPS_PER_ADVANCE steps
+    """
+    if dt_q <= 0:
+        return 0
+    
+    steps = dt_q // CANONICAL_STEP_UNIT_Q
+    
+    if steps > MAX_STEPS_PER_ADVANCE:
+        raise ValueError(
+            f"dt_q={dt_q} would require {steps} steps, exceeding maximum "
+            f"of {MAX_STEPS_PER_ADVANCE}. Use smaller dt or chunked advancement."
+        )
+    
+    return steps
+
 
 class TrajectoryState(Enum):
     """States of a continuous trajectory."""
@@ -126,22 +181,36 @@ class ContinuousTrajectory:
     
     def _compute_discrete_steps(self, dt_q: int) -> int:
         """
-        Convert continuous time delta to discrete steps.
+        Convert continuous time delta to discrete steps using CANONICAL stepping policy.
+        
+        This is the ONLY legal way to convert dt to discrete steps per the consensus
+        stepping policy. All nodes must use this exact method for deterministic receipts.
+        
+        Policy: DISCRETE_MICRO_STEPS
+        - 1:1 mapping: dt_q units = dt_q steps
+        - Rounding: floor (dt_q // CANONICAL_STEP_UNIT_Q)
         
         Args:
             dt_q: Delta time in QFixed format
             
         Returns:
-            Number of discrete steps
+            Number of discrete steps (capped by MAX_STEPS_PER_ADVANCE)
+            
+        Raises:
+            ValueError: If dt_q exceeds MAX_STEPS_PER_ADVANCE
         """
-        # Each discrete step is 1 unit of time
-        # dt_q is QFixed, so we divide to get integer steps
-        STEP_UNIT_Q = QFIXED_SCALE  # 1 step = 1.0 in QFixed
-        
-        if dt_q < STEP_UNIT_Q:
+        if dt_q < CANONICAL_STEP_UNIT_Q:
             return 0
         
-        return dt_q // STEP_UNIT_Q
+        steps = dt_q // CANONICAL_STEP_UNIT_Q
+        
+        if steps > MAX_STEPS_PER_ADVANCE:
+            raise ValueError(
+                f"dt_q={dt_q} would require {steps} steps, exceeding maximum "
+                f"of {MAX_STEPS_PER_ADVANCE}. Use smaller dt or chunked advancement."
+            )
+        
+        return steps
     
     def _execute_step(self) -> Optional[Dict[str, Any]]:
         """

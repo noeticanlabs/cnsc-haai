@@ -193,15 +193,17 @@ class TestProposerClientPropose:
         assert call_args.kwargs["method"] == "POST"
         assert "/npe/v1/propose" in call_args.kwargs["url"]
 
-        # Check request body structure
+        # Check request body structure (schema-compliant format)
         request_data = call_args.kwargs["json"]
-        assert request_data["spec"] == "NPE-REQUEST-1.0"
-        assert request_data["request_type"] == "propose"
+        assert request_data["spec_version"] == "1.0.0"
+        assert request_data["candidate_type"] == "proposal"
         assert request_data["domain"] == "gr"
         assert "request_id" in request_data
-        assert "budgets" in request_data
-        assert "inputs" in request_data
-        assert request_data["inputs"]["candidate_type"] == "proposal"
+        # Verify request_id is SHA-256 hex (64 chars)
+        assert len(request_data["request_id"]) == 64
+        assert all(c in "0123456789abcdef" for c in request_data["request_id"])
+        assert "budget" in request_data
+        assert "context" in request_data
 
         # Verify response is parsed correctly
         assert "proposals" in result
@@ -217,8 +219,8 @@ class TestProposerClientPropose:
         request_data = call_args.kwargs["json"]
 
         # Default budget values should be used
-        assert request_data["budgets"]["max_wall_ms"] == 1000
-        assert request_data["budgets"]["max_candidates"] == 16
+        assert request_data["budget"]["max_wall_ms"] == 1000
+        assert request_data["budget"]["max_candidates"] == 16
 
 
 class TestProposerClientRepair:
@@ -254,11 +256,9 @@ class TestProposerClientRepair:
         call_args = mock_requests_session.request.call_args
         request_data = call_args.kwargs["json"]
 
-        # Verify failure reasons are included
-        assert request_data["inputs"]["gate_name"] == "coherence_check"
-        assert request_data["inputs"]["failure_reasons"] == failure_reasons
-        assert "failure" in request_data
-        assert request_data["failure"]["failing_gates"][0]["gate_name"] == "coherence_check"
+        # Verify failure reasons are included (schema-compliant: uses context, not inputs)
+        assert request_data["context"]["gate_name"] == "coherence_check"
+        assert request_data["context"]["failure_reasons"] == failure_reasons
 
 
 class TestProposerClientErrorHandling:
@@ -286,7 +286,7 @@ class TestProposerClientErrorHandling:
 
         client = ProposerClient()
         with pytest.raises(ProposerConnectionError):
-            client.repair(gate_name="test", failure_reasons=[], context={})
+            client.repair(gate_name="test", failure_reasons=["test_reason"], context={})
 
     def test_health_returns_false_on_connection_error(self, mock_requests_session):
         """Test that health() returns False on connection error."""
@@ -803,17 +803,16 @@ class TestEndToEndMockFlow:
         call_args = mock_requests_session.request.call_args
         request_data = call_args.kwargs["json"]
 
-        # Verify wire format
-        assert "spec" in request_data
+        # Verify wire format (schema-compliant)
+        assert "spec_version" in request_data
         assert "request_id" in request_data
-        assert "request_type" in request_data
+        assert "candidate_type" in request_data
         assert "domain" in request_data
-        assert "budgets" in request_data
-        assert "inputs" in request_data
+        assert "budget" in request_data
+        assert "context" in request_data
 
-        # Verify repair request has failure section
-        assert "failure" in request_data
-        assert "failing_gates" in request_data["failure"]
+        # Verify request_id is SHA-256 hex (64 chars)
+        assert len(request_data["request_id"]) == 64
 
     def test_proposal_response_format(self, mock_requests_session):
         """Test that proposal response is parsed correctly."""

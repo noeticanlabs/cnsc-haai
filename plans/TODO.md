@@ -1,7 +1,7 @@
 # TODO Tracker
 
-**Last Updated:** 2026-02-21  
-**Total Items:** 5 | Pending: 1 | In Progress: 0 | Completed: 2 | Deprecated: 2
+**Last Updated:** 2026-02-23  
+**Total Items:** 8 | Pending: 0 | In Progress: 0 | Completed: 6 | Deprecated: 2
 
 ---
 
@@ -22,6 +22,22 @@
 | TODO-002 | [x] | Get corpus snapshot hash from corpus store | - | 2026-02-21 | 2026-02-21 |
 
 **Details:** Fixed in `src/npe/api/routes.py:181-191` - Now correctly retrieves corpus_snapshot_hash from index dictionary
+
+| TODO-005 | [x] | JCS RFC8785 Implementation | - | 2026-02-23 | 2026-02-23 |
+
+**Details:** Implemented in `src/cnsc_haai/consensus/jcs.py` - RFC 8785 compliant JSON canonicalization with float rejection for consensus safety.
+
+| TODO-006 | [x] | Add snapshot hashing functions | - | 2026-02-23 | 2026-02-23 |
+
+**Details:** Added `hash_corpus_snapshot()` and `hash_receipts_snapshot()` in `src/npe/core/hashing.py`.
+
+| TODO-007 | [x] | Fix GR repair proposer budget enforcement | - | 2026-02-23 | 2026-02-23 |
+
+**Details:** Fixed `src/npe/proposers/gr/repair_from_gate_reasons.py` to properly enforce max_candidates budget limit.
+
+| TODO-008 | [x] | Fix golden test vectors | - | 2026-02-23 | 2026-02-23 |
+
+**Details:** Updated TV1 and TV2 expected hashes in `tests/vectors/npe/v1_0_1/` to match canonical serialization.
 
 ---
 
