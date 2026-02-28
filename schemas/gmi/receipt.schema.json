@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GMIStepReceipt",
+  "type": "object",
+  "required": [
+    "version",
+    "prev_state_hash",
+    "next_state_hash",
+    "chain_prev",
+    "chain_next",
+    "V_prev_q",
+    "V_next_q",
+    "dV_q",
+    "b_prev_q",
+    "b_next_q",
+    "db_q",
+    "projected",
+    "reject_code",
+    "witness"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "GMI version (e.g., 1.5.0)"
+    },
+    "prev_state_hash": {
+      "type": "string",
+      "description": "Hex-encoded SHA256 of previous state"
+    },
+    "next_state_hash": {
+      "type": "string",
+      "description": "Hex-encoded SHA256 of next state"
+    },
+    "chain_prev": {
+      "type": "string",
+      "description": "Hex-encoded previous chain tip"
+    },
+    "chain_next": {
+      "type": "string",
+      "description": "Hex-encoded next chain tip"
+    },
+    "V_prev_q": {
+      "type": "integer",
+      "description": "Lyapunov value before step (QFixed scaled)"
+    },
+    "V_next_q": {
+      "type": "integer",
+      "description": "Lyapunov value after step (QFixed scaled)"
+    },
+    "dV_q": {
+      "type": "integer",
+      "description": "Delta Lyapunov value (QFixed scaled)"
+    },
+    "b_prev_q": {
+      "type": "integer",
+      "description": "Budget before step (QFixed scaled)"
+    },
+    "b_next_q": {
+      "type": "integer",
+      "description": "Budget after step (QFixed scaled)"
+    },
+    "db_q": {
+      "type": "integer",
+      "description": "Budget delta (QFixed scaled)"
+    },
+    "projected": {
+      "type": "boolean",
+      "description": "Whether projection was applied"
+    },
+    "reject_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Rejection reason if rejected, null if accepted"
+    },
+    "witness": {
+      "type": "object",
+      "description": "Active set information and other witness data"
+    }
+  },
+  "additionalProperties": false
+}

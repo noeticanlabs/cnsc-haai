@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GMIVector",
+  "type": "object",
+  "required": ["version", "params", "chain0_hex", "state0", "actions"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "GMI version (e.g., 1.5.0)"
+    },
+    "params": {
+      "type": "object",
+      "description": "GMI parameters",
+      "properties": {
+        "rho_max": { "type": "integer" },
+        "alpha_tau": { "type": "integer" },
+        "beta_C": { "type": "integer" },
+        "D_C": { "type": "integer" },
+        "lambda_C": { "type": "integer" },
+        "w_grad_theta_q": { "type": "integer" },
+        "w_C_q": { "type": "integer" },
+        "w_budget_barrier_q": { "type": "integer" },
+        "absorb_on_b0": { "type": "boolean" }
+      }
+    },
+    "chain0_hex": {
+      "type": "string",
+      "description": "Hex-encoded initial chain tip (32 bytes)"
+    },
+    "state0": {
+      "$ref": "state.schema.json",
+      "description": "Initial GMI state"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "action.schema.json"
+      },
+      "description": "List of actions to replay"
+    }
+  },
+  "additionalProperties": false
+}

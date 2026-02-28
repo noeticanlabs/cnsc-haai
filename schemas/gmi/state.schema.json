@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GMIState",
+  "type": "object",
+  "required": ["rho", "theta", "C", "b", "t"],
+  "properties": {
+    "rho": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "theta": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "C": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "b": {
+      "type": "integer",
+      "description": "Budget in QFixed scaled integer"
+    },
+    "t": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Integer time step"
+    }
+  },
+  "additionalProperties": false
+}
