@@ -48,9 +48,11 @@ canonical primitives to ensure consistency across implementations.
 """
 
 from .jcs import jcs_canonical_bytes, JCSEncoder
+
 # Note: hash.py is deprecated, but we re-export from here for compatibility
 # The deprecated hash.py module is now just a shim
 import warnings
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", DeprecationWarning)
     from .hash import sha256, sha256_prefixed, decode_sha256_prefixed
@@ -58,6 +60,7 @@ from .merkle import MerkleTree, verify_inclusion_proof
 from .chain import chain_hash_v1, chain_hash_sequence
 from .codec import MicroLeafCodec, encode_micro_leaf, strip_to_core
 from .compat import compat_sha256, compat_decode, compat_chain_hash, canonical_bytes_legacy
+
 # NEW: Canonical hashing primitives (receipt_id vs chain_digest)
 from .hash_primitives import (
     receipt_id,

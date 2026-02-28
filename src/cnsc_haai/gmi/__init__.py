@@ -12,7 +12,16 @@ Version: 1.5.0
 """
 
 from .qfixed import Q, SCALE
-from .types import GMIState, GMIAction, GMIStepReceipt
+from .types import (
+    GMIState,
+    GMIAction,
+    GMIStepReceipt,
+    Proposal,
+    ProposalSet,
+    GateDecision,
+    WorkUnits,
+    GMIRuntimeReceipt,
+)
 from .params import GMIParams
 from .admissible import in_K, project_K
 from .lyapunov import V_extended_q
@@ -21,8 +30,9 @@ from .step import gmi_step
 from .replay import replay_episode
 from .jcs import jcs_dumps
 from .hash import sha256_tagged
+from .runtime import gmi_tick, gmi_tick_with_predictor, GMIRuntime
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 
 __all__ = [
     "Q",
@@ -30,6 +40,11 @@ __all__ = [
     "GMIState",
     "GMIAction",
     "GMIStepReceipt",
+    "Proposal",
+    "ProposalSet",
+    "GateDecision",
+    "WorkUnits",
+    "GMIRuntimeReceipt",
     "GMIParams",
     "in_K",
     "project_K",
@@ -39,4 +54,7 @@ __all__ = [
     "replay_episode",
     "jcs_dumps",
     "sha256_tagged",
+    "gmi_tick",
+    "gmi_tick_with_predictor",
+    "GMIRuntime",
 ]

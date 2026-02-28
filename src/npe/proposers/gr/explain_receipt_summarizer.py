@@ -17,36 +17,36 @@ def propose(
     registry: Any,
 ) -> List[Candidate]:
     """Propose explanations from receipts.
-    
+
     Args:
         context: Execution context with receipts
         budget: Budget constraints
         registry: Proposer registry
-        
+
     Returns:
         List of explanation candidates
     """
     candidates = []
-    
+
     # Get receipts from context
     receipts_store = context.get("receipts_store")
     if not receipts_store:
         return candidates
-    
+
     # Get state and failure info
     state_ref = context.get("state_ref")
     failure = context.get("failure", {})
-    
+
     # Search for relevant receipts
     relevant_receipts = []
-    
+
     if failure.get("failing_gates"):
         for gate_id in failure["failing_gates"]:
             relevant_receipts.extend(receipts_store.get_by_gate_id(gate_id))
-    
+
     # Get passing receipts for comparison
     passing_receipts = receipts_store.get_passing_receipts()[:10]
-    
+
     # Create explanation candidate
     if relevant_receipts or passing_receipts:
         candidate = _create_explanation(
@@ -58,7 +58,7 @@ def propose(
         )
         if candidate:
             candidates.append(candidate)
-    
+
     return candidates
 
 
@@ -70,14 +70,14 @@ def _create_explanation(
     context: Dict[str, Any],
 ) -> Candidate:
     """Create an explanation candidate from receipts.
-    
+
     Args:
         failing_receipts: Receipts from failing gates
         passing_receipts: Sample of passing receipts
         state_ref: Current state reference
         failure: Failure information
         context: Execution context
-        
+
     Returns:
         Explanation candidate
     """
@@ -89,17 +89,17 @@ def _create_explanation(
         "comparison": _compare_outcomes(failing_receipts, passing_receipts),
         "recommendations": _generate_recommendations(failing_receipts),
     }
-    
+
     payload_hash = hash_candidate_payload(payload)
-    
+
     # Handle both dict (test) and StateRef object (production)
     if state_ref is None:
         input_state_hash = ""
     elif isinstance(state_ref, dict):
         input_state_hash = state_ref.get("state_hash", "")
     else:
-        input_state_hash = state_ref.state_hash if hasattr(state_ref, 'state_hash') else ""
-    
+        input_state_hash = state_ref.state_hash if hasattr(state_ref, "state_hash") else ""
+
     # Create evidence items from receipts
     evidence = []
     for receipt in failing_receipts[:5]:
@@ -111,7 +111,7 @@ def _create_explanation(
             relevance=0.9,
         )
         evidence.append(evidence_item)
-    
+
     candidate = Candidate(
         candidate_hash="",
         candidate_type="explain",
@@ -128,16 +128,18 @@ def _create_explanation(
             invocation_order=0,
         ),
     )
-    
-    candidate.candidate_hash = hash_candidate({
-        "candidate_type": candidate.candidate_type,
-        "domain": candidate.domain,
-        "input_state_hash": candidate.input_state_hash,
-        "constraints_hash": candidate.constraints_hash,
-        "payload_hash": candidate.payload_hash,
-        "payload": candidate.payload,
-    })
-    
+
+    candidate.candidate_hash = hash_candidate(
+        {
+            "candidate_type": candidate.candidate_type,
+            "domain": candidate.domain,
+            "input_state_hash": candidate.input_state_hash,
+            "constraints_hash": candidate.constraints_hash,
+            "payload_hash": candidate.payload_hash,
+            "payload": candidate.payload,
+        }
+    )
+
     return candidate
 
 
@@ -146,11 +148,11 @@ def _summarize_receipts(
     passing: List[Any],
 ) -> Dict[str, Any]:
     """Summarize receipt data.
-    
+
     Args:
         failing: Failing receipts
         passing: Passing receipts
-        
+
     Returns:
         Summary dict
     """
@@ -164,10 +166,10 @@ def _summarize_receipts(
 
 def _analyze_failure(failure: Dict[str, Any]) -> Dict[str, Any]:
     """Analyze the failure.
-    
+
     Args:
         failure: Failure information
-        
+
     Returns:
         Analysis dict
     """
@@ -183,11 +185,11 @@ def _compare_outcomes(
     passing: List[Any],
 ) -> Dict[str, Any]:
     """Compare failing and passing outcomes.
-    
+
     Args:
         failing: Failing receipts
         passing: Passing receipts
-        
+
     Returns:
         Comparison dict
     """
@@ -195,7 +197,7 @@ def _compare_outcomes(
     # Use QFixed18 integers (scale by 10^18)
     pass_rate = (len(passing) * 1_000_000_000_000_000_000) // max(total, 1)
     fail_rate = (len(failing) * 1_000_000_000_000_000_000) // max(total, 1)
-    
+
     return {
         "pass_rate": pass_rate,
         "fail_rate": fail_rate,
@@ -204,34 +206,34 @@ def _compare_outcomes(
 
 def _generate_recommendations(failing: List[Any]) -> List[str]:
     """Generate recommendations based on failures.
-    
+
     Args:
         failing: Failing receipts
-        
+
     Returns:
         List of recommendations
     """
     recommendations = []
-    
+
     common_reasons = _get_common_values(failing, "reason_code")
     for reason in common_reasons[:3]:
         recommendations.append(f"Address {reason} issues")
-    
+
     return recommendations
 
 
 def _get_common_values(receipts: List[Any], field: str) -> List[str]:
     """Get most common values for a field.
-    
+
     Args:
         receipts: List of receipts
         field: Field to extract
-        
+
     Returns:
         List of common values sorted by frequency
     """
     from collections import Counter
-    
+
     values = [getattr(r, field, None) for r in receipts if getattr(r, field, None)]
     counter = Counter(values)
     return [v for v, _ in counter.most_common(5)]
@@ -239,10 +241,10 @@ def _get_common_values(receipts: List[Any], field: str) -> List[str]:
 
 def _score_explanation(failing: List[Any]) -> Scores:
     """Score an explanation.
-    
+
     Args:
         failing: Failing receipts
-        
+
     Returns:
         Scores for the explanation
     """

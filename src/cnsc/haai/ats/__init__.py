@@ -76,7 +76,6 @@ from .risk import RiskFunctional, compute_risk, compute_delta, compute_delta_plu
 from .budget import BudgetManager, create_budget_manager
 from .rv import ReceiptVerifier, verify_step, verify_trajectory
 
-
 # Version
 __version__ = "1.0.0-draft"
 
@@ -85,10 +84,9 @@ __all__ = [
     # Numeric
     "QFixed",
     "QFixedOverflow",
-    "QFixedUnderflow", 
+    "QFixedUnderflow",
     "QFixedInvalid",
     "SCALE",
-    
     # Types
     "State",
     "Action",
@@ -103,7 +101,6 @@ __all__ = [
     "IOState",
     "VerificationResult",
     "Rejection",
-    
     # Errors
     "ATSError",
     "RejectionCode",
@@ -116,17 +113,14 @@ __all__ = [
     "InsufficientBudgetError",
     "NegativeBudgetError",
     "InvalidChainLinkError",
-    
     # Risk
     "RiskFunctional",
     "compute_risk",
     "compute_delta",
     "compute_delta_plus",
-    
     # Budget
     "BudgetManager",
     "create_budget_manager",
-    
     # RV
     "ReceiptVerifier",
     "verify_step",

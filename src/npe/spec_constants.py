@@ -26,13 +26,13 @@ NUMERIC_DOMAIN: Final[str] = "QFixed18"
 # Q18 Fixed-Point Constants
 # ============================================================================
 
-Q18_SCALE: Final[int] = 2 ** 18
+Q18_SCALE: Final[int] = 2**18
 """Q18 scaling factor: 262144."""
 
-Q18_MIN: Final[int] = -(2 ** 63)
+Q18_MIN: Final[int] = -(2**63)
 """Minimum Q18 value (int64 min)."""
 
-Q18_MAX: Final[int] = 2 ** 63 - 1
+Q18_MAX: Final[int] = 2**63 - 1
 """Maximum Q18 value (int64 max)."""
 
 Q18_FRACTIONAL_MASK: Final[int] = (1 << 18) - 1
@@ -43,10 +43,12 @@ Q18_FRACTIONAL_MASK: Final[int] = (1 << 18) - 1
 # Rounding Enums
 # ============================================================================
 
+
 class RoundingMode(Enum):
     """Deterministic rounding modes for Q18 arithmetic."""
-    UP = "UP"        # Ceiling (for debits)
-    DOWN = "DOWN"    # Floor (for refunds)
+
+    UP = "UP"  # Ceiling (for debits)
+    DOWN = "DOWN"  # Floor (for refunds)
 
 
 ROUNDING_UP: Final[str] = RoundingMode.UP.value
@@ -91,8 +93,10 @@ PROPOSAL_ID_HEX_LEN: Final[int] = 16
 # Proposal Types
 # ============================================================================
 
+
 class ProposalType(Enum):
     """Allowed proposal types."""
+
     RENORM_QUOTIENT = "RENORM_QUOTIENT"
     UNFOLD_QUOTIENT = "UNFOLD_QUOTIENT"
     CONTINUOUS_FLOW = "CONTINUOUS_FLOW"
@@ -106,8 +110,10 @@ PROPOSAL_TYPES: Final[set] = {pt.value for pt in ProposalType}
 # Binary Delta Envelope Types
 # ============================================================================
 
+
 class DeltaKind(Enum):
     """Delta envelope kinds."""
+
     DELTA_Z = 0  # Continuous flow
     DELTA_A = 1  # Renorm/Unfold with atlas
 
@@ -116,24 +122,25 @@ class DeltaKind(Enum):
 # Hashing Preimages (for audit trail)
 # ============================================================================
 
+
 def spec_version_hash() -> str:
     """
     Compute hash of the specification version and domain separator.
-    
+
     This hash can be used to verify that the running code is based on
     a specific frozen version of the spec.
-    
+
     Returns:
         Lowercase hex SHA256 hash
     """
-    preimage = f"{DOMAIN_SEPARATOR}|{PROTOCOL_VERSION}|{NUMERIC_DOMAIN}".encode('utf-8')
+    preimage = f"{DOMAIN_SEPARATOR}|{PROTOCOL_VERSION}|{NUMERIC_DOMAIN}".encode("utf-8")
     return hashlib.sha256(preimage).hexdigest()
 
 
 def prng_seed_prefix_hash() -> str:
     """
     Compute hash of the PRNG seed prefix.
-    
+
     Returns:
         Lowercase hex SHA256 hash
     """
@@ -143,7 +150,7 @@ def prng_seed_prefix_hash() -> str:
 def prng_nonce_prefix_hash() -> str:
     """
     Compute hash of the PRNG nonce prefix.
-    
+
     Returns:
         Lowercase hex SHA256 hash
     """
@@ -154,37 +161,38 @@ def prng_nonce_prefix_hash() -> str:
 # Sanity Checks (Run at Import)
 # ============================================================================
 
+
 def _sanity_check() -> None:
     """
     Verify that all constants are valid and locked.
-    
+
     Raises:
         AssertionError: If any constant violates frozen constraints
     """
     # Domain separator must be exactly this
     assert DOMAIN_SEPARATOR == "NPE|1.0.1", "Domain separator must be frozen"
-    
+
     # Protocol version must match domain separator
     assert PROTOCOL_VERSION == "1.0.1", "Protocol version must be frozen"
-    
+
     # Numeric domain must be Q18
     assert NUMERIC_DOMAIN == "QFixed18", "Numeric domain must be Q18"
-    
+
     # Q18 scale must be 2^18
     assert Q18_SCALE == 262144, "Q18 scale must be 2^18"
-    
+
     # Rounding modes must be exactly these strings
     assert ROUNDING_UP == "UP", "UP rounding mode must be frozen"
     assert ROUNDING_DOWN == "DOWN", "DOWN rounding mode must be frozen"
-    
+
     # PRNG prefixes must be exactly these bytes
     assert PRNG_SEED_PREFIX == b"COH_NPE_PRNG_V1", "PRNG seed prefix must be frozen"
     assert PRNG_NONCE_PREFIX == b"COH_NPE_PRNG_NONCE_V1", "PRNG nonce prefix must be frozen"
-    
+
     # Hash lengths must match standard sizes
     assert SHA256_HEX_LEN == 64, "SHA256 hex length must be 64"
     assert CHACHA20_NONCE_LEN == 16, "ChaCha20 nonce must be 16 bytes"
-    
+
     # Proposal types must be exactly these
     assert "RENORM_QUOTIENT" in PROPOSAL_TYPES
     assert "UNFOLD_QUOTIENT" in PROPOSAL_TYPES
@@ -200,13 +208,14 @@ _sanity_check()
 # Test Vector Expectations (Computed on-demand, never hardcoded)
 # ============================================================================
 
+
 def expected_spec_hashes() -> dict:
     """
     Return expected hashes of spec components.
-    
+
     These are computed from locked constants and can be used to verify
     that the running NPE matches the frozen specification.
-    
+
     Returns:
         Dictionary with keys: spec_version, prng_seed_prefix, prng_nonce_prefix
     """

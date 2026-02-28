@@ -48,6 +48,7 @@ from cnsc.haai.tgs.corrections import (
 
 class GovernanceDecision(Enum):
     """Governance decision outcomes."""
+
     ACCEPTED = auto()
     REJECTED = auto()
     CORRECTED = auto()
@@ -58,7 +59,7 @@ class GovernanceDecision(Enum):
 class GovernanceResult:
     """
     Result of governance processing.
-    
+
     Attributes:
         decision: Final governance decision
         receipt: Generated receipt
@@ -68,6 +69,7 @@ class GovernanceResult:
         dt: Total dt value
         rail_results: Per-rail evaluation results
     """
+
     decision: GovernanceDecision
     receipt: Optional[TGSReceipt] = None
     snapshot: Optional[Snapshot] = None
@@ -81,7 +83,7 @@ class GovernanceResult:
 class TemporalGovernanceEngine:
     """
     Core TGS engine for temporal governance.
-    
+
     The engine processes proposals through the following pipeline:
     1. Snapshot current state
     2. Stage proposal deltas
@@ -91,7 +93,7 @@ class TemporalGovernanceEngine:
     6. Commit or rollback
     7. Emit receipt
     """
-    
+
     def __init__(
         self,
         clock_registry: Optional[ClockRegistry] = None,
@@ -102,7 +104,7 @@ class TemporalGovernanceEngine:
     ):
         """
         Initialize TGS with required dependencies.
-        
+
         Args:
             clock_registry: Clock registry (created if None)
             snapshot_manager: Snapshot manager (created if None)
@@ -112,29 +114,29 @@ class TemporalGovernanceEngine:
         """
         # Initialize or use provided clock registry
         self._clock_registry = clock_registry or self._create_default_clock_registry()
-        
+
         # Initialize or use provided snapshot manager
         self._snapshot_manager = snapshot_manager or SnapshotManager()
-        
+
         # Initialize or use provided receipt emitter
         self._receipt_emitter = receipt_emitter
-        
+
         # Initialize or use provided rails
         self._rails = coherence_rails or CoherenceRails()
-        
+
         # Initialize or use provided correction engine
         self._correction_engine = correction_engine or CorrectionEngine()
-        
+
         # Current state hash
         self._current_state_hash: Optional[StateHash] = None
-        
+
         # Logical time counter
         self._logical_time: int = 0
-    
+
     def _create_default_clock_registry(self) -> ClockRegistry:
         """Create default clock registry with all clocks."""
         registry = ClockRegistry()
-        
+
         # Register all default clocks
         registry.register_clock(ConsistencyClock())
         registry.register_clock(CommitmentClock())
@@ -142,9 +144,9 @@ class TemporalGovernanceEngine:
         registry.register_clock(ResourceClock())
         registry.register_clock(TaintClock())
         registry.register_clock(DriftClock())
-        
+
         return registry
-    
+
     def process_proposal(
         self,
         proposal: Proposal,
@@ -153,12 +155,12 @@ class TemporalGovernanceEngine:
     ) -> GovernanceResult:
         """
         Process proposal through TGS pipeline.
-        
+
         Args:
             proposal: Proposal to process
             current_state: Current cognitive state
             logical_time: Optional logical time (auto-increments if None)
-            
+
         Returns:
             GovernanceResult with decision and receipt
         """
@@ -168,44 +170,44 @@ class TemporalGovernanceEngine:
                 self._logical_time = logical_time
             else:
                 self._logical_time += 1
-            
+
             proposal.logical_time = self._logical_time
-            
+
             # Step 1: Snapshot current state
             snapshot = self._snapshot_manager.begin_attempt_snapshot(
                 state=current_state,
                 parent_state_hash=self._current_state_hash,
                 logical_time=self._logical_time,
             )
-            
+
             # Step 2: Stage proposal deltas
             staged = self._snapshot_manager.create_staged_state(snapshot)
             staged.apply_deltas(proposal.delta_ops)
-            
+
             # Step 3: Compute dt via clock arbitration
             dt, dt_components = self._clock_registry.compute_dt(proposal, staged.to_state_dict())
-            
+
             # Step 4: Evaluate coherence rails
             rail_results = self._rails.evaluate_all(staged, proposal)
-            
+
             # Step 5: Apply corrections if needed
             corrections = []
             if not rail_results.all_passed:
                 corrections = self._apply_corrections(rail_results, staged, proposal)
                 staged = self._correction_engine.apply_to_staged(staged, corrections)
-                
+
                 # Re-evaluate rails after corrections
                 rail_results = self._rails.evaluate_all(staged, proposal)
-            
+
             # Step 6: Resolve commitment (commit or rollback)
             should_accept, adjusted_confidence = self._correction_engine.should_accept(
                 corrections, proposal.confidence
             )
-            
+
             decision, new_state_hash = self._resolve_commitment(
                 snapshot, staged, should_accept, adjusted_confidence
             )
-            
+
             # Step 7: Emit receipt
             receipt = self._emit_receipt(
                 snapshot.state_hash,
@@ -217,11 +219,11 @@ class TemporalGovernanceEngine:
                 decision,
                 new_state_hash,
             )
-            
+
             # Update current state
             if new_state_hash:
                 self._current_state_hash = new_state_hash
-            
+
             return GovernanceResult(
                 decision=decision,
                 receipt=receipt,
@@ -231,18 +233,15 @@ class TemporalGovernanceEngine:
                 dt=dt,
                 rail_results=rail_results,
             )
-            
+
         except Exception as e:
             return GovernanceResult(
                 decision=GovernanceDecision.REJECTED,
                 error=str(e),
             )
-    
+
     def _apply_corrections(
-        self,
-        rail_results: CompositeRailResult,
-        staged: StagedState,
-        proposal: Proposal
+        self, rail_results: CompositeRailResult, staged: StagedState, proposal: Proposal
     ) -> List[Correction]:
         """Apply corrections based on rail results."""
         _, corrections = self._correction_engine.apply(
@@ -251,23 +250,23 @@ class TemporalGovernanceEngine:
             proposal,
         )
         return corrections
-    
+
     def _resolve_commitment(
         self,
         snapshot: Snapshot,
         staged: StagedState,
         should_accept: bool,
-        adjusted_confidence: float
+        adjusted_confidence: float,
     ) -> Tuple[GovernanceDecision, Optional[StateHash]]:
         """
         Commit or rollback based on gate evaluation.
-        
+
         Args:
             snapshot: Original snapshot
             staged: Staged state with modifications
             should_accept: Whether to accept proposal
             adjusted_confidence: Adjusted confidence after corrections
-            
+
         Returns:
             Tuple of (decision, new_state_hash)
         """
@@ -279,7 +278,7 @@ class TemporalGovernanceEngine:
             # Rollback to snapshot
             self._snapshot_manager.rollback(snapshot)
             return GovernanceDecision.REJECTED, None
-    
+
     def _emit_receipt(
         self,
         parent_state_hash: StateHash,
@@ -289,20 +288,18 @@ class TemporalGovernanceEngine:
         rail_results: CompositeRailResult,
         corrections: List[Correction],
         decision: GovernanceDecision,
-        new_state_hash: Optional[StateHash]
+        new_state_hash: Optional[StateHash],
     ) -> TGSReceipt:
         """Emit immutable governance receipt."""
         # Convert rail margins
-        gate_margins = {
-            str(r.rail_id): r.margin for r in rail_results.results
-        }
-        
+        gate_margins = {str(r.rail_id): r.margin for r in rail_results.results}
+
         # Convert reason codes
         reasons = self._decision_to_reasons(decision, rail_results)
-        
+
         # Compute diff digest
         diff_digest = self._compute_diff_digest(rail_results)
-        
+
         # Create receipt
         receipt = TGSReceipt(
             parent_state_hash=str(parent_state_hash),
@@ -322,21 +319,19 @@ class TemporalGovernanceEngine:
                 "correction_count": len(corrections),
             },
         )
-        
+
         # Emit to ledger if emitter is configured
         if self._receipt_emitter:
             self._receipt_emitter.emit(receipt)
-        
+
         return receipt
-    
+
     def _decision_to_reasons(
-        self,
-        decision: GovernanceDecision,
-        rail_results: CompositeRailResult
+        self, decision: GovernanceDecision, rail_results: CompositeRailResult
     ) -> List[ReasonCode]:
         """Convert decision to reason codes."""
         reasons = []
-        
+
         for result in rail_results.results:
             if str(result.rail_id) == "consistency":
                 reasons.append(ReasonCode.CONSISTENCY_CHECK)
@@ -348,17 +343,17 @@ class TemporalGovernanceEngine:
                 reasons.append(ReasonCode.RESOURCE_CHECK)
             elif str(result.rail_id) == "taint":
                 reasons.append(ReasonCode.TAINT_CHECK)
-        
+
         if decision == GovernanceDecision.CORRECTED:
             reasons.append(ReasonCode.CORRECTION_APPLIED)
-        
+
         return reasons
-    
+
     def _compute_diff_digest(self, rail_results: CompositeRailResult) -> str:
         """Compute digest of rail results."""
         import hashlib
         import json
-        
+
         results_dict = {
             str(r.rail_id): {
                 "decision": r.decision.name,
@@ -367,19 +362,23 @@ class TemporalGovernanceEngine:
             }
             for r in rail_results.results
         }
-        
+
         digest_input = json.dumps(results_dict, sort_keys=True)
         return hashlib.sha256(digest_input.encode()).hexdigest()[:32]
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get TGS system status."""
         return {
             "logical_time": self._logical_time,
-            "current_state_hash": str(self._current_state_hash) if self._current_state_hash else None,
+            "current_state_hash": (
+                str(self._current_state_hash) if self._current_state_hash else None
+            ),
             "registered_clocks": self._clock_registry.list_clocks(),
-            "ledger_length": self._receipt_emitter._ledger.get_length() if self._receipt_emitter else 0,
+            "ledger_length": (
+                self._receipt_emitter._ledger.get_length() if self._receipt_emitter else 0
+            ),
         }
-    
+
     def set_receipt_emitter(self, emitter: ReceiptEmitter) -> None:
         """Set the receipt emitter."""
         self._receipt_emitter = emitter

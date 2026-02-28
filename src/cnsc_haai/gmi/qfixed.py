@@ -14,6 +14,7 @@ SCALE = 10**6  # QFixed6: integers represent value / 1e6
 @dataclass(frozen=True)
 class Q:
     """Immutable QFixed6 value - scaled integer representation."""
+
     v: int  # scaled integer
 
     @staticmethod

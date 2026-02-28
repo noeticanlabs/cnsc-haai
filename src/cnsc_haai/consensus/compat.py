@@ -6,10 +6,10 @@ It allows gradual migration from bare hex to sha256: prefix format.
 
 Usage:
     from cnsc_haai.consensus.compat import compat_sha256, compat_verify
-    
+
     # Old style (bare hex)
     digest = compat_sha256(data)  # Returns "sha256:..." prefix
-    
+
     # New style (prefixed)
     digest = sha256_prefixed(data)  # Returns "sha256:..." prefix
 """
@@ -33,13 +33,13 @@ from .chain import chain_hash_v1 as _chain_hash_v1
 def compat_sha256(data: Union[bytes, str]) -> str:
     """
     Compute SHA256 hash (new format with prefix).
-    
+
     This replaces the old pattern:
         hashlib.sha256(data).hexdigest()
-    
+
     Args:
         data: Bytes or string to hash
-        
+
     Returns:
         SHA256 hash with 'sha256:' prefix
     """
@@ -49,14 +49,14 @@ def compat_sha256(data: Union[bytes, str]) -> str:
 def compat_decode(digest: str) -> bytes:
     """
     Decode any SHA256 digest format to raw bytes.
-    
+
     Handles both:
     - "sha256:..." (new format)
     - "..." (bare hex - legacy)
-    
+
     Args:
         digest: SHA256 digest string
-        
+
     Returns:
         Raw 32-byte hash
     """
@@ -70,15 +70,16 @@ def compat_decode(digest: str) -> bytes:
 def compat_chain_hash(prev_hash: str, receipt_core: dict) -> str:
     """
     Compute chain hash (supports both old and new formats).
-    
+
     Args:
         prev_hash: Previous chain hash (any format)
         receipt_core: Receipt core dictionary
-        
+
     Returns:
         Chain hash with 'sha256:' prefix
     """
     from .chain import chain_hash_v1_prefixed
+
     return chain_hash_v1_prefixed(prev_hash, receipt_core)
 
 
@@ -86,12 +87,13 @@ def compat_chain_hash(prev_hash: str, receipt_core: dict) -> str:
 def canonical_bytes_legacy(obj) -> bytes:
     """
     Legacy canonical bytes using json.dumps with sort_keys.
-    
+
     This is NOT RFC8785 compliant but maintained for backward compatibility.
     Use jcs_canonical_bytes for new code.
     """
     import json
-    return json.dumps(obj, sort_keys=True, separators=(',', ':'), default=str).encode('utf-8')
+
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
 
 
 # Migration guide

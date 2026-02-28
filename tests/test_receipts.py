@@ -24,7 +24,7 @@ from src.cnhaai.core.receipts import (
     ReceiptContent,
     ReceiptProvenance,
     Receipt,
-    ReceiptSystem
+    ReceiptSystem,
 )
 
 
@@ -67,9 +67,7 @@ class TestReceiptSignature:
     def test_signature_creation(self):
         """Test creating a receipt signature."""
         signature = ReceiptSignature(
-            algorithm="HMAC-SHA256",
-            signer="test-signer",
-            signature="test-signature"
+            algorithm="HMAC-SHA256", signer="test-signer", signature="test-signature"
         )
 
         assert signature.algorithm == "HMAC-SHA256"
@@ -86,11 +84,7 @@ class TestReceiptSignature:
 
     def test_signature_to_dict(self):
         """Test converting signature to dictionary."""
-        signature = ReceiptSignature(
-            algorithm="HMAC-SHA256",
-            signer="test",
-            signature="sig123"
-        )
+        signature = ReceiptSignature(algorithm="HMAC-SHA256", signer="test", signature="sig123")
 
         result = signature.to_dict()
 
@@ -100,11 +94,7 @@ class TestReceiptSignature:
 
     def test_signature_from_dict(self):
         """Test creating signature from dictionary."""
-        data = {
-            "algorithm": "HMAC-SHA256",
-            "signer": "test-signer",
-            "signature": "sig456"
-        }
+        data = {"algorithm": "HMAC-SHA256", "signer": "test-signer", "signature": "sig456"}
 
         signature = ReceiptSignature.from_dict(data)
 
@@ -133,7 +123,7 @@ class TestReceiptContent:
             input_state="input-hash",
             output_state="output-hash",
             decision=ReceiptDecision.PASS,
-            details={"score": 0.9}
+            details={"score": 0.9},
         )
 
         assert content.step_type == ReceiptStepType.GATE_VALIDATION
@@ -156,7 +146,7 @@ class TestReceiptContent:
         content = ReceiptContent(
             step_type=ReceiptStepType.ABSTRACTION_CREATION,
             decision=ReceiptDecision.WARN,
-            details={"abstraction_id": "abs-123"}
+            details={"abstraction_id": "abs-123"},
         )
 
         result = content.to_dict()
@@ -174,7 +164,7 @@ class TestReceiptContent:
             "input_state": "start-state",
             "output_state": "end-state",
             "decision": "FAIL",
-            "details": {"reason": "error"}
+            "details": {"reason": "error"},
         }
 
         content = ReceiptContent.from_dict(data)
@@ -202,8 +192,7 @@ class TestReceiptProvenance:
     def test_provenance_creation(self):
         """Test creating receipt provenance."""
         provenance = ReceiptProvenance(
-            parent_receipts=["parent-1", "parent-2"],
-            evidence_references=["evidence-1"]
+            parent_receipts=["parent-1", "parent-2"], evidence_references=["evidence-1"]
         )
 
         assert provenance.parent_receipts == ["parent-1", "parent-2"]
@@ -219,8 +208,7 @@ class TestReceiptProvenance:
     def test_provenance_to_dict(self):
         """Test converting provenance to dictionary."""
         provenance = ReceiptProvenance(
-            parent_receipts=["p1", "p2"],
-            evidence_references=["e1", "e2", "e3"]
+            parent_receipts=["p1", "p2"], evidence_references=["e1", "e2", "e3"]
         )
 
         result = provenance.to_dict()
@@ -230,10 +218,7 @@ class TestReceiptProvenance:
 
     def test_provenance_from_dict(self):
         """Test creating provenance from dictionary."""
-        data = {
-            "parent_receipts": ["parent-id"],
-            "evidence_references": ["evidence-id"]
-        }
+        data = {"parent_receipts": ["parent-id"], "evidence_references": ["evidence-id"]}
 
         provenance = ReceiptProvenance.from_dict(data)
 
@@ -256,8 +241,7 @@ class TestReceipt:
     def test_receipt_creation(self):
         """Test creating a receipt."""
         content = ReceiptContent(
-            step_type=ReceiptStepType.GATE_VALIDATION,
-            decision=ReceiptDecision.PASS
+            step_type=ReceiptStepType.GATE_VALIDATION, decision=ReceiptDecision.PASS
         )
         provenance = ReceiptProvenance()
         signature = ReceiptSignature()
@@ -268,7 +252,7 @@ class TestReceipt:
             episode_id="episode-456",
             content=content,
             provenance=provenance,
-            signature=signature
+            signature=signature,
         )
 
         assert receipt.version == "1.0.0"
@@ -296,16 +280,10 @@ class TestReceipt:
             receipt_id="test-id",
             episode_id="episode-id",
             content=ReceiptContent(
-                step_type=ReceiptStepType.PHASE_TRANSITION,
-                decision=ReceiptDecision.PASS
+                step_type=ReceiptStepType.PHASE_TRANSITION, decision=ReceiptDecision.PASS
             ),
-            provenance=ReceiptProvenance(
-                parent_receipts=["parent-id"]
-            ),
-            signature=ReceiptSignature(
-                signer="test-signer",
-                signature="test-sig"
-            )
+            provenance=ReceiptProvenance(parent_receipts=["parent-id"]),
+            signature=ReceiptSignature(signer="test-signer", signature="test-sig"),
         )
 
         result = receipt.to_dict()
@@ -322,7 +300,7 @@ class TestReceipt:
         """Test converting receipt to JSON string."""
         receipt = Receipt(
             episode_id="test-episode",
-            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START)
+            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START),
         )
 
         json_str = receipt.to_json()
@@ -343,17 +321,10 @@ class TestReceipt:
                 "input_state": "input",
                 "output_state": "output",
                 "decision": "PASS",
-                "details": {"score": 0.9}
+                "details": {"score": 0.9},
             },
-            "provenance": {
-                "parent_receipts": ["parent-1"],
-                "evidence_references": ["evidence-1"]
-            },
-            "signature": {
-                "algorithm": "HMAC-SHA256",
-                "signer": "system",
-                "signature": "sig-123"
-            }
+            "provenance": {"parent_receipts": ["parent-1"], "evidence_references": ["evidence-1"]},
+            "signature": {"algorithm": "HMAC-SHA256", "signer": "system", "signature": "sig-123"},
         }
 
         receipt = Receipt.from_dict(data)
@@ -367,18 +338,17 @@ class TestReceipt:
 
     def test_receipt_from_json(self):
         """Test creating receipt from JSON string."""
-        json_str = json.dumps({
-            "version": "1.0.0",
-            "receipt_id": "test-id",
-            "timestamp": "2024-01-01T00:00:00",
-            "episode_id": "test-episode",
-            "content": {
-                "step_type": "PHASE_TRANSITION",
-                "decision": "PASS"
-            },
-            "provenance": {},
-            "signature": {}
-        })
+        json_str = json.dumps(
+            {
+                "version": "1.0.0",
+                "receipt_id": "test-id",
+                "timestamp": "2024-01-01T00:00:00",
+                "episode_id": "test-episode",
+                "content": {"step_type": "PHASE_TRANSITION", "decision": "PASS"},
+                "provenance": {},
+                "signature": {},
+            }
+        )
 
         receipt = Receipt.from_json(json_str)
 
@@ -390,7 +360,7 @@ class TestReceipt:
         receipt = Receipt(
             receipt_id="test-id",
             episode_id="test-episode",
-            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START)
+            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START),
         )
 
         hash_value = receipt.compute_hash()
@@ -403,12 +373,12 @@ class TestReceipt:
         receipt1 = Receipt(
             receipt_id="test-id",
             episode_id="test-episode",
-            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START)
+            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_START),
         )
         receipt2 = Receipt(
             receipt_id="test-id",
             episode_id="test-episode",
-            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_END)
+            content=ReceiptContent(step_type=ReceiptStepType.EPISODE_END),
         )
 
         hash1 = receipt1.compute_hash()
@@ -424,12 +394,11 @@ class TestReceipt:
             content=ReceiptContent(
                 step_type=ReceiptStepType.RECOVERY_ACTION,
                 decision=ReceiptDecision.WARN,
-                details={"recovery_type": "reconstruction"}
+                details={"recovery_type": "reconstruction"},
             ),
             provenance=ReceiptProvenance(
-                parent_receipts=["parent-id"],
-                evidence_references=["evidence-id"]
-            )
+                parent_receipts=["parent-id"], evidence_references=["evidence-id"]
+            ),
         )
 
         restored = Receipt.from_dict(original.to_dict())
@@ -447,9 +416,7 @@ class TestReceiptSystem:
     def test_system_creation(self):
         """Test creating a receipt system."""
         system = ReceiptSystem(
-            signing_key="test-key",
-            storage_type="in_memory",
-            retention="session"
+            signing_key="test-key", storage_type="in_memory", retention="session"
         )
 
         assert system.signing_key == "test-key"
@@ -477,7 +444,7 @@ class TestReceiptSystem:
             input_state="input-hash",
             output_state="output-hash",
             decision=ReceiptDecision.PASS,
-            details={"score": 0.9}
+            details={"score": 0.9},
         )
 
         assert receipt.episode_id == "test-episode"
@@ -491,14 +458,13 @@ class TestReceiptSystem:
         system = ReceiptSystem(signing_key="test-key")
 
         parent = system.emit_receipt(
-            episode_id="test-episode",
-            step_type=ReceiptStepType.EPISODE_START
+            episode_id="test-episode", step_type=ReceiptStepType.EPISODE_START
         )
 
         child = system.emit_receipt(
             episode_id="test-episode",
             step_type=ReceiptStepType.GATE_VALIDATION,
-            parent_receipts=[parent.receipt_id]
+            parent_receipts=[parent.receipt_id],
         )
 
         assert parent.receipt_id in child.provenance.parent_receipts
@@ -508,8 +474,7 @@ class TestReceiptSystem:
         system = ReceiptSystem(signing_key="test-key")
 
         receipt = system.emit_receipt(
-            episode_id="test-episode",
-            step_type=ReceiptStepType.PHASE_TRANSITION
+            episode_id="test-episode", step_type=ReceiptStepType.PHASE_TRANSITION
         )
 
         assert receipt.receipt_id in system.receipts
@@ -520,8 +485,7 @@ class TestReceiptSystem:
         """Test retrieving a receipt by ID."""
         system = ReceiptSystem(signing_key="test-key")
         emitted = system.emit_receipt(
-            episode_id="test-episode",
-            step_type=ReceiptStepType.ABSTRACTION_CREATION
+            episode_id="test-episode", step_type=ReceiptStepType.ABSTRACTION_CREATION
         )
 
         retrieved = system.get_receipt(emitted.receipt_id)
@@ -552,7 +516,7 @@ class TestReceiptSystem:
     def test_get_receipt_chain_sorted(self):
         """Test that receipt chain is sorted by timestamp."""
         system = ReceiptSystem(signing_key="test-key")
-        
+
         # Create receipts in reverse order
         r2 = system.emit_receipt(episode_id="ep1", step_type=ReceiptStepType.EPISODE_END)
         r1 = system.emit_receipt(episode_id="ep1", step_type=ReceiptStepType.GATE_VALIDATION)
@@ -568,8 +532,7 @@ class TestReceiptSystem:
         """Test verifying a valid receipt."""
         system = ReceiptSystem(signing_key="test-key")
         receipt = system.emit_receipt(
-            episode_id="test-episode",
-            step_type=ReceiptStepType.GATE_VALIDATION
+            episode_id="test-episode", step_type=ReceiptStepType.GATE_VALIDATION
         )
 
         is_valid = system.verify_receipt(receipt)
@@ -580,8 +543,7 @@ class TestReceiptSystem:
         """Test verifying a tampered receipt."""
         system = ReceiptSystem(signing_key="test-key")
         receipt = system.emit_receipt(
-            episode_id="test-episode",
-            step_type=ReceiptStepType.GATE_VALIDATION
+            episode_id="test-episode", step_type=ReceiptStepType.GATE_VALIDATION
         )
 
         # Tamper with the receipt
@@ -631,7 +593,7 @@ class TestReceiptSystem:
             episode_id="test-episode",
             gate_name="Evidence Sufficiency Gate",
             decision=ReceiptDecision.PASS,
-            details={"score": 0.9}
+            details={"score": 0.9},
         )
 
         assert receipt.content.step_type == ReceiptStepType.GATE_VALIDATION
@@ -646,7 +608,7 @@ class TestReceiptSystem:
             from_phase="ACQUISITION",
             to_phase="CONSTRUCTION",
             duration_ms=100,
-            steps_completed=5
+            steps_completed=5,
         )
 
         assert receipt.content.step_type == ReceiptStepType.PHASE_TRANSITION

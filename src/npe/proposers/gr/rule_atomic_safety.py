@@ -17,45 +17,45 @@ def propose(
     registry: Any,
 ) -> List[Candidate]:
     """Propose safety rules from rulepacks.
-    
+
     Args:
         context: Execution context
         budget: Budget constraints
         registry: Proposer registry
-        
+
     Returns:
         List of solver config and repair candidates
     """
     candidates = []
-    
+
     # Get risk posture from context
     ctx = context.get("context", {})
     risk_posture = ctx.get("risk_posture", "conservative")
-    
+
     # Load rulepacks
     codebook_store = context.get("codebook_store")
     if not codebook_store:
         return candidates
-    
+
     # Get conservative knobs
     knobs = codebook_store.get_conservative_knobs("gr")
-    
+
     if not knobs:
         return candidates
-    
+
     # Create solver config candidate
     solver_config = _create_solver_config(knobs, risk_posture, context)
     if solver_config:
         candidates.append(solver_config)
-    
+
     # Create safety repair candidates for applicable rules
     rules = codebook_store.get_rules("gr")
-    for rule in rules[:budget.max_candidates]:
+    for rule in rules[: budget.max_candidates]:
         if rule.get("safety_critical", False):
             repair = _create_safety_repair(rule, context)
             if repair:
                 candidates.append(repair)
-    
+
     return candidates
 
 
@@ -65,12 +65,12 @@ def _create_solver_config(
     context: Dict[str, Any],
 ) -> Candidate:
     """Create a solver configuration candidate.
-    
+
     Args:
         knobs: Conservative knob settings
         risk_posture: Current risk posture
         context: Execution context
-        
+
     Returns:
         Solver config candidate
     """
@@ -81,22 +81,22 @@ def _create_solver_config(
         for key in knobs:
             if isinstance(knobs[key], (int, float)):
                 knobs[key] = knobs[key] * 1.5 if key.startswith("max_") else knobs[key]
-    
+
     payload = {
         "config_type": "solver",
         "knobs": knobs,
         "risk_posture": risk_posture,
         "safety_level": "conservative",
     }
-    
+
     payload_hash = hash_candidate_payload(payload)
-    
+
     state_ref = context.get("state_ref")
     constraints_ref = context.get("constraints_ref")
-    
+
     input_state_hash = state_ref.state_hash if state_ref else ""
     constraints_hash = constraints_ref.constraints_hash if constraints_ref else ""
-    
+
     candidate = Candidate(
         candidate_hash="",
         candidate_type="solver_config",
@@ -113,16 +113,18 @@ def _create_solver_config(
             invocation_order=0,
         ),
     )
-    
-    candidate.candidate_hash = hash_candidate({
-        "candidate_type": candidate.candidate_type,
-        "domain": candidate.domain,
-        "input_state_hash": candidate.input_state_hash,
-        "constraints_hash": candidate.constraints_hash,
-        "payload_hash": candidate.payload_hash,
-        "payload": candidate.payload,
-    })
-    
+
+    candidate.candidate_hash = hash_candidate(
+        {
+            "candidate_type": candidate.candidate_type,
+            "domain": candidate.domain,
+            "input_state_hash": candidate.input_state_hash,
+            "constraints_hash": candidate.constraints_hash,
+            "payload_hash": candidate.payload_hash,
+            "payload": candidate.payload,
+        }
+    )
+
     return candidate
 
 
@@ -131,11 +133,11 @@ def _create_safety_repair(
     context: Dict[str, Any],
 ) -> Candidate:
     """Create a safety repair candidate from a rule.
-    
+
     Args:
         rule: Safety rule from rulepacks
         context: Execution context
-        
+
     Returns:
         Safety repair candidate
     """
@@ -147,15 +149,15 @@ def _create_safety_repair(
         "enforcement": rule.get("enforcement", "hard"),
         "parameters": rule.get("parameters", {}),
     }
-    
+
     payload_hash = hash_candidate_payload(payload)
-    
+
     state_ref = context.get("state_ref")
     constraints_ref = context.get("constraints_ref")
-    
+
     input_state_hash = state_ref.state_hash if state_ref else ""
     constraints_hash = constraints_ref.constraints_hash if constraints_ref else ""
-    
+
     candidate = Candidate(
         candidate_hash="",
         candidate_type="repair",
@@ -172,26 +174,28 @@ def _create_safety_repair(
             invocation_order=1,
         ),
     )
-    
-    candidate.candidate_hash = hash_candidate({
-        "candidate_type": candidate.candidate_type,
-        "domain": candidate.domain,
-        "input_state_hash": candidate.input_state_hash,
-        "constraints_hash": candidate.constraints_hash,
-        "payload_hash": candidate.payload_hash,
-        "payload": candidate.payload,
-    })
-    
+
+    candidate.candidate_hash = hash_candidate(
+        {
+            "candidate_type": candidate.candidate_type,
+            "domain": candidate.domain,
+            "input_state_hash": candidate.input_state_hash,
+            "constraints_hash": candidate.constraints_hash,
+            "payload_hash": candidate.payload_hash,
+            "payload": candidate.payload,
+        }
+    )
+
     return candidate
 
 
 def _score_config(knobs: Dict[str, Any], risk_posture: str) -> Scores:
     """Score a solver configuration.
-    
+
     Args:
         knobs: Configuration knobs
         risk_posture: Current risk posture
-        
+
     Returns:
         Scores for the config
     """
@@ -205,10 +209,10 @@ def _score_config(knobs: Dict[str, Any], risk_posture: str) -> Scores:
 
 def _score_rule(rule: Dict[str, Any]) -> Scores:
     """Score a safety rule.
-    
+
     Args:
         rule: Safety rule
-        
+
     Returns:
         Scores for the rule
     """

@@ -6,7 +6,8 @@ Verifies that same request produces same response across multiple runs.
 
 import pytest
 import sys
-sys.path.insert(0, '/workspaces/cnsc-haai/src')
+
+sys.path.insert(0, "/workspaces/cnsc-haai/src")
 
 from npe.core.types import NPERequest, Budgets, Goal, Context
 from npe.core.hashing import hash_request
@@ -14,7 +15,7 @@ from npe.core.hashing import hash_request
 
 class TestDeterminismD0:
     """Tests for D0 determinism tier."""
-    
+
     def test_same_request_same_request_id(self):
         """Same request data produces same request_id."""
         request_data = {
@@ -36,15 +37,15 @@ class TestDeterminismD0:
                 },
             },
         }
-        
+
         # Compute hash 3 times
         hash1 = hash_request(request_data)
         hash2 = hash_request(request_data)
         hash3 = hash_request(request_data)
-        
+
         assert hash1 == hash2 == hash3
         assert len(hash1) == 64
-    
+
     def test_same_request_object_same_hash(self):
         """Same NPERequest object produces same hash."""
         request = NPERequest(
@@ -59,7 +60,7 @@ class TestDeterminismD0:
                 "goals": [{"goal_type": "repair"}],
             },
         )
-        
+
         # Convert to dict and hash multiple times
         request_dict = {
             "spec": request.spec,
@@ -76,12 +77,12 @@ class TestDeterminismD0:
             },
             "inputs": request.inputs,
         }
-        
+
         hash1 = hash_request(request_dict)
         hash2 = hash_request(request_dict)
-        
+
         assert hash1 == hash2
-    
+
     def test_different_seed_different_hash(self):
         """Different seeds produce different hashes."""
         base_data = {
@@ -92,18 +93,18 @@ class TestDeterminismD0:
             "budgets": {"max_wall_ms": 1000, "max_candidates": 16},
             "inputs": {},
         }
-        
+
         data1 = dict(base_data)
         data1["seed"] = 1
-        
+
         data2 = dict(base_data)
         data2["seed"] = 2
-        
+
         hash1 = hash_request(data1)
         hash2 = hash_request(data2)
-        
+
         assert hash1 != hash2
-    
+
     def test_goals_order_affects_hash(self):
         """Goals order affects hash (as it should for determinism)."""
         data1 = {
@@ -119,7 +120,7 @@ class TestDeterminismD0:
                 ]
             },
         }
-        
+
         data2 = {
             "spec": "NPE-REQUEST-1.0",
             "request_type": "propose",
@@ -133,13 +134,13 @@ class TestDeterminismD0:
                 ]
             },
         }
-        
+
         hash1 = hash_request(data1)
         hash2 = hash_request(data2)
-        
+
         # Different order should produce different hash
         assert hash1 != hash2
-    
+
     def test_request_parsing_deterministic(self):
         """Parsing request multiple times produces same result."""
         request_data = {
@@ -160,7 +161,7 @@ class TestDeterminismD0:
                 }
             },
         }
-        
+
         # Parse 3 times
         results = []
         for _ in range(3):
@@ -179,18 +180,18 @@ class TestDeterminismD0:
                 inputs=request_data["inputs"],
             )
             results.append(request.request_id)
-        
+
         # All request IDs should be identical
         assert results[0] == results[1] == results[2]
 
 
 class TestCandidateDeterminism:
     """Tests for candidate generation determinism."""
-    
+
     def test_same_candidate_structure_same_hash(self):
         """Same candidate structure produces same hash."""
         from npe.core.hashing import hash_candidate
-        
+
         candidate1 = {
             "candidate_type": "repair",
             "domain": "gr",
@@ -199,7 +200,7 @@ class TestCandidateDeterminism:
             "payload_hash": "ghi",
             "payload": {"action": "adjust"},
         }
-        
+
         candidate2 = {
             "candidate_type": "repair",
             "domain": "gr",
@@ -208,16 +209,16 @@ class TestCandidateDeterminism:
             "payload_hash": "ghi",
             "payload": {"action": "adjust"},
         }
-        
+
         hash1 = hash_candidate(candidate1)
         hash2 = hash_candidate(candidate2)
-        
+
         assert hash1 == hash2
-    
+
     def test_different_payload_different_hash(self):
         """Different payload produces different hash."""
         from npe.core.hashing import hash_candidate
-        
+
         candidate1 = {
             "candidate_type": "repair",
             "domain": "gr",
@@ -226,7 +227,7 @@ class TestCandidateDeterminism:
             "payload_hash": "ghi",
             "payload": {"action": "adjust", "param": 1},
         }
-        
+
         candidate2 = {
             "candidate_type": "repair",
             "domain": "gr",
@@ -235,10 +236,10 @@ class TestCandidateDeterminism:
             "payload_hash": "ghi",
             "payload": {"action": "adjust", "param": 2},
         }
-        
+
         hash1 = hash_candidate(candidate1)
         hash2 = hash_candidate(candidate2)
-        
+
         assert hash1 != hash2
 
 

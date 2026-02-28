@@ -46,10 +46,10 @@ from cnsc.haai.gml.receipts import (
     NPEReceipt,
 )
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_requests_session():
@@ -123,7 +123,9 @@ def sample_gate_context():
 class TestProposerClientHealth:
     """Tests for ProposerClient.health() method."""
 
-    def test_health_returns_true_when_service_available(self, mock_requests_session, mock_health_response):
+    def test_health_returns_true_when_service_available(
+        self, mock_requests_session, mock_health_response
+    ):
         """Test health check returns True when NPE is healthy."""
         mock_requests_session.request.return_value = mock_health_response
 
@@ -135,7 +137,9 @@ class TestProposerClientHealth:
 
     def test_health_returns_false_when_service_unavailable(self, mock_requests_session):
         """Test health check returns False when NPE is unavailable."""
-        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError("Connection failed")
+        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection failed"
+        )
 
         client = ProposerClient()
         result = client.health()
@@ -208,7 +212,9 @@ class TestProposerClientPropose:
         # Verify response is parsed correctly
         assert "proposals" in result
 
-    def test_propose_uses_default_budget_when_not_provided(self, mock_requests_session, mock_response):
+    def test_propose_uses_default_budget_when_not_provided(
+        self, mock_requests_session, mock_response
+    ):
         """Test that propose() uses default budget when not provided."""
         mock_requests_session.request.return_value = mock_response
 
@@ -266,7 +272,9 @@ class TestProposerClientErrorHandling:
 
     def test_propose_raises_connection_error(self, mock_requests_session):
         """Test that propose() raises ConnectionError on network failure."""
-        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError("Connection refused")
+        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
 
         client = ProposerClient()
         with pytest.raises(ProposerConnectionError):
@@ -282,7 +290,9 @@ class TestProposerClientErrorHandling:
 
     def test_repair_raises_connection_error(self, mock_requests_session):
         """Test that repair() raises ConnectionError on network failure."""
-        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError("Connection refused")
+        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
 
         client = ProposerClient()
         with pytest.raises(ProposerConnectionError):
@@ -290,7 +300,9 @@ class TestProposerClientErrorHandling:
 
     def test_health_returns_false_on_connection_error(self, mock_requests_session):
         """Test that health() returns False on connection error."""
-        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError("Connection refused")
+        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
 
         client = ProposerClient()
         result = client.health()
@@ -321,11 +333,11 @@ class TestGateProposerClientIntegration:
     def test_gate_request_repair_calls_proposer_client(self, mock_response):
         """Test that Gate.request_repair() calls proposer client correctly."""
         client = ProposerClient()
-        
+
         # Mock the session.request method BEFORE any calls
         original_request = client.session.request
         client.session.request = MagicMock(return_value=mock_response)
-        
+
         try:
             gate = EvidenceSufficiencyGate()
             gate.proposer_client = client
@@ -335,7 +347,7 @@ class TestGateProposerClientIntegration:
 
             # Verify the session.request was called
             assert client.session.request.called
-            
+
             # Verify proposals returned
             assert len(proposals) == 1
             assert proposals[0]["candidate"]["action"] == "test_action"
@@ -353,7 +365,9 @@ class TestGateProposerClientIntegration:
 
     def test_gate_request_repair_handles_errors(self, mock_requests_session):
         """Test that Gate.request_repair() handles errors gracefully."""
-        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError("Connection refused")
+        mock_requests_session.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
 
         client = ProposerClient()
         gate = EvidenceSufficiencyGate()
@@ -367,7 +381,9 @@ class TestGateProposerClientIntegration:
 class TestGateEvaluateAndRequestRepair:
     """Tests for gate evaluation triggering repair requests."""
 
-    def test_gate_failure_triggers_repair_request(self, mock_requests_session, mock_response, sample_gate_context):
+    def test_gate_failure_triggers_repair_request(
+        self, mock_requests_session, mock_response, sample_gate_context
+    ):
         """Test that gate failure can trigger repair request."""
         mock_requests_session.request.return_value = mock_response
 
@@ -730,7 +746,7 @@ class TestEndToEndMockFlow:
         client = ProposerClient()
         original_request = client.session.request
         client.session.request = MagicMock(return_value=repair_response)
-        
+
         try:
             # Create gate with proposer_client
             gate = CoherenceCheckGate(

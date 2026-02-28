@@ -23,7 +23,7 @@ from src.cnhaai.core.gates import (
     Gate,
     EvidenceSufficiencyGate,
     CoherenceCheckGate,
-    GateManager
+    GateManager,
 )
 
 
@@ -75,7 +75,7 @@ class TestGateResult:
             decision=GateDecision.PASS,
             gate_type=GateType.EVIDENCE_SUFFICIENCY,
             details={"score": 0.9},
-            message="Test passed"
+            message="Test passed",
         )
 
         assert result.decision == GateDecision.PASS
@@ -86,10 +86,7 @@ class TestGateResult:
 
     def test_gate_result_defaults(self):
         """Test gate result default values."""
-        result = GateResult(
-            decision=GateDecision.PASS,
-            gate_type=GateType.COHERENCE_CHECK
-        )
+        result = GateResult(decision=GateDecision.PASS, gate_type=GateType.COHERENCE_CHECK)
 
         assert result.details == {}
         assert result.message == ""
@@ -101,7 +98,7 @@ class TestGateResult:
             decision=GateDecision.FAIL,
             gate_type=GateType.COHERENCE_CHECK,
             details={"error": "test"},
-            message="Gate failed"
+            message="Gate failed",
         )
 
         result_dict = result.to_dict()
@@ -118,11 +115,7 @@ class TestGateBaseClass:
 
     def test_gate_creation_with_concrete_subclass(self):
         """Test creating a gate using concrete EvidenceSufficiencyGate subclass."""
-        gate = EvidenceSufficiencyGate(
-            threshold=0.8,
-            strict=True,
-            min_evidence_count=2
-        )
+        gate = EvidenceSufficiencyGate(threshold=0.8, strict=True, min_evidence_count=2)
 
         assert gate.gate_type == GateType.EVIDENCE_SUFFICIENCY
         assert gate.name == "Evidence Sufficiency Gate"
@@ -133,10 +126,7 @@ class TestGateBaseClass:
 
     def test_gate_default_values_with_concrete_subclass(self):
         """Test gate default values using CoherenceCheckGate."""
-        gate = CoherenceCheckGate(
-            threshold=0.8,
-            strict=True
-        )
+        gate = CoherenceCheckGate(threshold=0.8, strict=True)
 
         assert gate.description == "Validates coherence of reasoning with existing constraints"
         assert gate.threshold == 0.8
@@ -171,11 +161,7 @@ class TestEvidenceSufficiencyGate:
 
     def test_gate_creation(self):
         """Test creating an evidence sufficiency gate."""
-        gate = EvidenceSufficiencyGate(
-            threshold=0.8,
-            strict=True,
-            min_evidence_count=2
-        )
+        gate = EvidenceSufficiencyGate(threshold=0.8, strict=True, min_evidence_count=2)
 
         assert gate.gate_type == GateType.EVIDENCE_SUFFICIENCY
         assert gate.name == "Evidence Sufficiency Gate"
@@ -217,7 +203,7 @@ class TestEvidenceSufficiencyGate:
         context = {
             "evidence": ["e1", "e2", "e3"],
             "evidence_scores": [0.9, 0.85, 0.95],
-            "required_claims": ["e1", "e2"]
+            "required_claims": ["e1", "e2"],
         }
         state = {}
 
@@ -233,7 +219,7 @@ class TestEvidenceSufficiencyGate:
         context = {
             "evidence": ["e1", "e2"],
             "evidence_scores": [0.5, 0.5],
-            "required_claims": ["e1", "e2", "e3"]
+            "required_claims": ["e1", "e2", "e3"],
         }
         state = {}
 
@@ -245,11 +231,7 @@ class TestEvidenceSufficiencyGate:
     def test_evaluate_insufficient_evidence_quality(self):
         """Test evaluation with low evidence quality."""
         gate = EvidenceSufficiencyGate(threshold=0.8)
-        context = {
-            "evidence": ["e1"],
-            "evidence_scores": [0.3],
-            "required_claims": ["e1"]
-        }
+        context = {"evidence": ["e1"], "evidence_scores": [0.3], "required_claims": ["e1"]}
         state = {}
 
         result = gate.evaluate(context, state)
@@ -263,10 +245,7 @@ class TestEvidenceSufficiencyGate:
     def test_evaluate_with_no_scores(self):
         """Test evaluation when no evidence scores provided."""
         gate = EvidenceSufficiencyGate(threshold=0.8)
-        context = {
-            "evidence": ["e1", "e2"],
-            "required_claims": ["e1"]
-        }
+        context = {"evidence": ["e1", "e2"], "required_claims": ["e1"]}
         state = {}
 
         result = gate.evaluate(context, state)
@@ -280,7 +259,7 @@ class TestEvidenceSufficiencyGate:
         context = {
             "evidence": ["e1", "e2"],
             "evidence_scores": [0.9, 0.9],
-            "required_claims": ["e1", "e2"]
+            "required_claims": ["e1", "e2"],
         }
         state = {}
 
@@ -291,10 +270,7 @@ class TestEvidenceSufficiencyGate:
     def test_evaluate_no_required_claims(self):
         """Test evaluation when no required claims specified."""
         gate = EvidenceSufficiencyGate(threshold=0.8)
-        context = {
-            "evidence": ["e1", "e2"],
-            "evidence_scores": [0.7, 0.7]
-        }
+        context = {"evidence": ["e1", "e2"], "evidence_scores": [0.7, 0.7]}
         state = {}
 
         result = gate.evaluate(context, state)
@@ -308,10 +284,7 @@ class TestCoherenceCheckGate:
 
     def test_gate_creation(self):
         """Test creating a coherence check gate."""
-        gate = CoherenceCheckGate(
-            threshold=0.8,
-            strict=True
-        )
+        gate = CoherenceCheckGate(threshold=0.8, strict=True)
 
         assert gate.gate_type == GateType.COHERENCE_CHECK
         assert gate.name == "Coherence Check Gate"
@@ -321,10 +294,7 @@ class TestCoherenceCheckGate:
     def test_evaluate_no_contradictions(self):
         """Test evaluation with no contradictions."""
         gate = CoherenceCheckGate(threshold=0.8)
-        context = {
-            "conclusions": ["c1", "c2"],
-            "constraints": [{"type": "must", "value": "c1"}]
-        }
+        context = {"conclusions": ["c1", "c2"], "constraints": [{"type": "must", "value": "c1"}]}
         state = {"coherence_budget": 1.0}
 
         result = gate.evaluate(context, state)
@@ -339,10 +309,7 @@ class TestCoherenceCheckGate:
         gate = CoherenceCheckGate(threshold=0.8)
         context = {
             "conclusions": ["c1", "c2"],
-            "constraints": [
-                {"type": "must_not", "value": "c1"},
-                {"type": "must", "value": "c3"}
-            ]
+            "constraints": [{"type": "must_not", "value": "c1"}, {"type": "must", "value": "c3"}],
         }
         state = {"coherence_budget": 1.0}
 
@@ -355,10 +322,7 @@ class TestCoherenceCheckGate:
     def test_evaluate_low_coherence_budget(self):
         """Test evaluation with low coherence budget."""
         gate = CoherenceCheckGate(threshold=0.8)
-        context = {
-            "conclusions": [],
-            "constraints": []
-        }
+        context = {"conclusions": [], "constraints": []}
         state = {"coherence_budget": 0.5}
 
         result = gate.evaluate(context, state)
@@ -371,10 +335,7 @@ class TestCoherenceCheckGate:
     def test_evaluate_coherence_budget_below_threshold(self):
         """Test evaluation when coherence budget is below threshold."""
         gate = CoherenceCheckGate(threshold=0.8)
-        context = {
-            "conclusions": [],
-            "constraints": []
-        }
+        context = {"conclusions": [], "constraints": []}
         state = {"coherence_budget": 0.7}
 
         result = gate.evaluate(context, state)
@@ -395,8 +356,8 @@ class TestCoherenceCheckGate:
             "constraints": [
                 {"type": "must_not", "value": "c1"},
                 {"type": "must_not", "value": "c2"},
-                {"type": "must_not", "value": "c3"}
-            ]
+                {"type": "must_not", "value": "c3"},
+            ],
         }
         state = {"coherence_budget": 1.0}
 
@@ -411,10 +372,7 @@ class TestCoherenceCheckGate:
         gate = CoherenceCheckGate(threshold=0.8)
         context = {
             "conclusions": ["c1", "c2"],
-            "constraints": [
-                {"type": "must", "value": "c1"},
-                {"type": "must", "value": "c2"}
-            ]
+            "constraints": [{"type": "must", "value": "c1"}, {"type": "must", "value": "c2"}],
         }
         state = {"coherence_budget": 1.0}
 
@@ -426,8 +384,7 @@ class TestCoherenceCheckGate:
         """Test contradiction detection for must_not constraints."""
         gate = CoherenceCheckGate()
         contradictions = gate._find_contradictions(
-            ["c1", "c2"],
-            [{"type": "must_not", "value": "c1"}]
+            ["c1", "c2"], [{"type": "must_not", "value": "c1"}]
         )
 
         assert len(contradictions) == 1
@@ -436,10 +393,7 @@ class TestCoherenceCheckGate:
     def test_find_contradictions_no_contradictions(self):
         """Test when there are no contradictions."""
         gate = CoherenceCheckGate()
-        contradictions = gate._find_contradictions(
-            ["c1"],
-            [{"type": "must_not", "value": "c2"}]
-        )
+        contradictions = gate._find_contradictions(["c1"], [{"type": "must_not", "value": "c2"}])
 
         assert len(contradictions) == 0
 
@@ -516,16 +470,13 @@ class TestGateManager:
     def test_evaluate_all_gates_pass(self):
         """Test evaluating all gates when all pass."""
         manager = GateManager()
-        manager.gates = [
-            EvidenceSufficiencyGate(threshold=0.5),
-            CoherenceCheckGate(threshold=0.5)
-        ]
+        manager.gates = [EvidenceSufficiencyGate(threshold=0.5), CoherenceCheckGate(threshold=0.5)]
 
         context = {
             "evidence": ["e1"],
             "evidence_scores": [0.9],
             "conclusions": [],
-            "constraints": []
+            "constraints": [],
         }
         state = {"coherence_budget": 0.9}
 
@@ -540,14 +491,14 @@ class TestGateManager:
         manager = GateManager()
         manager.gates = [
             EvidenceSufficiencyGate(threshold=0.9, min_evidence_count=5),
-            CoherenceCheckGate(threshold=0.5)
+            CoherenceCheckGate(threshold=0.5),
         ]
 
         context = {
             "evidence": ["e1"],
             "evidence_scores": [0.5],
             "conclusions": [],
-            "constraints": []
+            "constraints": [],
         }
         state = {"coherence_budget": 0.9}
 
@@ -559,17 +510,9 @@ class TestGateManager:
         """Test that short_circuit stops on first failure."""
         manager = GateManager()
         manager.short_circuit = True
-        manager.gates = [
-            EvidenceSufficiencyGate(threshold=0.9),
-            CoherenceCheckGate()
-        ]
+        manager.gates = [EvidenceSufficiencyGate(threshold=0.9), CoherenceCheckGate()]
 
-        context = {
-            "evidence": [],
-            "evidence_scores": [],
-            "conclusions": [],
-            "constraints": []
-        }
+        context = {"evidence": [], "evidence_scores": [], "conclusions": [], "constraints": []}
         state = {"coherence_budget": 1.0}
 
         results, all_passed = manager.evaluate_all(context, state)
@@ -581,17 +524,9 @@ class TestGateManager:
         """Test evaluation without short_circuit."""
         manager = GateManager()
         manager.short_circuit = False
-        manager.gates = [
-            EvidenceSufficiencyGate(threshold=0.9),
-            CoherenceCheckGate()
-        ]
+        manager.gates = [EvidenceSufficiencyGate(threshold=0.9), CoherenceCheckGate()]
 
-        context = {
-            "evidence": [],
-            "evidence_scores": [],
-            "conclusions": [],
-            "constraints": []
-        }
+        context = {"evidence": [], "evidence_scores": [], "conclusions": [], "constraints": []}
         state = {"coherence_budget": 1.0}
 
         results, all_passed = manager.evaluate_all(context, state)
@@ -612,7 +547,7 @@ class TestGateManager:
             "evidence": ["e1"],
             "evidence_scores": [0.9],
             "conclusions": [],
-            "constraints": []
+            "constraints": [],
         }
         state = {"coherence_budget": 1.0}
 
@@ -655,16 +590,13 @@ class TestGateManager:
     def test_evaluate_required_gates(self):
         """Test evaluating only required gates."""
         manager = GateManager()
-        manager.gates = [
-            EvidenceSufficiencyGate(threshold=0.8),
-            CoherenceCheckGate(threshold=0.8)
-        ]
+        manager.gates = [EvidenceSufficiencyGate(threshold=0.8), CoherenceCheckGate(threshold=0.8)]
 
         context = {
             "evidence": ["e1"],
             "evidence_scores": [0.9],
             "conclusions": [],
-            "constraints": []
+            "constraints": [],
         }
         state = {"coherence_budget": 1.0}
 

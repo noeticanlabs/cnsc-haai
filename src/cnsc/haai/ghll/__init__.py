@@ -58,7 +58,6 @@ __all__ = [
     "ParseForm",
     "ParseFormType",
     "ReceiptSignature",
-    
     # Types
     "GHLLType",
     "PrimitiveType",
@@ -78,7 +77,6 @@ __all__ = [
     "TypeVariable",
     "TypeChecker",
     "TypeCategory",
-    
     # Parser
     "parse_ghll",
     "tokenize_ghll",

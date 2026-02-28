@@ -10,9 +10,7 @@ DEPRECATED: Import from cnsc.haai instead.
 import warnings
 
 warnings.warn(
-    "cnsc_haai is deprecated. Import from cnsc.haai instead.",
-    DeprecationWarning,
-    stacklevel=2
+    "cnsc_haai is deprecated. Import from cnsc.haai instead.", DeprecationWarning, stacklevel=2
 )
 
 # Re-export from cnsc.haai for backward compatibility
@@ -25,6 +23,7 @@ try:
     from cnsc.haai.ats import rv
 except ImportError as e:
     import sys
+
     print(f"Warning: Could not re-export from cnsc.haai: {e}", file=sys.stderr)
 
 # Re-export consensus modules

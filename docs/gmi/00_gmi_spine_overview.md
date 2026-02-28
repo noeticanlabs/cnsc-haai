@@ -26,6 +26,9 @@ GMI is a deterministic, governed state transition system with cryptographic acco
 - `14_computational_nature.md` - Continuous vs discrete governance
 - `15_test_procedure.md` - First GMI v1 test
 - `16_upgrade_path.md` - GMI v2 roadmap
+- `17_receipt_bundle.md` - Extended receipt structure (v1.5+)
+- `18_metabolic_tracking.md` - Work-unit budget enforcement
+- `19_runtime_api.md` - Runtime engine and API (v1.6)
 
 ### Appendices
 - `appendices/json_schemas.md` - JSON Schema definitions
@@ -33,8 +36,8 @@ GMI is a deterministic, governed state transition system with cryptographic acco
 - `appendices/lean_proof_sketch.md` - Lean formalization
 
 ## Version
-- **GMI v1.0** - Canonical Specification
-- **Date**: 2026-02-21
+- **GMI v1.6** - Runtime Integration
+- **Date**: 2026-02-28
 - **Status**: Complete (no placeholders)
 
 ## Relationship to CNHAI

@@ -12,9 +12,10 @@ from dataclasses import dataclass
 class GMIParams:
     """
     GMI kernel parameters.
-    
+
     All values are frozen integers for deterministic execution.
     """
+
     version: str = "1.5.0"
 
     # === Bounds ===
@@ -25,10 +26,10 @@ class GMIParams:
     dt_den: int = 1
 
     # === Curvature dynamics ===
-    alpha_tau: int = 10    # coupling tension -> C
-    beta_C: int = 1        # curvature decay
-    D_C: int = 1          # diffusion strength (Laplacian)
-    lambda_C: int = 5      # coupling C -> theta (repulsion)
+    alpha_tau: int = 10  # coupling tension -> C
+    beta_C: int = 1  # curvature decay
+    D_C: int = 1  # diffusion strength (Laplacian)
+    lambda_C: int = 5  # coupling C -> theta (repulsion)
 
     # === Lyapunov weights (QFixed scaled integers) ===
     w_grad_theta_q: int = 1_000_000

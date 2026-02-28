@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 
 class ReasonCode(Enum):
     """Reason codes for governance decisions."""
+
     CONSISTENCY_CHECK = auto()
     COMMITMENT_CHECK = auto()
     CAUSALITY_CHECK = auto()
@@ -29,6 +30,7 @@ class ReasonCode(Enum):
 @dataclass
 class Correction:
     """Correction applied during governance."""
+
     correction_type: str
     target: str
     reason: str
@@ -39,11 +41,11 @@ class Correction:
 class TGSReceipt:
     """
     TGS governance receipt.
-    
+
     A receipt provides immutable evidence of a governance decision,
     including the proposal evaluated, dt computation, rail margins,
     and the final decision.
-    
+
     Attributes:
         attempt_id: Unique identifier for this governance attempt
         parent_state_hash: Hash of state before this attempt
@@ -60,6 +62,7 @@ class TGSReceipt:
         logical_time: Logical timestamp
         metadata: Additional receipt metadata
     """
+
     attempt_id: UUID = field(default_factory=uuid4)
     parent_state_hash: str = ""
     proposal_id: UUID = field(default_factory=uuid4)
@@ -74,7 +77,7 @@ class TGSReceipt:
     timestamp: datetime = field(default_factory=datetime.utcnow)
     logical_time: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert receipt to dictionary."""
         return {
@@ -101,9 +104,9 @@ class TGSReceipt:
             "logical_time": self.logical_time,
             "metadata": self.metadata,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TGSReceipt':
+    def from_dict(cls, data: Dict[str, Any]) -> "TGSReceipt":
         """Create receipt from dictionary."""
         return cls(
             attempt_id=UUID(data["attempt_id"]),
@@ -129,58 +132,60 @@ class TGSReceipt:
             logical_time=data["logical_time"],
             metadata=data.get("metadata", {}),
         )
-    
+
     def to_json(self) -> str:
         """Serialize receipt to JSON string."""
         import json
+
         return json.dumps(self.to_dict(), indent=2)
-    
+
     @classmethod
-    def from_json(cls, json_str: str) -> 'TGSReceipt':
+    def from_json(cls, json_str: str) -> "TGSReceipt":
         """Deserialize receipt from JSON string."""
         import json
+
         return cls.from_dict(json.loads(json_str))
 
 
 class ReceiptEmitter:
     """
     Handles receipt emission and ledger management.
-    
+
     The receipt emitter:
     1. Creates receipts for governance decisions
     2. Emits receipts to the ledger
     3. Verifies receipt integrity
     4. Supports replay for verification
     """
-    
-    def __init__(self, ledger: 'GovernanceLedger'):
+
+    def __init__(self, ledger: "GovernanceLedger"):
         """
         Initialize receipt emitter.
-        
+
         Args:
             ledger: Ledger to emit receipts to
         """
         self._ledger = ledger
-    
+
     def emit(self, receipt: TGSReceipt) -> str:
         """
         Emit receipt to ledger and return receipt ID.
-        
+
         Args:
             receipt: Receipt to emit
-            
+
         Returns:
             Receipt ID (hex string)
         """
         return self._ledger.append(receipt)
-    
+
     def verify(self, receipt_id: str) -> bool:
         """
         Verify receipt integrity.
-        
+
         Args:
             receipt_id: Receipt ID to verify
-            
+
         Returns:
             True if receipt is valid, False otherwise
         """
@@ -188,37 +193,37 @@ class ReceiptEmitter:
             receipt = self._ledger.get_by_id(receipt_id)
             if receipt is None:
                 return False
-            
+
             # Verify receipt structure
             if not receipt.parent_state_hash:
                 return False
-            
+
             if not 0.0 <= receipt.dt <= 1.0:
                 return False
-            
+
             return True
         except Exception:
             return False
-    
+
     def replay(self, from_ledger_index: int = 0) -> List[TGSReceipt]:
         """
         Replay receipts from index for verification.
-        
+
         Args:
             from_ledger_index: Starting ledger index
-            
+
         Returns:
             List of receipts for replay
         """
         receipts = []
-        
+
         for i in range(from_ledger_index, self._ledger.get_length()):
             receipt = self._ledger.get(i)
             if receipt:
                 receipts.append(receipt)
-        
+
         return receipts
-    
+
     def create_receipt(
         self,
         parent_state_hash: str,
@@ -232,11 +237,11 @@ class ReceiptEmitter:
         new_state_hash: Optional[str],
         diff_digest: str,
         logical_time: int,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> TGSReceipt:
         """
         Create a TGSReceipt from governance results.
-        
+
         Args:
             parent_state_hash: Hash of state before governance
             proposal_id: ID of proposal evaluated
@@ -250,7 +255,7 @@ class ReceiptEmitter:
             diff_digest: Digest of state changes
             logical_time: Logical timestamp
             metadata: Additional metadata
-            
+
         Returns:
             Created TGSReceipt
         """

@@ -14,17 +14,17 @@ from typing import Any, Dict, List, Union
 def jcs_canonical_bytes(obj: Any) -> bytes:
     """
     Serialize an object to canonical JSON bytes per RFC 8785.
-    
+
     Rules:
     1. Objects: sorted keys, no whitespace variation
     2. Arrays: preserve order, no whitespace
     3. Strings: UTF-8 encoded
     4. Numbers: no unnecessary leading zeros, no + sign, no scientific notation
     5. null: lowercase
-    
+
     Args:
         obj: The object to serialize
-        
+
     Returns:
         Canonical JSON bytes (UTF-8)
     """
@@ -42,9 +42,7 @@ def _encode_value(value: Any) -> str:
         return _encode_number(value)
     elif isinstance(value, float):
         # Floats are NOT allowed in consensus - reject them
-        raise TypeError(
-            f"Floats not allowed in consensus - use QFixed int: got {type(value)}"
-        )
+        raise TypeError(f"Floats not allowed in consensus - use QFixed int: got {type(value)}")
     elif isinstance(value, str):
         return _encode_string(value)
     elif isinstance(value, (list, tuple)):
@@ -82,7 +80,7 @@ def _encode_string(s: str) -> str:
             else:
                 # Unicode - encode as UTF-8 bytes, then escape
                 result.append(char)
-    return '"' + ''.join(result) + '"'
+    return '"' + "".join(result) + '"'
 
 
 def _encode_number(n: Union[int, float]) -> str:
@@ -103,12 +101,12 @@ def _encode_number(n: Union[int, float]) -> str:
             return "null"
         if n == float("-inf"):
             return "null"
-        
+
         # Format without scientific notation
-        s = f"{n:.15f}".rstrip('0').rstrip('.')
+        s = f"{n:.15f}".rstrip("0").rstrip(".")
         # Remove leading zeros after decimal point
-        if '.' in s:
-            s = s.lstrip('0') or "0"
+        if "." in s:
+            s = s.lstrip("0") or "0"
         return s
 
 
@@ -129,47 +127,47 @@ def _encode_object(obj: Dict[str, Any]) -> str:
 class JCSEncoder:
     """
     RFC 8785 JSON Canonicalization Scheme encoder.
-    
+
     Usage:
         encoder = JCSEncoder()
         canonical_bytes = encoder.encode(data)
     """
-    
+
     def __init__(self):
         """Initialize the JCS encoder."""
         pass
-    
+
     def encode(self, obj: Any) -> bytes:
         """
         Encode an object to canonical JSON bytes.
-        
+
         Args:
             obj: The object to serialize
-            
+
         Returns:
             Canonical JSON bytes (UTF-8)
         """
         return jcs_canonical_bytes(obj)
-    
+
     def encode_to_string(self, obj: Any) -> str:
         """
         Encode an object to canonical JSON string.
-        
+
         Args:
             obj: The object to serialize
-            
+
         Returns:
             Canonical JSON string
         """
         return jcs_canonical_bytes(obj).decode("utf-8")
-    
+
     def verify_deterministic(self, data: Any) -> bool:
         """
         Verify that encoding is deterministic by double-encoding.
-        
+
         Args:
             data: The data to test
-            
+
         Returns:
             True if encoding is deterministic
         """

@@ -15,13 +15,7 @@ import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from src.cnhaai.core.phases import (
-    Phase,
-    PhaseConfig,
-    PhaseState,
-    PhaseTransition,
-    PhaseManager
-)
+from src.cnhaai.core.phases import Phase, PhaseConfig, PhaseState, PhaseTransition, PhaseManager
 
 
 class TestPhase:
@@ -58,7 +52,7 @@ class TestPhaseConfig:
             min_duration_ms=100,
             max_duration_ms=1000,
             transitions_to=[Phase.CONSTRUCTION],
-            required_gates=["evidence_gate"]
+            required_gates=["evidence_gate"],
         )
 
         assert config.phase == Phase.ACQUISITION
@@ -82,7 +76,7 @@ class TestPhaseConfig:
             phase=Phase.CONSTRUCTION,
             min_duration_ms=50,
             transitions_to=[Phase.REASONING],
-            required_gates=["gate1", "gate2"]
+            required_gates=["gate1", "gate2"],
         )
 
         result = config.to_dict()
@@ -104,7 +98,7 @@ class TestPhaseState:
             start_time=datetime(2024, 1, 1, 12, 0, 0),
             steps_completed=5,
             objectives_achieved=["obj1", "obj2"],
-            metadata={"key": "value"}
+            metadata={"key": "value"},
         )
 
         assert state.phase == Phase.REASONING
@@ -131,7 +125,7 @@ class TestPhaseState:
             phase=Phase.VALIDATION,
             start_time=start_time,
             steps_completed=3,
-            objectives_achieved=["validated"]
+            objectives_achieved=["validated"],
         )
 
         result = state.to_dict()
@@ -145,8 +139,7 @@ class TestPhaseState:
     def test_duration_ms_running(self):
         """Test duration calculation while phase is running."""
         state = PhaseState(
-            phase=Phase.REASONING,
-            start_time=datetime.utcnow() - timedelta(milliseconds=100)
+            phase=Phase.REASONING, start_time=datetime.utcnow() - timedelta(milliseconds=100)
         )
 
         duration = state.duration_ms()
@@ -158,11 +151,7 @@ class TestPhaseState:
         """Test duration calculation for completed phase."""
         start = datetime(2024, 1, 1, 12, 0, 0)
         end = datetime(2024, 1, 1, 12, 0, 0, 100000)  # 100ms later
-        state = PhaseState(
-            phase=Phase.CONSTRUCTION,
-            start_time=start,
-            end_time=end
-        )
+        state = PhaseState(phase=Phase.CONSTRUCTION, start_time=start, end_time=end)
 
         duration = state.duration_ms()
 
@@ -171,8 +160,7 @@ class TestPhaseState:
     def test_is_complete_below_min_duration(self):
         """Test is_complete when below minimum duration."""
         state = PhaseState(
-            phase=Phase.CONSTRUCTION,
-            start_time=datetime.utcnow() - timedelta(milliseconds=50)
+            phase=Phase.CONSTRUCTION, start_time=datetime.utcnow() - timedelta(milliseconds=50)
         )
 
         is_complete = state.is_complete(min_duration_ms=100)
@@ -182,8 +170,7 @@ class TestPhaseState:
     def test_is_complete_above_min_duration(self):
         """Test is_complete when above minimum duration."""
         state = PhaseState(
-            phase=Phase.CONSTRUCTION,
-            start_time=datetime.utcnow() - timedelta(milliseconds=200)
+            phase=Phase.CONSTRUCTION, start_time=datetime.utcnow() - timedelta(milliseconds=200)
         )
 
         is_complete = state.is_complete(min_duration_ms=100)
@@ -203,7 +190,7 @@ class TestPhaseTransition:
             reason="phase_complete",
             duration_ms=150,
             steps_completed=10,
-            metadata={"info": "test"}
+            metadata={"info": "test"},
         )
 
         assert transition.id == "trans-123"
@@ -235,7 +222,7 @@ class TestPhaseTransition:
             to_phase=Phase.VALIDATION,
             reason="reasoning_complete",
             duration_ms=500,
-            steps_completed=25
+            steps_completed=25,
         )
 
         result = transition.to_dict()
@@ -317,11 +304,9 @@ class TestPhaseManager:
         """Test transitioning to a new phase."""
         manager = PhaseManager()
         manager.start_phase(Phase.ACQUISITION)
-        
+
         new_state, transition = manager.transition_to(
-            Phase.CONSTRUCTION,
-            reason="acquisition_done",
-            steps_completed=10
+            Phase.CONSTRUCTION, reason="acquisition_done", steps_completed=10
         )
 
         assert manager.current_phase == Phase.CONSTRUCTION
@@ -372,7 +357,7 @@ class TestPhaseManager:
         new_config = PhaseConfig(
             phase=Phase.ACQUISITION,
             min_duration_ms=200,
-            transitions_to=[Phase.CONSTRUCTION, Phase.RECOVERY]
+            transitions_to=[Phase.CONSTRUCTION, Phase.RECOVERY],
         )
 
         manager.set_config(Phase.ACQUISITION, new_config)
@@ -491,7 +476,7 @@ class TestPhaseManager:
         final_state, transitions = manager.execute_episode(
             initial_phase=Phase.ACQUISITION,
             exit_condition=exit_condition,
-            step_callback=step_callback
+            step_callback=step_callback,
         )
 
         assert final_state.steps_completed == 2
@@ -507,8 +492,7 @@ class TestPhaseManager:
 
         # This should run until phase transitions
         final_state, transitions = manager.execute_episode(
-            initial_phase=Phase.ACQUISITION,
-            exit_condition=always_false
+            initial_phase=Phase.ACQUISITION, exit_condition=always_false
         )
 
         # ACQUISITION has transition to CONSTRUCTION

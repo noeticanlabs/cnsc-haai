@@ -45,7 +45,7 @@ class TestFluentAPI:
         builder = GraphBuilder()
         builder.add_state("s1", state_type="initial")
         builder.add_state("s2", state_type="final")
-        
+
         assert builder._graph.node_count() == 2
         assert builder._graph.get_node("s1") is not None
         assert builder._graph.get_node("s2") is not None
@@ -54,7 +54,7 @@ class TestFluentAPI:
         """Test method chaining for commits."""
         builder = GraphBuilder()
         builder.begin_commit("commit1", operation="update")
-        
+
         assert builder._graph.node_count() == 1
         commit = builder._graph.get_node("commit1")
         assert isinstance(commit, CommitNode)
@@ -64,7 +64,7 @@ class TestFluentAPI:
         """Test method chaining for candidates."""
         builder = GraphBuilder()
         builder.add_candidate("c1", value=42)
-        
+
         candidate = builder._graph.get_node("c1")
         assert candidate is not None
         assert candidate.properties["value"] == 42
@@ -75,7 +75,7 @@ class TestFluentAPI:
         builder.add_state("s1", state_type="initial")
         builder.add_candidate("c1", value=100)
         builder.link_proposed_from("c1", "s1")
-        
+
         assert builder._graph.node_count() == 2
         assert builder._graph.edge_count() == 1
 
@@ -91,7 +91,7 @@ class TestFluentAPI:
         builder.link_evaluates("gr1", "c1")
         builder.link_summarizes("commit1", "gtr1")
         builder.link_applies("gtr1", "s1")
-        
+
         assert builder._graph.node_count() == 5  # commit1, s1, c1, gtr1, gr1
         assert builder._graph.edge_count() == 4  # proposed_from, evaluates, summarizes, applies
 
@@ -103,7 +103,7 @@ class TestNodeCreationMethods:
         """Test begin_commit method."""
         builder = GraphBuilder()
         builder.begin_commit("commit1", operation="test")
-        
+
         commit = builder._graph.get_node("commit1")
         assert isinstance(commit, CommitNode)
 
@@ -111,7 +111,7 @@ class TestNodeCreationMethods:
         """Test add_emit method."""
         builder = GraphBuilder()
         builder.add_emit("emit1", "state_change", {"old": 1})
-        
+
         emit = builder._graph.get_node("emit1")
         assert emit.node_type == "emit"
 
@@ -119,7 +119,7 @@ class TestNodeCreationMethods:
         """Test add_state method."""
         builder = GraphBuilder()
         builder.add_state("s1", state_type="initial")
-        
+
         state = builder._graph.get_node("s1")
         assert state is not None
         assert state.node_type == "state"
@@ -128,7 +128,7 @@ class TestNodeCreationMethods:
         """Test add_candidate method."""
         builder = GraphBuilder()
         builder.add_candidate("c1", value=100)
-        
+
         candidate = builder._graph.get_node("c1")
         assert candidate is not None
         assert candidate.node_type == "candidate"
@@ -138,7 +138,7 @@ class TestNodeCreationMethods:
         builder = GraphBuilder()
         constraints = ["x > 0"]
         builder.add_constraint_set("cs1", constraints)
-        
+
         cs = builder._graph.get_node("cs1")
         assert cs is not None
 
@@ -147,7 +147,7 @@ class TestNodeCreationMethods:
         builder = GraphBuilder()
         sequence = ["affordability", "no_smuggling"]
         builder.add_gate_stack_run("gtr1", sequence)
-        
+
         run = builder._graph.get_node("gtr1")
         assert run is not None
 
@@ -155,7 +155,7 @@ class TestNodeCreationMethods:
         """Test add_gate_result method."""
         builder = GraphBuilder()
         builder.add_gate_result("gr1", "affordability", True)
-        
+
         result = builder._graph.get_node("gr1")
         assert result is not None
 
@@ -163,7 +163,7 @@ class TestNodeCreationMethods:
         """Test add_proof_bundle method."""
         builder = GraphBuilder()
         builder.add_proof_bundle("pb1", proof_type="zk")
-        
+
         bundle = builder._graph.get_node("pb1")
         assert bundle is not None
 
@@ -171,7 +171,7 @@ class TestNodeCreationMethods:
         """Test add_memory_read method."""
         builder = GraphBuilder()
         builder.add_memory_read("read1", address=0x1000)
-        
+
         read = builder._graph.get_node("read1")
         assert read is not None
 
@@ -179,7 +179,7 @@ class TestNodeCreationMethods:
         """Test add_memory_write method."""
         builder = GraphBuilder()
         builder.add_memory_write("write1", address=0x1000, value=42)
-        
+
         write = builder._graph.get_node("write1")
         assert write is not None
 
@@ -187,7 +187,7 @@ class TestNodeCreationMethods:
         """Test add_solver_call method."""
         builder = GraphBuilder()
         builder.add_solver_call("call1", "z3")
-        
+
         call = builder._graph.get_node("call1")
         assert call is not None
 
@@ -201,7 +201,7 @@ class TestEdgeCreationMethods:
         builder.add_state("s1", state_type="initial")
         builder.add_candidate("c1", value=100)
         builder.link_proposed_from("c1", "s1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_evaluates(self):
@@ -210,7 +210,7 @@ class TestEdgeCreationMethods:
         builder.add_gate_result("gr1", "affordability", True)
         builder.add_candidate("c1", value=100)
         builder.link_evaluates("gr1", "c1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_summarizes(self):
@@ -219,7 +219,7 @@ class TestEdgeCreationMethods:
         builder.begin_commit("commit1")
         builder.add_gate_stack_run("gtr1")
         builder.link_summarizes("commit1", "gtr1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_requires_proof(self):
@@ -228,7 +228,7 @@ class TestEdgeCreationMethods:
         builder.begin_commit("commit1")
         builder.add_proof_bundle("pb1")
         builder.link_requires_proof("commit1", "pb1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_applies(self):
@@ -237,7 +237,7 @@ class TestEdgeCreationMethods:
         builder.add_gate_stack_run("gtr1")
         builder.add_state("s1", state_type="initial")
         builder.link_applies("gtr1", "s1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_produces(self):
@@ -246,7 +246,7 @@ class TestEdgeCreationMethods:
         builder.add_solver_call("call1")
         builder.add_constraint_set("cs1")
         builder.link_produces("call1", "cs1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_reads(self):
@@ -255,7 +255,7 @@ class TestEdgeCreationMethods:
         builder.add_memory_read("read1", address=0x1000)
         builder.add_state("s1", state_type="initial")
         builder.link_reads("read1", "s1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_writes(self):
@@ -264,7 +264,7 @@ class TestEdgeCreationMethods:
         builder.add_memory_write("write1", address=0x1000, value=42)
         builder.add_state("s1", state_type="initial")
         builder.link_writes("write1", "s1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_emits(self):
@@ -273,7 +273,7 @@ class TestEdgeCreationMethods:
         builder.add_emit("emit1", "state_change")
         builder.add_state("s1", state_type="initial")
         builder.link_emits("emit1", "s1")
-        
+
         assert builder._graph.edge_count() == 1
 
     def test_link_scheduled_after(self):
@@ -282,7 +282,7 @@ class TestEdgeCreationMethods:
         builder.begin_commit("commit1", operation="first")
         builder.begin_commit("commit2", operation="second")
         builder.link_scheduled_after("commit2", "commit1")
-        
+
         assert builder._graph.edge_count() == 1
 
 
@@ -299,9 +299,11 @@ class TestComplexGraphBuilding:
         builder.add_state("s2", state_type="intermediate")
         builder.link_applies("commit2", "s2")
         builder.link_scheduled_after("commit2", "commit1")
-        
+
         assert builder._graph.node_count() == 4  # commit1, s1, commit2, s2
-        assert builder._graph.edge_count() == 3  # applies(commit1,s1), applies(commit2,s2), scheduled_after(commit2,commit1)
+        assert (
+            builder._graph.edge_count() == 3
+        )  # applies(commit1,s1), applies(commit2,s2), scheduled_after(commit2,commit1)
 
     def test_complex_gate_evaluation(self):
         """Test building complex gate evaluation structure."""
@@ -318,9 +320,11 @@ class TestComplexGraphBuilding:
         builder.link_summarizes("commit1", "gtr1")
         builder.add_proof_bundle("pb1", proof_type="zk")
         builder.link_requires_proof("commit1", "pb1")
-        
+
         assert builder._graph.node_count() == 7  # s1, c1, gtr1, gr1, gr2, commit1, pb1
-        assert builder._graph.edge_count() == 5  # proposed_from, evaluates(gr1), evaluates(gr2), summarizes, requires_proof
+        assert (
+            builder._graph.edge_count() == 5
+        )  # proposed_from, evaluates(gr1), evaluates(gr2), summarizes, requires_proof
 
 
 class TestBuildMethod:
@@ -331,7 +335,7 @@ class TestBuildMethod:
         builder = GraphBuilder()
         builder.add_state("s1", state_type="initial")
         graph = builder.build()
-        
+
         # The build should succeed with orphaned node allowed
         assert graph.node_count() == 1
         # Builder state remains (use get_graph() to access)
@@ -342,9 +346,9 @@ class TestBuildMethod:
         builder = GraphBuilder()
         builder.add_state("s1", state_type="initial")
         builder.add_state("s2", state_type="final")
-        
+
         graph = builder.build()
-        
+
         # The returned graph should have 2 nodes
         assert graph.node_count() == 2
         # Builder graph should also have 2 nodes (not cleared)

@@ -12,22 +12,23 @@ from typing import Any
 def jcs_dumps(obj: Any) -> bytes:
     """
     Canonical JSON serialization (RFC8785 subset).
-    
+
     Rules:
     - Sorted object keys (alphabetical)
     - No whitespace variations (minimal separators)
     - No floats allowed (must be int/bool/str/list/dict/None)
     - Non-string keys forbidden
-    
+
     Args:
         obj: Python object to serialize (no floats!)
-        
+
     Returns:
         UTF-8 encoded canonical JSON bytes
-        
+
     Raises:
         TypeError: If floats are present
     """
+
     def check_no_float(x: Any) -> None:
         """Recursively check for floats."""
         if isinstance(x, float):
@@ -42,7 +43,7 @@ def jcs_dumps(obj: Any) -> bytes:
                 check_no_float(v)
 
     check_no_float(obj)
-    
+
     # Minimal separators for deterministic output
     s = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return s.encode("utf-8")
@@ -56,7 +57,7 @@ def jcs_dumps_str(obj: Any) -> str:
 def jcs_verify(obj: Any) -> bool:
     """
     Verify object contains no floats (required for JCS).
-    
+
     Returns:
         True if float-free, False otherwise
     """

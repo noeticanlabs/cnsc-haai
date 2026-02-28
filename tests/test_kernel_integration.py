@@ -44,7 +44,7 @@ class TestMinimalKernelCreation:
             "coherence_budget": 0.8,
             "max_abstraction_levels": 5,
             "evidence_threshold": 0.9,
-            "receipt_retention": "persistent"
+            "receipt_retention": "persistent",
         }
 
         kernel = MinimalKernel(settings=settings)
@@ -98,7 +98,7 @@ class TestCreateAbstraction:
             evidence=["evidence1", "evidence2"],
             scope="test-scope",
             validity={"condition": "test"},
-            content={"summary": "test abstraction"}
+            content={"summary": "test abstraction"},
         )
 
         assert abstraction.type.value == 1  # DESCRIPTIVE
@@ -111,9 +111,7 @@ class TestCreateAbstraction:
         kernel = MinimalKernel()
 
         abstraction = kernel.create_abstraction(
-            abstraction_type="mechanistic",
-            evidence=["ev1"],
-            scope="mechanism-scope"
+            abstraction_type="mechanistic", evidence=["ev1"], scope="mechanism-scope"
         )
 
         assert abstraction.type.value == 2  # MECHANISTIC
@@ -123,9 +121,7 @@ class TestCreateAbstraction:
         kernel = MinimalKernel()
 
         abstraction = kernel.create_abstraction(
-            abstraction_type="normative",
-            evidence=["ev1"],
-            scope="normative-scope"
+            abstraction_type="normative", evidence=["ev1"], scope="normative-scope"
         )
 
         assert abstraction.type.value == 3  # NORMATIVE
@@ -135,9 +131,7 @@ class TestCreateAbstraction:
         kernel = MinimalKernel()
 
         abstraction = kernel.create_abstraction(
-            abstraction_type="comparative",
-            evidence=["ev1"],
-            scope="comparative-scope"
+            abstraction_type="comparative", evidence=["ev1"], scope="comparative-scope"
         )
 
         assert abstraction.type.value == 4  # COMPARATIVE
@@ -146,16 +140,14 @@ class TestCreateAbstraction:
         """Test creating an abstraction with a parent."""
         kernel = MinimalKernel()
         parent = kernel.create_abstraction(
-            abstraction_type="descriptive",
-            evidence=["ev1"],
-            scope="parent-scope"
+            abstraction_type="descriptive", evidence=["ev1"], scope="parent-scope"
         )
 
         child = kernel.create_abstraction(
             abstraction_type="mechanistic",
             evidence=["ev2"],
             scope="child-scope",
-            parent_id=parent.id
+            parent_id=parent.id,
         )
 
         assert child.parent_id == parent.id
@@ -167,9 +159,7 @@ class TestCreateAbstraction:
 
         for i in range(5):
             kernel.create_abstraction(
-                abstraction_type="descriptive",
-                evidence=[f"ev{i}"],
-                scope=f"scope{i}"
+                abstraction_type="descriptive", evidence=[f"ev{i}"], scope=f"scope{i}"
             )
 
         assert len(kernel.abstraction_layer.abstractions) == 5
@@ -179,14 +169,10 @@ class TestCreateAbstraction:
         kernel = MinimalKernel()
 
         abstraction1 = kernel.create_abstraction(
-            abstraction_type="DESCRIPTIVE",
-            evidence=["ev1"],
-            scope="scope1"
+            abstraction_type="DESCRIPTIVE", evidence=["ev1"], scope="scope1"
         )
         abstraction2 = kernel.create_abstraction(
-            abstraction_type="descriptive",
-            evidence=["ev2"],
-            scope="scope2"
+            abstraction_type="descriptive", evidence=["ev2"], scope="scope2"
         )
 
         assert abstraction1.type == abstraction2.type
@@ -205,7 +191,14 @@ class TestExecuteEpisode:
         assert isinstance(result, EpisodeResult)
         assert result.episode_id is not None
         assert isinstance(result.success, bool)
-        assert result.final_phase in ["ACQUISITION", "CONSTRUCTION", "REASONING", "VALIDATION", "RECOVERY", "unknown"]
+        assert result.final_phase in [
+            "ACQUISITION",
+            "CONSTRUCTION",
+            "REASONING",
+            "VALIDATION",
+            "RECOVERY",
+            "unknown",
+        ]
 
     def test_execute_episode_increments_count(self):
         """Test that episode count is incremented."""
@@ -241,8 +234,7 @@ class TestExecuteEpisode:
         kernel = MinimalKernel()
 
         result = kernel.execute_episode(
-            goal="test goal",
-            evidence=["evidence1", "evidence2", "evidence3"]
+            goal="test goal", evidence=["evidence1", "evidence2", "evidence3"]
         )
 
         assert result is not None
@@ -254,13 +246,10 @@ class TestExecuteEpisode:
 
         constraints = [
             {"type": "must", "value": "constraint1"},
-            {"type": "must_not", "value": "forbidden"}
+            {"type": "must_not", "value": "forbidden"},
         ]
 
-        result = kernel.execute_episode(
-            goal="test goal",
-            constraints=constraints
-        )
+        result = kernel.execute_episode(goal="test goal", constraints=constraints)
 
         assert result is not None
 
@@ -268,10 +257,7 @@ class TestExecuteEpisode:
         """Test executing episode with max steps."""
         kernel = MinimalKernel()
 
-        result = kernel.execute_episode(
-            goal="test goal",
-            max_steps=50
-        )
+        result = kernel.execute_episode(goal="test goal", max_steps=50)
 
         assert result is not None
 
@@ -370,16 +356,8 @@ class TestGetAbstractions:
     def test_get_all_abstractions(self):
         """Test getting all abstractions."""
         kernel = MinimalKernel()
-        kernel.create_abstraction(
-            abstraction_type="descriptive",
-            evidence=["ev1"],
-            scope="scope1"
-        )
-        kernel.create_abstraction(
-            abstraction_type="mechanistic",
-            evidence=["ev2"],
-            scope="scope2"
-        )
+        kernel.create_abstraction(abstraction_type="descriptive", evidence=["ev1"], scope="scope1")
+        kernel.create_abstraction(abstraction_type="mechanistic", evidence=["ev2"], scope="scope2")
 
         abstractions = kernel.get_abstractions()
 
@@ -389,14 +367,10 @@ class TestGetAbstractions:
         """Test getting abstractions filtered by scope."""
         kernel = MinimalKernel()
         kernel.create_abstraction(
-            abstraction_type="descriptive",
-            evidence=["ev1"],
-            scope="target-scope"
+            abstraction_type="descriptive", evidence=["ev1"], scope="target-scope"
         )
         kernel.create_abstraction(
-            abstraction_type="mechanistic",
-            evidence=["ev2"],
-            scope="other-scope"
+            abstraction_type="mechanistic", evidence=["ev2"], scope="other-scope"
         )
 
         abstractions = kernel.get_abstractions(scope="target-scope")
@@ -504,11 +478,7 @@ class TestGetStats:
     def test_stats_reflects_abstraction_count(self):
         """Test that stats reflect abstraction count."""
         kernel = MinimalKernel()
-        kernel.create_abstraction(
-            abstraction_type="descriptive",
-            evidence=["ev1"],
-            scope="scope1"
-        )
+        kernel.create_abstraction(abstraction_type="descriptive", evidence=["ev1"], scope="scope1")
 
         stats = kernel.get_stats()
 
@@ -562,7 +532,7 @@ class TestFullEpisodeFlow:
         result = kernel.execute_episode(
             goal="analyze problem and provide solution",
             evidence=["observation1", "observation2", "observation3"],
-            constraints=[{"type": "must", "value": "consistency"}]
+            constraints=[{"type": "must", "value": "consistency"}],
         )
 
         # Verify result
@@ -584,7 +554,7 @@ class TestFullEpisodeFlow:
             result = kernel.execute_episode(
                 goal=f"episode {i}",
                 evidence=[f"evidence {i}"],
-                constraints=[{"type": "must", "value": f"constraint{i}"}]
+                constraints=[{"type": "must", "value": f"constraint{i}"}],
             )
 
             assert result.episode_id is not None
@@ -597,19 +567,23 @@ class TestFullEpisodeFlow:
     def test_episode_with_recovery(self):
         """Test episode that may enter recovery phase."""
         kernel = MinimalKernel()
-        
+
         # Execute episode that might trigger recovery
         result = kernel.execute_episode(
             goal="test recovery flow",
-            constraints=[
-                {"type": "must_not", "value": "forbidden_value"}
-            ]
+            constraints=[{"type": "must_not", "value": "forbidden_value"}],
         )
 
         # Episode should complete (may succeed or fail)
         assert result is not None
-        assert result.final_phase in ["unknown", "ACQUISITION", "CONSTRUCTION", 
-                                        "REASONING", "VALIDATION", "RECOVERY"]
+        assert result.final_phase in [
+            "unknown",
+            "ACQUISITION",
+            "CONSTRUCTION",
+            "REASONING",
+            "VALIDATION",
+            "RECOVERY",
+        ]
 
     def test_kernel_state_persistence_across_episodes(self):
         """Test that kernel state persists across episodes."""

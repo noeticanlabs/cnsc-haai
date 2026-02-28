@@ -20,6 +20,7 @@ from uuid import uuid4
 # GraphGML import for dual-write support (graceful degradation)
 try:
     from cnsc.haai.graphgml import types, builder, core
+
     GRAPHGML_AVAILABLE = True
 except ImportError:
     GRAPHGML_AVAILABLE = False
@@ -27,12 +28,13 @@ except ImportError:
 
 class TraceLevel(Enum):
     """Trace event severity levels."""
+
     DEBUG = auto()
     INFO = auto()
     WARNING = auto()
     ERROR = auto()
     CRITICAL = auto()
-    
+
     def to_string(self) -> str:
         """Convert to string."""
         return {
@@ -48,43 +50,44 @@ class TraceLevel(Enum):
 class TraceEvent:
     """
     Single trace event.
-    
+
     Represents an atomic event in the reasoning trace.
     """
+
     event_id: str
     timestamp: datetime
     level: TraceLevel
     event_type: str
-    
+
     # Content
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
-    
+
     # Causality
     parent_event_id: Optional[str] = None
     causality_chain: List[str] = field(default_factory=list)
-    
+
     # Provenance
     source_module: Optional[str] = None
     source_function: Optional[str] = None
     source_line: Optional[int] = None
-    
+
     # Threading
     thread_id: Optional[str] = None
     span_id: Optional[str] = None
-    
+
     # Coherence
     coherence_before: Optional[float] = None
     coherence_after: Optional[float] = None
-    
+
     # GraphGML integration (optional)
     graph_node_id: Optional[str] = None
-    
-    def to_graph_node(self) -> Optional['types.StateNode']:
+
+    def to_graph_node(self) -> Optional["types.StateNode"]:
         """Convert TraceEvent to GraphGML StateNode."""
         if not GRAPHGML_AVAILABLE:
             return None
-        
+
         return types.StateNode(
             state_id=self.graph_node_id or f"state_{self.event_id}",
             state_type=self.event_type,
@@ -93,11 +96,11 @@ class TraceEvent:
                 "timestamp": self.timestamp.isoformat(),
                 "level": self.level.to_string(),
                 "message": self.message,
-                "details": self.details
+                "details": self.details,
             },
-            metadata={"source": "trace_event"}
+            metadata={"source": "trace_event"},
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -117,14 +120,22 @@ class TraceEvent:
             "coherence_before": self.coherence_before,
             "coherence_after": self.coherence_after,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TraceEvent':
+    def from_dict(cls, data: Dict[str, Any]) -> "TraceEvent":
         """Create from dictionary."""
         return cls(
             event_id=data["event_id"],
-            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.utcnow(),
-            level=TraceLevel[data["level"]] if isinstance(data["level"], str) else TraceLevel(data["level"]),
+            timestamp=(
+                datetime.fromisoformat(data["timestamp"])
+                if "timestamp" in data
+                else datetime.utcnow()
+            ),
+            level=(
+                TraceLevel[data["level"]]
+                if isinstance(data["level"], str)
+                else TraceLevel(data["level"])
+            ),
             event_type=data["event_type"],
             message=data["message"],
             details=data.get("details", {}),
@@ -138,7 +149,7 @@ class TraceEvent:
             coherence_before=data.get("coherence_before"),
             coherence_after=data.get("coherence_after"),
         )
-    
+
     @classmethod
     def create(
         cls,
@@ -148,7 +159,7 @@ class TraceEvent:
         details: Optional[Dict[str, Any]] = None,
         parent_event_id: Optional[str] = None,
         **kwargs,
-    ) -> 'TraceEvent':
+    ) -> "TraceEvent":
         """Factory method to create trace event."""
         event_id = str(uuid4())[:8]
         return cls(
@@ -167,35 +178,36 @@ class TraceEvent:
 class TraceThread:
     """
     Trace Thread.
-    
+
     Thread of related trace events with ordering.
     """
+
     thread_id: str
     name: str
     events: List[TraceEvent] = field(default_factory=list)
-    
+
     # Thread metadata
     created_at: datetime = field(default_factory=datetime.utcnow)
     parent_thread_id: Optional[str] = None
     child_thread_ids: List[str] = field(default_factory=list)
-    
+
     # Status
     is_active: bool = True
     is_complete: bool = False
-    
+
     def add_event(self, event: TraceEvent) -> None:
         """Add event to thread."""
         event.thread_id = self.thread_id
         self.events.append(event)
-    
+
     def get_events_by_level(self, level: TraceLevel) -> List[TraceEvent]:
         """Get events by level."""
         return [e for e in self.events if e.level == level]
-    
+
     def get_events_by_type(self, event_type: str) -> List[TraceEvent]:
         """Get events by type."""
         return [e for e in self.events if e.event_type == event_type]
-    
+
     def get_causality_chain(self, event_id: str) -> List[TraceEvent]:
         """Get causality chain for an event."""
         for event in self.events:
@@ -212,7 +224,7 @@ class TraceThread:
                         break
                 return chain
         return []
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -225,44 +237,48 @@ class TraceThread:
             "is_active": self.is_active,
             "is_complete": self.is_complete,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TraceThread':
+    def from_dict(cls, data: Dict[str, Any]) -> "TraceThread":
         """Create from dictionary."""
         return cls(
             thread_id=data["thread_id"],
             name=data["name"],
             events=[TraceEvent.from_dict(e) for e in data.get("events", [])],
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if "created_at" in data
+                else datetime.utcnow()
+            ),
             parent_thread_id=data.get("parent_thread_id"),
             child_thread_ids=data.get("child_thread_ids", []),
             is_active=data.get("is_active", True),
             is_complete=data.get("is_complete", False),
         )
-    
-    def to_graph(self) -> Optional['core.GraphGML']:
+
+    def to_graph(self) -> Optional["core.GraphGML"]:
         """Convert TraceThread to GraphGML representation."""
         if not GRAPHGML_AVAILABLE:
             return None
-        
+
         graph = core.GraphGML()
         prev_event_id = None
-        
+
         for event in self.events:
             # Add state node
             node = event.to_graph_node()
             if node:
                 graph.add_node(node)
                 event.graph_node_id = node.node_id
-            
+
             # Add scheduled_after edge if there's a previous event
             if prev_event_id and node:
                 graph.add_edge(prev_event_id, "scheduled_after", node.node_id)
-            
+
             prev_event_id = node.node_id if node else f"state_{event.event_id}"
-        
+
         return graph
-    
+
     def generate_graph_and_save(self, output_path: str) -> None:
         """Generate GraphGML and save to file."""
         graph = self.to_graph()
@@ -274,62 +290,63 @@ class TraceThread:
 class TraceQuery:
     """
     Trace Query.
-    
+
     Query interface for filtering and aggregating traces.
     """
+
     # Filters
     levels: List[TraceLevel] = field(default_factory=list)
     event_types: List[str] = field(default_factory=list)
     thread_ids: List[str] = field(default_factory=list)
     time_range: Optional[Tuple[datetime, datetime]] = None
     keyword: Optional[str] = None
-    
+
     # Aggregation
     group_by: Optional[str] = None  # "level", "type", "thread"
-    
+
     # Limits
     limit: Optional[int] = None
     offset: int = 0
-    
+
     def match(self, event: TraceEvent) -> bool:
         """Check if event matches query."""
         # Level filter
         if self.levels and event.level not in self.levels:
             return False
-        
+
         # Type filter
         if self.event_types and event.event_type not in self.event_types:
             return False
-        
+
         # Thread filter
         if self.thread_ids and event.thread_id not in self.thread_ids:
             return False
-        
+
         # Time range filter
         if self.time_range:
             start, end = self.time_range
             if not (start <= event.timestamp <= end):
                 return False
-        
+
         # Keyword filter
         if self.keyword:
             if self.keyword.lower() not in event.message.lower():
                 return False
-        
+
         return True
-    
+
     def apply(self, events: List[TraceEvent]) -> List[TraceEvent]:
         """Apply query to events."""
         # Filter
         result = [e for e in events if self.match(e)]
-        
+
         # Offset
-        result = result[self.offset:]
-        
+        result = result[self.offset :]
+
         # Limit
         if self.limit:
-            result = result[:self.limit]
-        
+            result = result[: self.limit]
+
         return result
 
 
@@ -337,95 +354,98 @@ class TraceQuery:
 class TraceManager:
     """
     Trace Manager.
-    
+
     Central manager for trace collection and query.
     """
+
     manager_id: str = str(uuid4())[:8]
     name: str = "Trace Manager"
-    
+
     # Thread storage
     threads: Dict[str, TraceThread] = field(default_factory=dict)
-    
+
     # Event storage
     events: Dict[str, TraceEvent] = field(default_factory=dict)
-    
+
     # Indexes
     events_by_type: Dict[str, List[str]] = field(default_factory=dict)
     events_by_level: Dict[str, List[str]] = field(default_factory=dict)
     events_by_thread: Dict[str, List[str]] = field(default_factory=dict)
-    
+
     # Callbacks
     on_event_callbacks: List[Callable[[TraceEvent], None]] = field(default_factory=list)
-    
+
     # Configuration
     max_events: int = 10000
     retention_days: int = 30
-    
+
     def create_thread(self, name: str, thread_id: Optional[str] = None) -> TraceThread:
         """Create new trace thread."""
         tid = thread_id or str(uuid4())[:8]
         thread = TraceThread(thread_id=tid, name=name)
         self.threads[tid] = thread
         return thread
-    
+
     def add_event(self, event: TraceEvent) -> None:
         """Add event to trace."""
         # Add to events
         self.events[event.event_id] = event
-        
+
         # Add to thread
         if event.thread_id and event.thread_id in self.threads:
             self.threads[event.thread_id].add_event(event)
-        
+
         # Update indexes
         if event.event_type not in self.events_by_type:
             self.events_by_type[event.event_type] = []
         self.events_by_type[event.event_type].append(event.event_id)
-        
+
         level_key = event.level.to_string()
         if level_key not in self.events_by_level:
             self.events_by_level[level_key] = []
         self.events_by_level[level_key].append(event.event_id)
-        
+
         if event.thread_id:
             if event.thread_id not in self.events_by_thread:
                 self.events_by_thread[event.thread_id] = []
             self.events_by_thread[event.thread_id].append(event.event_id)
-        
+
         # Check limits
         if len(self.events) > self.max_events:
             self._prune_old_events()
-        
+
         # Call callbacks
         for callback in self.on_event_callbacks:
             callback(event)
-    
+
     def query(self, query: TraceQuery) -> List[TraceEvent]:
         """Query events."""
         return query.apply(list(self.events.values()))
-    
-    def query_by_thread(self, thread_id: str, query: Optional[TraceQuery] = None) -> List[TraceEvent]:
+
+    def query_by_thread(
+        self, thread_id: str, query: Optional[TraceQuery] = None
+    ) -> List[TraceEvent]:
         """Query events by thread."""
         event_ids = self.events_by_thread.get(thread_id, [])
         events = [self.events[eid] for eid in event_ids if eid in self.events]
-        
+
         if query:
             return query.apply(events)
         return events
-    
+
     def get_thread(self, thread_id: str) -> Optional[TraceThread]:
         """Get thread by ID."""
         return self.threads.get(thread_id)
-    
+
     def get_active_threads(self) -> List[TraceThread]:
         """Get all active threads."""
         return [t for t in self.threads.values() if t.is_active]
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get trace statistics."""
         level_counts = {k: len(v) for k, v in self.events_by_level.items()}
         type_counts = {k: len(v) for k, v in self.events_by_type.items()}
-        
+
         return {
             "manager_id": self.manager_id,
             "name": self.name,
@@ -435,22 +455,21 @@ class TraceManager:
             "events_by_level": level_counts,
             "events_by_type": type_counts,
         }
-    
+
     def on_event(self, callback: Callable[[TraceEvent], None]) -> None:
         """Register event callback."""
         self.on_event_callbacks.append(callback)
-    
+
     def _prune_old_events(self) -> None:
         """Prune old events to stay within limit."""
         cutoff = datetime.utcnow()
-        old_events = [
-            eid for eid, event in self.events.items()
-            if event.timestamp < cutoff
-        ]
-        
+        old_events = [eid for eid, event in self.events.items() if event.timestamp < cutoff]
+
         # Remove oldest 10%
-        to_remove = sorted(old_events, key=lambda eid: self.events[eid].timestamp)[:len(old_events) // 10]
-        
+        to_remove = sorted(old_events, key=lambda eid: self.events[eid].timestamp)[
+            : len(old_events) // 10
+        ]
+
         for eid in to_remove:
             event = self.events.pop(eid, None)
             if event:
@@ -468,7 +487,7 @@ class TraceManager:
                     self.events_by_thread[event.thread_id] = [
                         x for x in self.events_by_thread[event.thread_id] if x != eid
                     ]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -479,9 +498,9 @@ class TraceManager:
             "events_by_level": {k: len(v) for k, v in self.events_by_level.items()},
             "events": {eid: event.to_dict() for eid, event in self.events.items()},
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TraceManager':
+    def from_dict(cls, data: Dict[str, Any]) -> "TraceManager":
         """Create from dictionary."""
         return cls(
             manager_id=data.get("manager_id", str(uuid4())[:8]),
@@ -496,33 +515,34 @@ def create_trace_manager(name: str = "Trace Manager") -> TraceManager:
 
 class TraceDualWrite:
     """Context manager for dual-write trace + graph output."""
-    
+
     def __init__(self, trace_path: str, graph_path: Optional[str] = None):
         self.trace_path = trace_path
         self.graph_path = graph_path
         self.thread = TraceThread(thread_id="dual_write", name="Dual Write Thread")
-    
-    def __enter__(self) -> 'TraceDualWrite':
+
+    def __enter__(self) -> "TraceDualWrite":
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         # Save trace in existing format
         self._save_trace(self.trace_path)
-        
+
         # Save graph if path specified
         if self.graph_path and GRAPHGML_AVAILABLE:
             graph = self.thread.to_graph()
             if graph:
                 graph.save(self.graph_path)
-        
+
         return False
-    
+
     def add_event(self, event: TraceEvent) -> None:
         """Add event to both trace and graph."""
         self.thread.events.append(event)
-    
+
     def _save_trace(self, path: str) -> None:
         """Save trace to file."""
         import json
-        with open(path, 'w') as f:
+
+        with open(path, "w") as f:
             json.dump(self.thread.to_dict(), f, indent=2)

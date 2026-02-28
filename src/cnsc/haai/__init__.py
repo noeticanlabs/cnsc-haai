@@ -1,7 +1,7 @@
 """
 CNSC-HAAI - Coherence Noetican Structured Code Hierarchical Abstraction AI
 
-Monorepo scaffold for the NSC + GHLL + GLLL + GML stack with a single 
+Monorepo scaffold for the NSC + GHLL + GLLL + GML stack with a single
 compiler seam and ledger-truth runtime contract.
 
 References:
@@ -14,6 +14,7 @@ __author__ = "CNHAAI Team"
 from cnsc.haai import ghll
 from cnsc.haai import glll
 from cnsc.haai import nsc
+
 # Temporarily disabled due to dataclass bug in receipts.py
 # from cnsc.haai import gml
 

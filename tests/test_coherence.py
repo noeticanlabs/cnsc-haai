@@ -42,7 +42,7 @@ class TestCoherenceBudgetCreation:
             minimum=0.2,
             maximum=1.0,
             degradation_rate=0.15,
-            recovery_rate=0.08
+            recovery_rate=0.08,
         )
 
         assert budget.current == 0.8
@@ -145,7 +145,7 @@ class TestCoherenceDegradation:
         budget = CoherenceBudget()
         original_time = budget.last_update
         budget.degrade()
-        
+
         assert budget.last_update >= original_time
 
 
@@ -211,7 +211,7 @@ class TestCoherenceRecovery:
         budget = CoherenceBudget(current=0.8)
         original_time = budget.last_update
         budget.recover()
-        
+
         assert budget.last_update >= original_time
 
 
@@ -241,22 +241,14 @@ class TestCoherenceBounds:
 
     def test_custom_bounds(self):
         """Test custom minimum and maximum bounds."""
-        budget = CoherenceBudget(
-            minimum=0.2,
-            maximum=0.9,
-            current=0.5
-        )
+        budget = CoherenceBudget(minimum=0.2, maximum=0.9, current=0.5)
 
         assert budget.minimum == 0.2
         assert budget.maximum == 0.9
 
     def test_current_clamped_to_custom_bounds(self):
         """Test that current is clamped to custom bounds."""
-        budget = CoherenceBudget(
-            minimum=0.3,
-            maximum=0.7,
-            current=0.9
-        )
+        budget = CoherenceBudget(minimum=0.3, maximum=0.7, current=0.9)
 
         assert abs(budget.current - 0.7) < 0.001
 
@@ -556,5 +548,5 @@ class TestCoherenceReset:
         budget = CoherenceBudget(current=0.5)
         original_time = budget.last_update
         budget.reset()
-        
+
         assert budget.last_update >= original_time

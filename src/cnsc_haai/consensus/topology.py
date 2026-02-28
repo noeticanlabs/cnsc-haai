@@ -18,8 +18,9 @@ from cnsc_haai.consensus.chain import chain_hash_v1_prefixed
 
 class TopologyChangeType(Enum):
     """Types of topology changes."""
-    EXPAND = "EXPAND"      # Adding nodes
-    PRUNE = "PRUNE"        # Removing nodes
+
+    EXPAND = "EXPAND"  # Adding nodes
+    PRUNE = "PRUNE"  # Removing nodes
     RESTRUCTURE = "RESTRUCTURE"  # Changing connectivity only
 
 
@@ -28,11 +29,12 @@ class TopologyState:
     """
     Represents the topology of an Atlas.
     """
+
     atlas_hash: str
     rank: int  # Number of nodes
     edge_count: int
     connectivity_matrix_hash: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "atlas_hash": self.atlas_hash,
@@ -47,6 +49,7 @@ class TopologyJumpReceipt:
     """
     Receipt for a topology change (jump).
     """
+
     version: str = "1.0.0"
     receipt_id: str = ""
     A_prev_hash: str = ""
@@ -59,7 +62,7 @@ class TopologyJumpReceipt:
     hysteresis_verified: bool = False
     slab_boundary_verified: bool = False
     chain_hash: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "version": self.version,
@@ -85,10 +88,10 @@ SLAB_SIZE = 1000  # Blocks per slab
 def compute_rank(atlas: Dict[str, Any]) -> int:
     """
     Compute the rank (number of nodes) of an atlas.
-    
+
     Args:
         atlas: Atlas dictionary with nodes
-        
+
     Returns:
         Number of nodes
     """
@@ -100,11 +103,11 @@ def compute_rank(atlas: Dict[str, Any]) -> int:
 def compute_delta_struct(prev_atlas: Dict[str, Any], next_atlas: Dict[str, Any]) -> int:
     """
     Compute structural change between two atlas states.
-    
+
     Args:
         prev_atlas: Previous atlas state
         next_atlas: Next atlas state
-        
+
     Returns:
         Delta in rank (positive = expansion, negative = pruning)
     """
@@ -116,10 +119,10 @@ def compute_delta_struct(prev_atlas: Dict[str, Any], next_atlas: Dict[str, Any])
 def compute_atlas_hash(atlas: Dict[str, Any]) -> str:
     """
     Compute hash of atlas state.
-    
+
     Args:
         atlas: Atlas dictionary
-        
+
     Returns:
         sha256: prefixed hash
     """
@@ -131,11 +134,11 @@ def compute_atlas_hash(atlas: Dict[str, Any]) -> str:
 def check_hysteresis(delta_struct: int, threshold: int = HYSTERESIS_THRESHOLD) -> bool:
     """
     Check if change exceeds hysteresis threshold.
-    
+
     Args:
         delta_struct: Structural change
         threshold: Minimum threshold
-        
+
     Returns:
         True if hysteresis satisfied
     """
@@ -145,11 +148,11 @@ def check_hysteresis(delta_struct: int, threshold: int = HYSTERESIS_THRESHOLD) -
 def check_slab_boundary(current_height: int, slab_size: int = SLAB_SIZE) -> bool:
     """
     Check if current height is at a slab boundary.
-    
+
     Args:
         current_height: Current block height
         slab_size: Size of each slab
-        
+
     Returns:
         True if at slab boundary
     """
@@ -159,14 +162,14 @@ def check_slab_boundary(current_height: int, slab_size: int = SLAB_SIZE) -> bool
 def check_budget_gate(budget_q: int, delta_struct: int) -> Tuple[bool, int]:
     """
     Check budget gate for topology change.
-    
+
     For expansion: deduct budget equal to delta_struct
     For pruning: no deduction (but check distortion)
-    
+
     Args:
         budget_q: Current budget (QFixed)
         delta_struct: Structural change
-        
+
     Returns:
         (allowed, deduction)
     """
@@ -187,14 +190,14 @@ def compute_distortion_bound(
 ) -> int:
     """
     Compute distortion bound for pruning.
-    
+
     This is a simplified version - real implementation would
     compute actual connectivity and weight changes.
-    
+
     Args:
         prev_atlas: Previous atlas
         next_atlas: Next atlas
-        
+
     Returns:
         Distortion bound (QFixed)
     """
@@ -217,7 +220,7 @@ def verify_topology_jump(
 ) -> Tuple[bool, Optional[str], Optional[TopologyJumpReceipt]]:
     """
     Verify and create a topology jump receipt.
-    
+
     Args:
         prev_atlas: Previous atlas state
         next_atlas: Next atlas state
@@ -225,37 +228,37 @@ def verify_topology_jump(
         current_height: Current block height
         hysteresis_threshold: Minimum change threshold
         slab_size: Slab size
-        
+
     Returns:
         (allowed, error_message, receipt)
     """
     # 1. Check slab boundary (critical for hybrid safe)
     if not check_slab_boundary(current_height, slab_size):
         return False, "REJECT: Topology change only at slab boundaries", None
-    
+
     # 2. Compute delta_struct
     delta_struct = compute_delta_struct(prev_atlas, next_atlas)
-    
+
     # 3. Check hysteresis
     if not check_hysteresis(delta_struct, hysteresis_threshold):
         return False, f"REJECT: delta_struct {delta_struct} below hysteresis threshold", None
-    
+
     # 4. Check budget gate
     allowed, deduction = check_budget_gate(budget_q, delta_struct)
     if not allowed:
         return False, f"REJECT: Insufficient budget for expansion", None
-    
+
     # 5. For pruning, check distortion bound
     distortion_bound = 0
     if delta_struct < 0:  # Pruning
         distortion_bound = compute_distortion_bound(prev_atlas, next_atlas)
         if distortion_bound > MAX_DISTORTION:
             return False, f"REJECT: Distortion bound {distortion_bound} exceeds max", None
-    
+
     # 6. Compute hashes
     A_prev_hash = compute_atlas_hash(prev_atlas)
     A_next_hash = compute_atlas_hash(next_atlas)
-    
+
     # 7. Build receipt
     receipt_data = {
         "A_prev_hash": A_prev_hash,
@@ -266,17 +269,16 @@ def verify_topology_jump(
         "hysteresis_verified": True,
         "slab_boundary_verified": True,
     }
-    
+
     # 8. Compute receipt ID (single hash, no double-hash)
     receipt_bytes = jcs_canonical_bytes(receipt_data)
     receipt_id = sha256_prefixed(receipt_bytes)
-    
+
     # 9. Compute chain hash (using genesis as placeholder)
     chain_hash = chain_hash_v1_prefixed(
-        "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-        receipt_data
+        "sha256:0000000000000000000000000000000000000000000000000000000000000000", receipt_data
     )
-    
+
     receipt = TopologyJumpReceipt(
         version="1.0.0",
         receipt_id=receipt_id,
@@ -289,7 +291,7 @@ def verify_topology_jump(
         slab_boundary_verified=True,
         chain_hash=chain_hash,
     )
-    
+
     return True, None, receipt
 
 
@@ -297,7 +299,7 @@ class TopologyEngine:
     """
     Engine for managing topology changes.
     """
-    
+
     def __init__(
         self,
         hysteresis_threshold: int = HYSTERESIS_THRESHOLD,
@@ -307,15 +309,15 @@ class TopologyEngine:
         self._slab_size = slab_size
         self._current_atlas: Optional[Dict[str, Any]] = None
         self._current_budget_q: int = 0
-    
+
     def set_atlas(self, atlas: Dict[str, Any]) -> None:
         """Set current atlas state."""
         self._current_atlas = atlas
-    
+
     def set_budget(self, budget_q: int) -> None:
         """Set current budget."""
         self._current_budget_q = budget_q
-    
+
     def apply_topology_jump(
         self,
         next_atlas: Dict[str, Any],
@@ -323,17 +325,17 @@ class TopologyEngine:
     ) -> Tuple[bool, Optional[str], Optional[TopologyJumpReceipt]]:
         """
         Apply a topology jump.
-        
+
         Args:
             next_atlas: Proposed next atlas state
             current_height: Current block height
-            
+
         Returns:
             (allowed, error_message, receipt)
         """
         if self._current_atlas is None:
             return False, "No current atlas set", None
-        
+
         return verify_topology_jump(
             prev_atlas=self._current_atlas,
             next_atlas=next_atlas,
@@ -342,17 +344,17 @@ class TopologyEngine:
             hysteresis_threshold=self._hysteresis_threshold,
             slab_size=self._slab_size,
         )
-    
+
     def terminate_slab(
         self,
         current_height: int,
     ) -> bool:
         """
         Check if current slab should be terminated for topology change.
-        
+
         Args:
             current_height: Current block height
-            
+
         Returns:
             True if slab should be terminated
         """

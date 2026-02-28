@@ -22,22 +22,24 @@ from cnsc_haai.consensus.fraudproof import get_dispute_registry
 
 class FinalizeState(Enum):
     """States for a finalized slab."""
-    PENDING = "PENDING"      # Waiting for finalize
+
+    PENDING = "PENDING"  # Waiting for finalize
     FINALIZABLE = "FINALIZABLE"  # Ready to finalize
-    FINALIZED = "FINALIZED"   # Deletion authorized
+    FINALIZED = "FINALIZED"  # Deletion authorized
 
 
 @dataclass
 class FinalizeReceipt:
     """
     A finalize receipt authorizes deletion of a slab.
-    
+
     It verifies:
     1. The slab exists and matches the hash
     2. The window_end matches the derived value
     3. Current height >= derived window_end
     4. No disputes are active for the slab
     """
+
     version: str = "1.0.0"
     finalize_id: str = ""
     slab_chain_hash: str = ""  # Chain hash of the slab being finalized
@@ -46,7 +48,7 @@ class FinalizeReceipt:
     retention_policy_id: str = ""
     authorization_signature: str = ""  # Authorization for deletion
     chain_hash: str = ""  # Chain hash of this receipt
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "version": self.version,
@@ -58,9 +60,9 @@ class FinalizeReceipt:
             "authorization_signature": self.authorization_signature,
             "chain_hash": self.chain_hash,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FinalizeReceipt':
+    def from_dict(cls, data: Dict[str, Any]) -> "FinalizeReceipt":
         return cls(
             version=data.get("version", "1.0.0"),
             finalize_id=data.get("finalize_id", ""),
@@ -81,33 +83,39 @@ def verify_finalize_receipt(
 ) -> Tuple[bool, Optional[str]]:
     """
     Verify a finalize receipt.
-    
+
     Checks:
     1. window_end matches derived value from policy
     2. Current height >= window_end
     3. No disputes active
-    
+
     Args:
         finalize_receipt: The finalize receipt to verify
         slab_window_end: The actual window end from the slab
         current_height: Current block height
         is_disputed: Whether the slab has an active dispute
-        
+
     Returns:
         (is_valid, error_message)
     """
     # 1. Verify window_end matches
     if finalize_receipt.window_end_height != slab_window_end:
-        return False, f"REJECT: window_end mismatch: {finalize_receipt.window_end_height} != {slab_window_end}"
-    
+        return (
+            False,
+            f"REJECT: window_end mismatch: {finalize_receipt.window_end_height} != {slab_window_end}",
+        )
+
     # 2. Verify timing - must be after window_end
     if current_height < finalize_receipt.window_end_height:
-        return False, f"REJECT: premature, height {current_height} < window_end {finalize_receipt.window_end_height}"
-    
+        return (
+            False,
+            f"REJECT: premature, height {current_height} < window_end {finalize_receipt.window_end_height}",
+        )
+
     # 3. Verify no disputes
     if is_disputed:
         return False, "REJECT: slab has active dispute"
-    
+
     # 4. Verify finalize_height is correctly computed
     policy = get_policy(finalize_receipt.retention_policy_id)
     if policy:
@@ -116,8 +124,11 @@ def verify_finalize_receipt(
             policy.retention_period_blocks,
         )
         if finalize_receipt.finalize_height != expected_finalize:
-            return False, f"REJECT: finalize_height mismatch: {finalize_receipt.finalize_height} != {expected_finalize}"
-    
+            return (
+                False,
+                f"REJECT: finalize_height mismatch: {finalize_receipt.finalize_height} != {expected_finalize}",
+            )
+
     return True, None
 
 
@@ -129,13 +140,13 @@ def is_finalized(
 ) -> Tuple[FinalizeState, Optional[str]]:
     """
     Check if a slab is finalized and eligible for deletion.
-    
+
     Args:
         slab_chain_hash: Chain hash of the slab
         slab_window_end: Window end height from the slab
         retention_policy_id: Policy ID for retention
         current_height: Current block height
-        
+
     Returns:
         (state, error_message)
     """
@@ -143,25 +154,25 @@ def is_finalized(
     dispute_registry = get_dispute_registry()
     if dispute_registry.is_disputed(slab_chain_hash):
         return FinalizeState.PENDING, "Slab is disputed"
-    
+
     # Get policy
     policy = get_policy(retention_policy_id)
     if not policy:
         return FinalizeState.PENDING, "Policy not found"
-    
+
     # Check if window has closed
     if current_height < slab_window_end:
         return FinalizeState.PENDING, "Challenge window not closed"
-    
+
     # Check if retention period has elapsed
     finalize_height = compute_finalize_height(
         slab_window_end,
         policy.retention_period_blocks,
     )
-    
+
     if current_height < finalize_height:
         return FinalizeState.FINALIZABLE, "Retention period not elapsed"
-    
+
     # Finalized!
     return FinalizeState.FINALIZED, None
 
@@ -175,14 +186,14 @@ def create_finalize_receipt(
 ) -> FinalizeReceipt:
     """
     Create a finalize receipt.
-    
+
     Args:
         slab_chain_hash: Chain hash of the slab
         window_end_height: Window end from the slab
         retention_policy_id: Policy ID
         current_height: Current block height
         prev_chain_hash: Previous chain hash
-        
+
     Returns:
         FinalizeReceipt
     """
@@ -196,7 +207,7 @@ def create_finalize_receipt(
     else:
         # Default to window_end + 100
         finalize_height = window_end_height + 100
-    
+
     # Build receipt
     receipt_data = {
         "slab_chain_hash": slab_chain_hash,
@@ -204,23 +215,23 @@ def create_finalize_receipt(
         "finalize_height": finalize_height,
         "retention_policy_id": retention_policy_id,
     }
-    
+
     # In a real system, this would have an authorization signature
     # For now, we use a placeholder
     receipt_data["authorization_signature"] = "authorized"
-    
+
     # Compute ID (in practice, this would include more fields)
     from cnsc_haai.consensus.jcs import jcs_canonical_bytes
     from cnsc_haai.consensus.hash import sha256, sha256_prefixed
     from cnsc_haai.consensus.chain import chain_hash_v1_prefixed
-    
+
     # Compute finalize_id (single hash, no double-hash)
     receipt_bytes = jcs_canonical_bytes(receipt_data)
     finalize_id = sha256_prefixed(receipt_bytes)
-    
+
     # Compute chain hash
     chain_hash = chain_hash_v1_prefixed(prev_chain_hash, receipt_data)
-    
+
     return FinalizeReceipt(
         version="1.0.0",
         finalize_id=finalize_id,
@@ -238,10 +249,10 @@ class FinalizedRegistry:
     """
     Registry for tracking finalized slabs.
     """
-    
+
     def __init__(self):
         self._finalized: Dict[str, Dict[str, Any]] = {}
-    
+
     def mark_finalized(
         self,
         slab_chain_hash: str,
@@ -249,7 +260,7 @@ class FinalizedRegistry:
     ) -> None:
         """
         Mark a slab as finalized.
-        
+
         Args:
             slab_chain_hash: Chain hash of the slab
             finalize_receipt: The finalize receipt
@@ -258,12 +269,12 @@ class FinalizedRegistry:
             "finalize_receipt": finalize_receipt,
             "finalized": True,
         }
-    
+
     def is_finalized(self, slab_chain_hash: str) -> bool:
         """Check if a slab is finalized."""
         record = self._finalized.get(slab_chain_hash)
         return record is not None and record.get("finalized", False)
-    
+
     def get_finalize_receipt(
         self,
         slab_chain_hash: str,

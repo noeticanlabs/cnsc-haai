@@ -20,17 +20,18 @@ from datetime import datetime
 
 class NSCOpcode(Enum):
     """NSC bytecode opcodes."""
+
     # Stack operations
     PUSH = auto()
     POP = auto()
     DUP = auto()
     SWAP = auto()
-    
+
     # Local operations
     LOAD = auto()
     STORE = auto()
     ALLOC = auto()
-    
+
     # Arithmetic
     ADD = auto()
     SUB = auto()
@@ -38,7 +39,7 @@ class NSCOpcode(Enum):
     DIV = auto()
     MOD = auto()
     NEG = auto()
-    
+
     # Comparison
     EQ = auto()
     NE = auto()
@@ -46,42 +47,42 @@ class NSCOpcode(Enum):
     LE = auto()
     GT = auto()
     GE = auto()
-    
+
     # Logical
     AND = auto()
     OR = auto()
     NOT = auto()
-    
+
     # Control flow
     JUMP = auto()
     JUMP_IF = auto()
     JUMP_IF_NOT = auto()
     CALL = auto()
     RET = auto()
-    
+
     # Memory
     LOAD_FIELD = auto()
     STORE_FIELD = auto()
     LOAD_INDEX = auto()
     STORE_INDEX = auto()
-    
+
     # Type operations
     CAST = auto()
     TYPE_CHECK = auto()
-    
+
     # Coherence operations
     COHERENCE_READ = auto()
     COHERENCE_WRITE = auto()
     COHERENCE_CHECK = auto()
-    
+
     # Gate operations
     GATE_EVAL = auto()
     RAIL_CHECK = auto()
-    
+
     # Trace operations
     TRACE_EVENT = auto()
     EMIT_RECEIPT = auto()
-    
+
     # Special
     HALT = auto()
     NOP = auto()
@@ -91,18 +92,19 @@ class NSCOpcode(Enum):
 class NSCType:
     """
     NSC type with coherence annotations.
-    
+
     NSC uses structural typing with coherence annotations for
     tracking provenance and transformation history.
     """
+
     type_id: str
     name: str
     is_primitive: bool = False
-    fields: Dict[str, 'NSCType'] = field(default_factory=dict)
-    element_type: Optional['NSCType'] = None
+    fields: Dict[str, "NSCType"] = field(default_factory=dict)
+    element_type: Optional["NSCType"] = None
     coherence_bound: Optional[float] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         result = {
@@ -117,9 +119,9 @@ class NSCType:
         if self.element_type:
             result["element_type"] = self.element_type.to_dict()
         return result
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCType':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCType":
         """Create from dictionary."""
         fields = {}
         if "fields" in data:
@@ -136,8 +138,8 @@ class NSCType:
             coherence_bound=data.get("coherence_bound"),
             metadata=data.get("metadata", {}),
         )
-    
-    def is_compatible_with(self, other: 'NSCType') -> bool:
+
+    def is_compatible_with(self, other: "NSCType") -> bool:
         """Check type compatibility."""
         if self.type_id == other.type_id:
             return True
@@ -158,14 +160,15 @@ class NSCType:
 class NSCValue:
     """
     Immediate value in NSC.
-    
+
     Represents constants and literals in NSC bytecode.
     """
+
     value_type: NSCType
     value: Any
     provenance: Optional[str] = None
     coherence_level: Optional[float] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -180,15 +183,16 @@ class NSCValue:
 class NSCInstruction:
     """
     NSC instruction.
-    
+
     Low-level instruction with optional operands.
     """
+
     opcode: NSCOpcode
     operands: List[Any] = field(default_factory=list)
     result_type: Optional[NSCType] = None
     source_span: Optional[Tuple[int, int, int, int]] = None
     provenance: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -198,9 +202,9 @@ class NSCInstruction:
             "source_span": self.source_span,
             "provenance": self.provenance,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCInstruction':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCInstruction":
         """Create from dictionary."""
         return cls(
             opcode=NSCOpcode[data["opcode"]],
@@ -215,9 +219,10 @@ class NSCInstruction:
 class NSCBlock:
     """
     NSC basic block.
-    
+
     A block of instructions with a single entry and exit point.
     """
+
     block_id: str
     name: str
     instructions: List[NSCInstruction] = field(default_factory=list)
@@ -225,21 +230,21 @@ class NSCBlock:
     successors: List[str] = field(default_factory=list)
     dominance_frontier: Set[str] = field(default_factory=set)
     phi_instructions: List[NSCInstruction] = field(default_factory=list)
-    
+
     def add_instruction(self, instruction: NSCInstruction) -> None:
         """Add instruction to block."""
         self.instructions.append(instruction)
-    
+
     def add_successor(self, block_id: str) -> None:
         """Add successor block."""
         if block_id not in self.successors:
             self.successors.append(block_id)
-    
+
     def add_predecessor(self, block_id: str) -> None:
         """Add predecessor block."""
         if block_id not in self.predecessors:
             self.predecessors.append(block_id)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -251,9 +256,9 @@ class NSCBlock:
             "dominance_frontier": list(self.dominance_frontier),
             "phi_instructions": [inst.to_dict() for inst in self.phi_instructions],
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCBlock':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCBlock":
         """Create from dictionary."""
         return cls(
             block_id=data["block_id"],
@@ -262,7 +267,9 @@ class NSCBlock:
             predecessors=data["predecessors"],
             successors=data["successors"],
             dominance_frontier=set(data.get("dominance_frontier", [])),
-            phi_instructions=[NSCInstruction.from_dict(i) for i in data.get("phi_instructions", [])],
+            phi_instructions=[
+                NSCInstruction.from_dict(i) for i in data.get("phi_instructions", [])
+            ],
         )
 
 
@@ -270,9 +277,10 @@ class NSCBlock:
 class NSCFunction:
     """
     NSC function.
-    
+
     A function with control flow graph and type signature.
     """
+
     function_id: str
     name: str
     param_types: List[NSCType] = field(default_factory=list)
@@ -282,15 +290,15 @@ class NSCFunction:
     entry_block: str = ""
     exit_blocks: List[str] = field(default_factory=list)
     coherence_requirement: float = 0.5
-    
+
     def add_block(self, block: NSCBlock) -> None:
         """Add block to function."""
         self.blocks[block.block_id] = block
-    
+
     def get_block(self, block_id: str) -> Optional[NSCBlock]:
         """Get block by ID."""
         return self.blocks.get(block_id)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -304,9 +312,9 @@ class NSCFunction:
             "exit_blocks": self.exit_blocks,
             "coherence_requirement": self.coherence_requirement,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCFunction':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCFunction":
         """Create from dictionary."""
         return cls(
             function_id=data["function_id"],
@@ -325,23 +333,24 @@ class NSCFunction:
 class NSCCFG:
     """
     NSC Control Flow Graph.
-    
+
     SSA form representation with dominance information.
     """
+
     entry_block: str
     exit_blocks: List[str] = field(default_factory=list)
     blocks: Dict[str, NSCBlock] = field(default_factory=dict)
     immediate_dominators: Dict[str, str] = field(default_factory=dict)
     dominance_tree: Dict[str, List[str]] = field(default_factory=dict)
-    
+
     def add_block(self, block: NSCBlock) -> None:
         """Add block to CFG."""
         self.blocks[block.block_id] = block
-    
+
     def get_block(self, block_id: str) -> Optional[NSCBlock]:
         """Get block by ID."""
         return self.blocks.get(block_id)
-    
+
     def add_edge(self, from_id: str, to_id: str) -> None:
         """Add CFG edge."""
         from_block = self.blocks.get(from_id)
@@ -351,20 +360,20 @@ class NSCCFG:
             to_block.add_predecessor(from_id)
             if to_id not in self.exit_blocks and from_id not in self.exit_blocks:
                 pass
-    
+
     def compute_dominance(self) -> None:
         """Compute dominance information using Lengauer-Tarjan algorithm."""
         # Simple iterative algorithm for now
         if not self.blocks:
             return
-        
+
         # Initialize
         for block_id in self.blocks:
             self.immediate_dominators[block_id] = None
-        
+
         # Entry block dominates itself
         self.immediate_dominators[self.entry_block] = self.entry_block
-        
+
         # Iterative fixpoint
         changed = True
         while changed:
@@ -372,11 +381,11 @@ class NSCCFG:
             for block_id, block in self.blocks.items():
                 if block_id == self.entry_block:
                     continue
-                
+
                 predecessors = block.predecessors
                 if not predecessors:
                     continue
-                
+
                 # Intersect dominators of all predecessors
                 new_dom = None
                 for pred_id in predecessors:
@@ -384,20 +393,18 @@ class NSCCFG:
                     if pred_dom is not None:
                         if new_dom is None:
                             new_dom = set(self.blocks.keys())
-                        new_dom = new_dom.intersection(
-                            self._get_dominator_set(pred_id)
-                        )
-                
+                        new_dom = new_dom.intersection(self._get_dominator_set(pred_id))
+
                 if new_dom is None:
                     new_dom = set(self.blocks.keys())
-                
+
                 new_dom.add(block_id)
-                
+
                 old_dom = self._get_dominator_set(block_id)
                 if new_dom != old_dom:
                     self._set_dominator_set(block_id, new_dom)
                     changed = True
-    
+
     def _get_dominator_set(self, block_id: str) -> Set[str]:
         """Get dominator set for block."""
         idom = self.immediate_dominators.get(block_id)
@@ -411,7 +418,7 @@ class NSCCFG:
             if current == idom and current != block_id:
                 break
         return result
-    
+
     def _set_dominator_set(self, block_id: str, dom_set: Set[str]) -> None:
         """Set dominator set for block."""
         # Store just the immediate dominator for efficiency
@@ -426,7 +433,7 @@ class NSCCFG:
                         self.immediate_dominators[block_id] = candidate
                         return
         self.immediate_dominators[block_id] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -436,9 +443,9 @@ class NSCCFG:
             "immediate_dominators": self.immediate_dominators,
             "dominance_tree": self.dominance_tree,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCCFG':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCCFG":
         """Create from dictionary."""
         cfg = cls(
             entry_block=data["entry_block"],
@@ -454,9 +461,10 @@ class NSCCFG:
 class NSCRewrite:
     """
     NSC Rewrite Rule.
-    
+
     Defines a rewrite rule with pattern, conditions, and replacement.
     """
+
     rewrite_id: str
     name: str
     pattern: Dict[str, Any]
@@ -465,7 +473,7 @@ class NSCRewrite:
     priority: int = 0
     coherence_cost: float = 0.0
     is_conditional: bool = False
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -478,9 +486,9 @@ class NSCRewrite:
             "coherence_cost": self.coherence_cost,
             "is_conditional": self.is_conditional,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCRewrite':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCRewrite":
         """Create from dictionary."""
         return cls(
             rewrite_id=data["rewrite_id"],
@@ -498,48 +506,49 @@ class NSCRewrite:
 class NSCProgram:
     """
     NSC Program.
-    
+
     Complete program representation with functions and rewrite rules.
     """
+
     program_id: str
     name: str
     version: str = "1.0.0"
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    
+
     # Types
     types: Dict[str, NSCType] = field(default_factory=dict)
-    
+
     # Functions
     functions: Dict[str, NSCFunction] = field(default_factory=dict)
     entry_function: Optional[str] = None
-    
+
     # Rewrite rules
     rewrite_rules: List[NSCRewrite] = field(default_factory=list)
-    
+
     # Global types and values
     global_types: Dict[str, NSCType] = field(default_factory=dict)
     global_values: Dict[str, Any] = field(default_factory=dict)
-    
+
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def add_type(self, nsc_type: NSCType) -> None:
         """Add type to program."""
         self.types[nsc_type.type_id] = nsc_type
-    
+
     def add_function(self, func: NSCFunction) -> None:
         """Add function to program."""
         self.functions[func.function_id] = func
-    
+
     def add_rewrite_rule(self, rule: NSCRewrite) -> None:
         """Add rewrite rule."""
         self.rewrite_rules.append(rule)
-    
+
     def get_function(self, function_id: str) -> Optional[NSCFunction]:
         """Get function by ID."""
         return self.functions.get(function_id)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -556,16 +565,24 @@ class NSCProgram:
             "global_values": self.global_values,
             "metadata": self.metadata,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'NSCProgram':
+    def from_dict(cls, data: Dict[str, Any]) -> "NSCProgram":
         """Create from dictionary."""
         return cls(
             program_id=data["program_id"],
             name=data["name"],
             version=data.get("version", "1.0.0"),
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
-            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.utcnow(),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if "created_at" in data
+                else datetime.utcnow()
+            ),
+            updated_at=(
+                datetime.fromisoformat(data["updated_at"])
+                if "updated_at" in data
+                else datetime.utcnow()
+            ),
             types={k: NSCType.from_dict(t) for k, t in data.get("types", {}).items()},
             functions={k: NSCFunction.from_dict(f) for k, f in data.get("functions", {}).items()},
             entry_function=data.get("entry_function"),

@@ -67,33 +67,21 @@ class TestComputeSigma:
     def test_compute_sigma_simple(self):
         """Test sigma = eta * norm * g with simple values."""
         # sigma = 0.5 * 2.0 * 1.5 = 1.5
-        result = compute_sigma(
-            norm=int(2.0 * Q18),
-            eta_q18=int(0.5 * Q18),
-            g_q18=int(1.5 * Q18)
-        )
+        result = compute_sigma(norm=int(2.0 * Q18), eta_q18=int(0.5 * Q18), g_q18=int(1.5 * Q18))
         expected = int(1.5 * Q18)
         assert result == expected
 
     def test_compute_sigma_unity(self):
         """Test sigma = 1.0 case."""
         # sigma = 1.0 * 1.0 * 1.0 = 1.0
-        result = compute_sigma(
-            norm=int(1.0 * Q18),
-            eta_q18=int(1.0 * Q18),
-            g_q18=int(1.0 * Q18)
-        )
+        result = compute_sigma(norm=int(1.0 * Q18), eta_q18=int(1.0 * Q18), g_q18=int(1.0 * Q18))
         expected = int(1.0 * Q18)
         assert result == expected
 
     def test_compute_sigma_small(self):
         """Test sigma < 1 case."""
         # sigma = 0.1 * 0.5 * 0.5 = 0.025
-        result = compute_sigma(
-            norm=int(0.1 * Q18),
-            eta_q18=int(0.5 * Q18),
-            g_q18=int(0.5 * Q18)
-        )
+        result = compute_sigma(norm=int(0.1 * Q18), eta_q18=int(0.5 * Q18), g_q18=int(0.5 * Q18))
         expected = int(0.025 * Q18)
         assert result == expected
 
@@ -109,7 +97,7 @@ class TestVerifier:
             norm_pre_q18=int(2.0 * Q18),
             norm_post_q18=int(1.0 * Q18),
             eta_q18=int(0.75 * Q18),
-            g_q18=int(1.0 * Q18)
+            g_q18=int(1.0 * Q18),
         )
         assert result.accepted is True
 
@@ -120,7 +108,7 @@ class TestVerifier:
             norm_pre_q18=int(0.5 * Q18),
             norm_post_q18=int(0.3 * Q18),
             eta_q18=int(0.75 * Q18),
-            g_q18=int(1.0 * Q18)
+            g_q18=int(1.0 * Q18),
         )
         assert result.accepted is False
         assert "sigma_pre" in str(result).lower()
@@ -132,7 +120,7 @@ class TestVerifier:
             norm_pre_q18=int(1.0 * Q18),
             norm_post_q18=int(1.0 * Q18),
             eta_q18=int(0.75 * Q18),
-            g_q18=int(1.5 * Q18)
+            g_q18=int(1.5 * Q18),
         )
         assert result.accepted is False
         assert "norm" in str(result).lower()
@@ -144,7 +132,7 @@ class TestVerifier:
             norm_pre_q18=int(2.0 * Q18),
             norm_post_q18=int(1.5 * Q18),
             eta_q18=int(0.75 * Q18),
-            g_q18=int(1.0 * Q18)
+            g_q18=int(1.0 * Q18),
         )
         assert result.accepted is False
         assert "sigma_post" in str(result).lower()
@@ -155,10 +143,10 @@ class TestVerifier:
         # Using strict=False allows sigma_post == 1
         result = verify_renorm_criticality(
             norm_pre_q18=int(2.0 * Q18),
-            norm_post_q18=int(int(4/3 * Q18)),
+            norm_post_q18=int(int(4 / 3 * Q18)),
             eta_q18=int(0.75 * Q18),
             g_q18=int(1.0 * Q18),
-            strict=False
+            strict=False,
         )
         # Should be accepted with strict=False
         assert result.accepted is True
@@ -195,14 +183,14 @@ class TestQ18Arithmetic:
         a = 0.5
         b = 0.25
         c = 2.0
-        
+
         # Compute (a * b * c) in Q18
         a_q18 = int(a * Q18)
         b_q18 = int(b * Q18)
         c_q18 = int(c * Q18)
-        
+
         result = compute_sigma(a_q18, b_q18, c_q18)
-        
+
         # Expected: 0.5 * 0.25 * 2.0 = 0.25
         expected = int(0.25 * Q18)
         assert result == expected

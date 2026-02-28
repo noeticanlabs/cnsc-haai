@@ -22,11 +22,28 @@ from ..core.types import (
 WIRE_SPECS = {
     "request": {
         "spec": "NPE-REQUEST-1.0",
-        "required_fields": ["spec", "request_type", "request_id", "domain", "seed", "budgets", "inputs"],
+        "required_fields": [
+            "spec",
+            "request_type",
+            "request_id",
+            "domain",
+            "seed",
+            "budgets",
+            "inputs",
+        ],
     },
     "repair_request": {
         "spec": "NPE-REPAIR-REQUEST-1.0",
-        "required_fields": ["spec", "request_type", "request_id", "domain", "seed", "budgets", "inputs", "failure"],
+        "required_fields": [
+            "spec",
+            "request_type",
+            "request_id",
+            "domain",
+            "seed",
+            "budgets",
+            "inputs",
+            "failure",
+        ],
     },
     "response": {
         "spec": "NPE-RESPONSE-1.0",
@@ -37,10 +54,10 @@ WIRE_SPECS = {
 
 def parse_request(data: Dict[str, Any]) -> Tuple[NPERequest, str]:
     """Parse and validate an NPE request from JSON dict.
-    
+
     Args:
         data: The incoming JSON data
-        
+
     Returns:
         Tuple of (parsed_request, request_hash)
     """
@@ -48,7 +65,7 @@ def parse_request(data: Dict[str, Any]) -> Tuple[NPERequest, str]:
     spec = data.get("spec", "")
     if spec not in ["NPE-REQUEST-1.0", "NPE-REPAIR-REQUEST-1.0"]:
         raise ValueError(f"Invalid request spec: {spec}")
-    
+
     # Parse budgets
     budgets_data = data.get("budgets", {})
     budgets = Budgets(
@@ -57,24 +74,25 @@ def parse_request(data: Dict[str, Any]) -> Tuple[NPERequest, str]:
         max_evidence_items=budgets_data.get("max_evidence_items", 100),
         max_search_expansions=budgets_data.get("max_search_expansions", 50),
     )
-    
+
     # Parse inputs
     inputs = data.get("inputs", {})
-    
+
     # Compute request hash from canonicalized data
     request_hash = hash_request(data)
-    
+
     if spec == "NPE-REPAIR-REQUEST-1.0":
         # Parse repair request
         failure_data = data.get("failure", {})
         from ..core.types import FailureInfo
+
         failure = FailureInfo(
             proof_hash=failure_data.get("proof_hash", ""),
             gate_stack_id=failure_data.get("gate_stack_id", ""),
             registry_hash=failure_data.get("registry_hash", ""),
             failing_gates=failure_data.get("failing_gates", []),
         )
-        
+
         request = NPERepairRequest(
             spec=spec,
             request_type=data.get("request_type", "repair"),
@@ -98,16 +116,16 @@ def parse_request(data: Dict[str, Any]) -> Tuple[NPERequest, str]:
             budgets=budgets,
             inputs=inputs,
         )
-    
+
     return request, request_hash
 
 
 def parse_json(content: bytes) -> Dict[str, Any]:
     """Parse JSON from bytes.
-    
+
     Args:
         content: Raw bytes content
-        
+
     Returns:
         Parsed JSON dict
     """
@@ -118,26 +136,26 @@ def parse_json(content: bytes) -> Dict[str, Any]:
 
 def serialize_response(response: NPEResponse) -> bytes:
     """Serialize an NPE response to JSON bytes.
-    
+
     Args:
         response: The response to serialize
-        
+
     Returns:
         JSON bytes with proper encoding
     """
     # Convert response to dict
     response_dict = response_to_dict(response)
-    
+
     # Canonicalize for hashing
     canonical = canonicalize(response_dict)
-    
+
     # Compute response hash
     response_id = hash_response(response_dict)
     response.response_id = response_id
-    
+
     # Re-serialize with the computed ID
     response_dict = response_to_dict(response)
-    
+
     # Return with proper encoding
     json_str = json.dumps(response_dict, separators=(",", ":"), ensure_ascii=False)
     return json_str.encode("utf-8")
@@ -145,10 +163,10 @@ def serialize_response(response: NPEResponse) -> bytes:
 
 def response_to_dict(response: NPEResponse) -> Dict[str, Any]:
     """Convert a response to a dict for serialization.
-    
+
     Args:
         response: The response to convert
-        
+
     Returns:
         Response as dict
     """
@@ -169,10 +187,10 @@ def response_to_dict(response: NPEResponse) -> Dict[str, Any]:
 
 def candidate_to_dict(candidate: Any) -> Dict[str, Any]:
     """Convert a candidate to a dict for serialization.
-    
+
     Args:
         candidate: The candidate to convert
-        
+
     Returns:
         Candidate as dict
     """
@@ -205,7 +223,8 @@ def candidate_to_dict(candidate: Any) -> Dict[str, Any]:
             "confidence": candidate.scores.confidence,
         },
         "suggested_gate_stack": candidate.suggested_gate_stack,
-        "proposer_meta": candidate.proposer_meta and {
+        "proposer_meta": candidate.proposer_meta
+        and {
             "proposer_id": candidate.proposer_meta.proposer_id,
             "invocation_order": candidate.proposer_meta.invocation_order,
             "execution_time_ms": candidate.proposer_meta.execution_time_ms,
@@ -215,41 +234,41 @@ def candidate_to_dict(candidate: Any) -> Dict[str, Any]:
 
 def validate_schema(data: Dict[str, Any], spec_type: str) -> List[str]:
     """Validate data against wire protocol schema.
-    
+
     Args:
         data: The data to validate
         spec_type: The spec type to validate against
-        
+
     Returns:
         List of validation errors (empty if valid)
     """
     errors = []
-    
+
     spec_config = WIRE_SPECS.get(spec_type)
     if spec_config is None:
         errors.append(f"Unknown spec type: {spec_type}")
         return errors
-    
+
     # Check spec version
     expected_spec = spec_config["spec"]
     actual_spec = data.get("spec", "")
     if actual_spec != expected_spec:
         errors.append(f"Expected spec '{expected_spec}', got '{actual_spec}'")
-    
+
     # Check required fields
     for field in spec_config.get("required_fields", []):
         if field not in data:
             errors.append(f"Missing required field: {field}")
-    
+
     return errors
 
 
 def revalidate_and_reserialize(data: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
     """Re-validate and re-serialize a request using CJ0.
-    
+
     Args:
         data: The incoming request data
-        
+
     Returns:
         Tuple of (validated_data, request_hash)
     """
@@ -257,29 +276,29 @@ def revalidate_and_reserialize(data: Dict[str, Any]) -> Tuple[Dict[str, Any], st
     errors = validate_schema(data, "request")
     if not errors:
         errors = validate_schema(data, "repair_request")
-    
+
     if errors:
         raise ValueError(f"Schema validation failed: {', '.join(errors)}")
-    
+
     # Canonicalize and re-serialize
     canonical = canonicalize(data)
-    
+
     # Parse back to ensure round-trip consistency
     reparsed = json.loads(canonical)
-    
+
     # Compute hash
     request_hash = hash_request(data)
-    
+
     return reparsed, request_hash
 
 
 def create_wire_error(message: str, code: str = "NPE_ERROR") -> bytes:
     """Create an error response wire format.
-    
+
     Args:
         message: Error message
         code: Error code
-        
+
     Returns:
         Error response as bytes
     """
@@ -292,6 +311,6 @@ def create_wire_error(message: str, code: str = "NPE_ERROR") -> bytes:
             "message": message,
         },
     }
-    
+
     json_str = json.dumps(error_response, separators=(",", ":"), ensure_ascii=False)
     return json_str.encode("utf-8")

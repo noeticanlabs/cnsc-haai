@@ -13,7 +13,7 @@ from datetime import datetime
 
 def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
     """Register all subcommands with the argument parser."""
-    
+
     # === Parse Command ===
     parse_parser = subparsers.add_parser(
         "parse",
@@ -42,7 +42,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Enable type checking",
     )
-    
+
     # === Compile Command ===
     compile_parser = subparsers.add_parser(
         "compile",
@@ -66,7 +66,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="main",
         help="Entry point function (default: main)",
     )
-    
+
     # === Run Command ===
     run_parser = subparsers.add_parser(
         "run",
@@ -90,7 +90,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "--receipt",
         help="Output file for receipt",
     )
-    
+
     # === Trace Command ===
     trace_parser = subparsers.add_parser(
         "trace",
@@ -112,7 +112,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "--receipt",
         help="Output file for receipt",
     )
-    
+
     # === Replay Command ===
     replay_parser = subparsers.add_parser(
         "replay",
@@ -133,7 +133,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "-o",
         help="Output file for replay result",
     )
-    
+
     # === Verify Command ===
     verify_parser = subparsers.add_parser(
         "verify",
@@ -150,7 +150,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Show detailed verification info",
     )
-    
+
     # === Encode Command ===
     encode_parser = subparsers.add_parser(
         "encode",
@@ -178,7 +178,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default=32,
         help="Hadamard matrix order (default: 32)",
     )
-    
+
     # === Decode Command ===
     decode_parser = subparsers.add_parser(
         "decode",
@@ -204,7 +204,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default=32,
         help="Hadamard matrix order (default: 32)",
     )
-    
+
     # === Lexicon Command ===
     lexicon_parser = subparsers.add_parser(
         "lexicon",
@@ -215,7 +215,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         title="operations",
         dest="operation",
     )
-    
+
     lexicon_create = lexicon_subparsers.add_parser(
         "create",
         help="Create new lexicon",
@@ -231,7 +231,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="Default Lexicon",
         help="Lexicon name",
     )
-    
+
     lexicon_validate = lexicon_subparsers.add_parser(
         "validate",
         help="Validate lexicon",
@@ -240,7 +240,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "file",
         help="Lexicon file to validate",
     )
-    
+
     lexicon_export = lexicon_subparsers.add_parser(
         "export",
         help="Export lexicon entries",
@@ -255,7 +255,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="json",
         help="Export format",
     )
-    
+
     # === Codebook Command ===
     codebook_parser = subparsers.add_parser(
         "codebook",
@@ -266,7 +266,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         title="operations",
         dest="operation",
     )
-    
+
     codebook_create = codebook_subparsers.add_parser(
         "create",
         help="Create new codebook",
@@ -282,7 +282,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="Default Codebook",
         help="Codebook name",
     )
-    
+
     codebook_add = codebook_subparsers.add_parser(
         "add",
         help="Add glyph to codebook",
@@ -301,7 +301,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         required=True,
         help="Hadamard code (comma-separated)",
     )
-    
+
     codebook_validate = codebook_subparsers.add_parser(
         "validate",
         help="Validate codebook",
@@ -310,7 +310,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "file",
         help="Codebook file to validate",
     )
-    
+
     codebook_stats = codebook_subparsers.add_parser(
         "stats",
         help="Show codebook statistics",
@@ -319,7 +319,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "file",
         help="Codebook file",
     )
-    
+
     # === Version Command ===
     version_parser = subparsers.add_parser(
         "version",
@@ -331,7 +331,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Output as JSON",
     )
-    
+
     # === NPE Command ===
     npe_parser = subparsers.add_parser(
         "npe",
@@ -342,7 +342,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         title="operations",
         dest="operation",
     )
-    
+
     # === NPE Service Management ===
     # npe start
     npe_start = npe_subparsers.add_parser(
@@ -367,7 +367,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default=1,
         help="Number of worker processes (default: 1)",
     )
-    
+
     # npe stop
     npe_stop = npe_subparsers.add_parser(
         "stop",
@@ -385,7 +385,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default=10,
         help="Timeout for stop request (default: 10)",
     )
-    
+
     # npe status
     npe_status = npe_subparsers.add_parser(
         "status",
@@ -397,7 +397,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="http://localhost:8000",
         help="NPE service URL (default: http://localhost:8000)",
     )
-    
+
     # npe health
     npe_health = npe_subparsers.add_parser(
         "health",
@@ -409,7 +409,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         default="http://localhost:8000",
         help="NPE service URL (default: http://localhost:8000)",
     )
-    
+
     # === NPE Proposal Commands ===
     # npe propose
     npe_propose = npe_subparsers.add_parser(
@@ -453,7 +453,7 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
         "-o",
         help="Output file for results (default: stdout)",
     )
-    
+
     # npe repair
     npe_repair = npe_subparsers.add_parser(
         "repair",
@@ -490,15 +490,15 @@ def register_subcommands(subparsers: argparse._SubParsersAction) -> None:
 def execute(args: argparse.Namespace) -> int:
     """
     Execute the specified command.
-    
+
     Args:
         args: Parsed command arguments
-        
+
     Returns:
         Exit code
     """
     command = args.command
-    
+
     if command == "parse":
         return cmd_parse(args)
     elif command == "compile":
@@ -532,23 +532,23 @@ def cmd_parse(args: argparse.Namespace) -> int:
     """Handle parse command."""
     from cnsc.haai.ghll.parser import parse_ghll
     from cnsc.haai.ghll.types import TypeChecker
-    
+
     # Read input
     if args.input == "-":
         source = sys.stdin.read()
     else:
         with open(args.input) as f:
             source = f.read()
-    
+
     # Parse
     result = parse_ghll(source, args.input)
-    
+
     if not result.success:
         print("Parse errors:", file=sys.stderr)
         for error in result.errors:
             print(f"  {error}", file=sys.stderr)
         return 1
-    
+
     # Type check if requested
     if args.type_check:
         checker = TypeChecker()
@@ -556,25 +556,26 @@ def cmd_parse(args: argparse.Namespace) -> int:
             if isinstance(node, dict) and "type" in node:
                 # Type check expression
                 pass
-    
+
     # Format output
     if args.format == "json":
         output = json.dumps(result.to_dict(), indent=2)
     elif args.format == "yaml":
         try:
             import yaml
+
             output = yaml.dump(result.to_dict(), default_flow_style=False)
         except ImportError:
             output = json.dumps(result.to_dict(), indent=2)
     else:
         output = str(result.ast)
-    
+
     if args.output:
         with open(args.output, "w") as f:
             f.write(output)
     else:
         print(output)
-    
+
     return 0
 
 
@@ -582,14 +583,14 @@ def cmd_compile(args: argparse.Namespace) -> int:
     """Handle compile command."""
     from cnsc.haai.ghll.parser import parse_ghll
     from cnsc.haai.nsc.vm import NSCVirtualMachine, compile_to_bytecode
-    
+
     # Read input
     if args.input == "-":
         source = sys.stdin.read()
     else:
         with open(args.input) as f:
             source = f.read()
-    
+
     # Parse
     result = parse_ghll(source, args.input)
     if not result.success:
@@ -597,15 +598,15 @@ def cmd_compile(args: argparse.Namespace) -> int:
         for error in result.errors:
             print(f"  {error}", file=sys.stderr)
         return 1
-    
+
     # Compile to bytecode
     try:
         bytecode = compile_to_bytecode(result.ast, entry_point=args.entry)
-        
+
         # Save bytecode
         with open(args.output, "wb") as f:
             f.write(bytecode)
-        
+
         print(f"Compiled to {args.output}")
         return 0
     except Exception as e:
@@ -616,24 +617,24 @@ def cmd_compile(args: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace) -> int:
     """Handle run command."""
     from cnsc.haai.nsc.vm import NSCVirtualMachine
-    
+
     # Load bytecode
     with open(args.input, "rb") as f:
         bytecode = f.read()
-    
+
     # Create VM
     vm = NSCVirtualMachine()
-    
+
     # Run
     try:
         result = vm.run(bytecode)
-        
+
         if args.trace:
             print("Execution trace enabled (not shown)")
-        
+
         if args.receipt:
             print(f"Receipt saved to {args.receipt}")
-        
+
         print(f"Execution completed: {result}")
         return 0
     except Exception as e:
@@ -646,24 +647,24 @@ def cmd_trace(args: argparse.Namespace) -> int:
     from cnsc.haai.gml.trace import TraceManager, TraceLevel, TraceEvent, TraceThread
     from cnsc.haai.gml.receipts import ReceiptSystem, ReceiptStepType, ReceiptDecision
     from cnsc.haai.ghll.parser import parse_ghll
-    
+
     # Read input
     if args.input == "-":
         source = sys.stdin.read()
     else:
         with open(args.input) as f:
             source = f.read()
-    
+
     # Create trace manager and receipt system
     trace_manager = TraceManager()
     receipt_system = ReceiptSystem()
-    
+
     # Create a trace thread for this execution
     thread = trace_manager.create_thread(name="main", thread_id="main")
-    
+
     # Initial coherence state (1.0 = fully coherent)
     coherence_state = 1.0
-    
+
     # Log start of trace
     start_event = TraceEvent.create(
         level=TraceLevel.INFO,
@@ -672,14 +673,14 @@ def cmd_trace(args: argparse.Namespace) -> int:
         details={
             "source": args.input,
             "content_length": len(source),
-            "content_preview": source[:100] if len(source) > 100 else source
+            "content_preview": source[:100] if len(source) > 100 else source,
         },
         thread_id=thread.thread_id,
         coherence_before=None,
-        coherence_after=coherence_state
+        coherence_after=coherence_state,
     )
     trace_manager.add_event(start_event)
-    
+
     # Parse the source with GHLL
     coherence_before_parse = coherence_state
     parse_event = TraceEvent.create(
@@ -689,17 +690,17 @@ def cmd_trace(args: argparse.Namespace) -> int:
         details={"input_length": len(source)},
         thread_id=thread.thread_id,
         coherence_before=coherence_before_parse,
-        coherence_after=coherence_state
+        coherence_after=coherence_state,
     )
     trace_manager.add_event(parse_event)
-    
+
     # Perform the parse
     parse_result = parse_ghll(source, args.input)
-    
+
     if parse_result.success:
         # Parse succeeded - log with coherence impact
         coherence_after_parse = coherence_state  # Successful parse maintains coherence
-        
+
         parse_success_event = TraceEvent.create(
             level=TraceLevel.INFO,
             event_type="ghll_parse_complete",
@@ -707,34 +708,36 @@ def cmd_trace(args: argparse.Namespace) -> int:
             details={
                 "ast_node_count": len(parse_result.ast),
                 "has_errors": len(parse_result.errors) > 0,
-                "warnings": parse_result.warnings
+                "warnings": parse_result.warnings,
             },
             thread_id=thread.thread_id,
             coherence_before=coherence_before_parse,
-            coherence_after=coherence_after_parse
+            coherence_after=coherence_after_parse,
         )
         trace_manager.add_event(parse_success_event)
-        
+
         # Analyze AST for coherence-relevant operations
         coherence_state = coherence_after_parse
         coherence_before_analysis = coherence_state
-        
+
         analysis_event = TraceEvent.create(
             level=TraceLevel.DEBUG,
             event_type="coherence_analysis_start",
             message="Starting coherence analysis",
             thread_id=thread.thread_id,
             coherence_before=coherence_before_analysis,
-            coherence_after=coherence_state
+            coherence_after=coherence_state,
         )
         trace_manager.add_event(analysis_event)
-        
+
         # Analyze AST nodes for coherence impact
         analysis_details = _analyze_ast_for_coherence(parse_result.ast)
-        
+
         # Update coherence based on analysis
-        coherence_after_analysis = max(0.0, min(1.0, coherence_state - analysis_details.get("coherence_impact", 0.0)))
-        
+        coherence_after_analysis = max(
+            0.0, min(1.0, coherence_state - analysis_details.get("coherence_impact", 0.0))
+        )
+
         analysis_complete_event = TraceEvent.create(
             level=TraceLevel.INFO,
             event_type="coherence_analysis_complete",
@@ -742,11 +745,11 @@ def cmd_trace(args: argparse.Namespace) -> int:
             details=analysis_details,
             thread_id=thread.thread_id,
             coherence_before=coherence_before_analysis,
-            coherence_after=coherence_after_analysis
+            coherence_after=coherence_after_analysis,
         )
         trace_manager.add_event(analysis_complete_event)
         coherence_state = coherence_after_analysis
-        
+
         # Generate receipt if requested
         if args.receipt:
             coherence_before_receipt = coherence_state
@@ -755,51 +758,59 @@ def cmd_trace(args: argparse.Namespace) -> int:
                 step_type=ReceiptStepType.CUSTOM,
                 source=args.input,
                 input_data=source,
-                output_data=parse_result.to_dict() if hasattr(parse_result, 'to_dict') else {"ast": parse_result.ast, "success": parse_result.success},
+                output_data=(
+                    parse_result.to_dict()
+                    if hasattr(parse_result, "to_dict")
+                    else {"ast": parse_result.ast, "success": parse_result.success}
+                ),
                 decision=ReceiptDecision.PASS if parse_result.success else ReceiptDecision.FAIL,
                 episode_id=None,
-                phase="trace_execution"
+                phase="trace_execution",
             )
-            
+
             receipt_event = TraceEvent.create(
                 level=TraceLevel.INFO,
                 event_type="receipt_generated",
                 message="Receipt generated successfully",
                 details={
-                    "receipt_id": receipt.receipt_id if hasattr(receipt, 'receipt_id') else "unknown",
-                    "chain_hash": receipt.chain_hash if hasattr(receipt, 'chain_hash') else None,
-                    "coherence_state": coherence_state
+                    "receipt_id": (
+                        receipt.receipt_id if hasattr(receipt, "receipt_id") else "unknown"
+                    ),
+                    "chain_hash": receipt.chain_hash if hasattr(receipt, "chain_hash") else None,
+                    "coherence_state": coherence_state,
                 },
                 thread_id=thread.thread_id,
                 coherence_before=coherence_before_receipt,
-                coherence_after=coherence_state
+                coherence_after=coherence_state,
             )
             trace_manager.add_event(receipt_event)
-            
+
             # Save receipt
-            receipt_dict = receipt.to_dict() if hasattr(receipt, 'to_dict') else {"receipt_id": "unknown"}
-            with open(args.receipt, 'w') as f:
+            receipt_dict = (
+                receipt.to_dict() if hasattr(receipt, "to_dict") else {"receipt_id": "unknown"}
+            )
+            with open(args.receipt, "w") as f:
                 json.dump(receipt_dict, f, indent=2)
             print(f"Receipt saved to {args.receipt}")
     else:
         # Parse failed - log errors
         coherence_after_parse = max(0.0, coherence_state - 0.2)  # Penalty for parse failure
-        
+
         parse_error_event = TraceEvent.create(
             level=TraceLevel.ERROR,
             event_type="ghll_parse_failed",
             message=f"GHLL parse failed - {len(parse_result.errors)} errors",
             details={
                 "errors": [str(e) for e in parse_result.errors],
-                "warnings": [str(w) for w in parse_result.warnings]
+                "warnings": [str(w) for w in parse_result.warnings],
             },
             thread_id=thread.thread_id,
             coherence_before=coherence_before_parse,
-            coherence_after=coherence_after_parse
+            coherence_after=coherence_after_parse,
         )
         trace_manager.add_event(parse_error_event)
         coherence_state = coherence_after_parse
-    
+
     # Log end of trace
     end_event = TraceEvent.create(
         level=TraceLevel.INFO,
@@ -808,23 +819,23 @@ def cmd_trace(args: argparse.Namespace) -> int:
         details={
             "final_coherence_state": coherence_state,
             "total_events": len(trace_manager.events),
-            "active_threads": len(trace_manager.threads)
+            "active_threads": len(trace_manager.threads),
         },
         thread_id=thread.thread_id,
         coherence_before=coherence_state,
-        coherence_after=coherence_state
+        coherence_after=coherence_state,
     )
     trace_manager.add_event(end_event)
-    
+
     # Output trace
     trace_data = trace_manager.to_dict()
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(trace_data, f, indent=2)
         print(f"Trace saved to {args.output}")
     else:
         print(json.dumps(trace_data, indent=2))
-    
+
     return 0
 
 
@@ -835,39 +846,39 @@ def _analyze_ast_for_coherence(ast: List) -> Dict:
         "operation_types": {},
         "coherence_impact": 0.0,
         "high_risk_operations": [],
-        "requires_validation": False
+        "requires_validation": False,
     }
-    
+
     if not ast:
         return analysis
-    
+
     analysis["total_nodes"] = len(ast)
-    
+
     # Analyze each node
     for node in ast:
         if isinstance(node, dict):
             node_type = node.get("type", "unknown")
-            
+
             # Track operation types
             if node_type not in analysis["operation_types"]:
                 analysis["operation_types"][node_type] = 0
             analysis["operation_types"][node_type] += 1
-            
+
             # Check for high-risk operations that impact coherence
             high_risk_types = {"assertion", "assumption", "cut", "unfold", "rewrite"}
             if node_type in high_risk_types:
                 analysis["coherence_impact"] += 0.05  # Each high-risk op reduces coherence slightly
                 analysis["high_risk_operations"].append(node_type)
                 analysis["requires_validation"] = True
-            
+
             # Check for coherence-relevant constructs
             coherence_relevant = {"branch", "loop", "recursion", "quantum_gate"}
             if node_type in coherence_relevant:
                 analysis["coherence_impact"] += 0.02
-    
+
     # Cap coherence impact
     analysis["coherence_impact"] = min(analysis["coherence_impact"], 0.5)
-    
+
     return analysis
 
 
@@ -882,16 +893,17 @@ def cmd_replay(args: argparse.Namespace) -> int:
 def cmd_verify(args: argparse.Namespace) -> int:
     """Handle verify command - verify receipt chain."""
     from cnsc.haai.gml.receipts import ReceiptSystem, ChainValidator
-    
+
     # Load receipt system from file or verify single receipt
     try:
         with open(args.receipt) as f:
             data = json.load(f)
-        
+
         # Check if it's a receipt file or episode
         if "receipts" in data:
             # Full receipt system dump
             from cnsc.haai.gml.receipts import Receipt
+
             receipts = [Receipt.from_dict(r) for r in data["receipts"]]
             validator = ChainValidator()
             valid, message, details = validator.validate_chain(receipts)
@@ -904,12 +916,12 @@ def cmd_verify(args: argparse.Namespace) -> int:
         else:
             print(f"Unknown receipt format in {args.receipt}", file=sys.stderr)
             return 1
-        
+
         if args.verbose:
             print(json.dumps({"valid": valid, "message": message, "details": details}, indent=2))
         else:
             print(f"Verification: {'PASSED' if valid else 'FAILED'} - {message}")
-        
+
         return 0 if valid else 1
     except FileNotFoundError:
         print(f"File not found: {args.receipt}", file=sys.stderr)
@@ -922,89 +934,91 @@ def cmd_verify(args: argparse.Namespace) -> int:
 def cmd_encode(args: argparse.Namespace) -> int:
     """Handle encode command - encode data to GLLL Hadamard format."""
     from cnsc.haai.glll.hadamard import HadamardCodec
-    
+
     # Read input
     if args.input == "-":
         data_str = sys.stdin.read()
     else:
         with open(args.input) as f:
             data_str = f.read()
-    
+
     # Convert input to binary data
     # For now, encode the string as binary
     binary_data = [ord(c) for c in data_str]
-    
+
     # Create codec and encode
     codec = HadamardCodec(order=args.order)
     encoded = codec.encode(binary_data)
-    
+
     # Output
     output_data = {
         "original_length": len(binary_data),
         "order": args.order,
         "encoded": encoded,
     }
-    
+
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
         print(f"Encoded data saved to {args.output}")
     else:
         print(json.dumps(output_data, indent=2))
-    
+
     return 0
 
 
 def cmd_decode(args: argparse.Namespace) -> int:
     """Handle decode command - decode from GLLL Hadamard format."""
     from cnsc.haai.glll.hadamard import HadamardCodec
-    
+
     # Read input
     with open(args.input) as f:
         data = json.load(f)
-    
+
     encoded = data.get("encoded", [])
-    
+
     if not encoded:
         print("No encoded data found in input", file=sys.stderr)
         return 1
-    
+
     # Create codec and decode
     codec = HadamardCodec(order=data.get("order", args.order))
     decoded, was_corrected = codec.decode(encoded)
-    
+
     # Convert binary back to string
-    result_str = ''.join(chr(b) for b in decoded if b < 256)
-    
+    result_str = "".join(chr(b) for b in decoded if b < 256)
+
     output_data = {
         "decoded": result_str,
         "was_corrected": was_corrected,
         "original_length": data.get("original_length", 0),
     }
-    
+
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             f.write(result_str)
         print(f"Decoded data saved to {args.output}")
     else:
         print(json.dumps(output_data, indent=2))
-    
+
     return 0
 
 
 def cmd_lexicon(args: argparse.Namespace) -> int:
     """Handle lexicon command."""
     operation = getattr(args, "operation", None)
-    
+
     if operation == "create":
         from cnsc.haai.ghll.lexicon import LexiconManager
+
         lexicon = LexiconManager.create_default_lexicon(args.name)
         lexicon.save(args.output)
         print(f"Created lexicon: {args.output}")
         return 0
-    
+
     elif operation == "validate":
         from cnsc.haai.ghll.lexicon import LexiconManager
+
         lexicon = LexiconManager.load(args.file)
         valid, errors = lexicon.validate_integrity()
         if valid:
@@ -1015,12 +1029,13 @@ def cmd_lexicon(args: argparse.Namespace) -> int:
             for error in errors:
                 print(f"  {error}", file=sys.stderr)
             return 1
-    
+
     elif operation == "export":
         from cnsc.haai.ghll.lexicon import LexiconManager
+
         lexicon = LexiconManager.load(args.file)
         entries = lexicon.get_all_entries()
-        
+
         if args.format == "json":
             output = json.dumps([e.to_dict() for e in entries], indent=2)
         else:
@@ -1029,10 +1044,10 @@ def cmd_lexicon(args: argparse.Namespace) -> int:
             for e in entries:
                 lines.append(f"{e.token},{e.category},{e.pattern}")
             output = "\n".join(lines)
-        
+
         print(output)
         return 0
-    
+
     else:
         print(" lexicon: missing operation. Use 'create', 'validate', or 'export'")
         return 1
@@ -1041,40 +1056,45 @@ def cmd_lexicon(args: argparse.Namespace) -> int:
 def cmd_codebook(args: argparse.Namespace) -> int:
     """Handle codebook command."""
     operation = getattr(args, "operation", None)
-    
+
     if operation == "create":
         from cnsc.haai.glll.codebook import create_codebook
+
         codebook = create_codebook(args.name)
         codebook.save(args.output)
         print(f"Created codebook: {args.output}")
         return 0
-    
+
     elif operation == "add":
         from cnsc.haai.glll.codebook import Codebook, GlyphType, SymbolCategory, Glyph
+
         codebook = Codebook.load(args.file)
-        
+
         # Parse code
         code = [int(x.strip()) for x in args.code.split(",")]
-        
-        codebook.add_glyph(Glyph(
-            glyph_id=str(len(codebook.glyphs)),
-            symbol=args.symbol,
-            glyph_type=GlyphType.DATA,
-            category=SymbolCategory.ATOM,
-            hadamard_code=code,
-            vector=[float(x) for x in code],
-        ))
-        
+
+        codebook.add_glyph(
+            Glyph(
+                glyph_id=str(len(codebook.glyphs)),
+                symbol=args.symbol,
+                glyph_type=GlyphType.DATA,
+                category=SymbolCategory.ATOM,
+                hadamard_code=code,
+                vector=[float(x) for x in code],
+            )
+        )
+
         codebook.save(args.file)
         print(f"Added {args.symbol} to codebook")
         return 0
-    
+
     elif operation == "validate":
         from cnsc.haai.glll.codebook import Codebook, create_codebook_validator
+
         codebook = Codebook.load(args.file)
         validator = create_codebook_validator()
         valid, errors = validator.validate(codebook)
-        
+
         if valid:
             print("Codebook is valid")
             return 0
@@ -1083,14 +1103,15 @@ def cmd_codebook(args: argparse.Namespace) -> int:
             for error in errors:
                 print(f"  {error}", file=sys.stderr)
             return 1
-    
+
     elif operation == "stats":
         from cnsc.haai.glll.codebook import Codebook
+
         codebook = Codebook.load(args.file)
         stats = codebook.get_stats()
         print(json.dumps(stats, indent=2))
         return 0
-    
+
     else:
         print("codebook: missing operation. Use 'create', 'add', 'validate', or 'stats'")
         return 1
@@ -1099,27 +1120,27 @@ def cmd_codebook(args: argparse.Namespace) -> int:
 def cmd_version(args: argparse.Namespace) -> int:
     """Handle version command."""
     import platform
-    
+
     version_info = {
         "version": "1.0.0",
         "python": platform.python_version(),
         "platform": platform.platform(),
     }
-    
+
     if args.json:
         print(json.dumps(version_info, indent=2))
     else:
         print(f"CNSC-HAAI v{version_info['version']}")
         print(f"Python: {version_info['python']}")
         print(f"Platform: {version_info['platform']}")
-    
+
     return 0
 
 
 def cmd_npe(args: argparse.Namespace) -> int:
     """Handle NPE command."""
     operation = args.operation
-    
+
     if operation == "start":
         return cmd_npe_start(args)
     elif operation == "stop":
@@ -1143,17 +1164,23 @@ def cmd_npe_start(args: argparse.Namespace) -> int:
     import subprocess
     import sys
     import os
-    
+
     # Build command to start NPE service
     cmd = [
-        sys.executable, "-m", "npe.cli", "start",
-        "--host", args.host,
-        "--port", str(args.port),
-        "--workers", str(args.workers),
+        sys.executable,
+        "-m",
+        "npe.cli",
+        "start",
+        "--host",
+        args.host,
+        "--port",
+        str(args.port),
+        "--workers",
+        str(args.workers),
     ]
-    
+
     print(f"Starting NPE service on {args.host}:{args.port}...")
-    
+
     # Start as background process
     try:
         proc = subprocess.Popen(
@@ -1173,10 +1200,10 @@ def cmd_npe_start(args: argparse.Namespace) -> int:
 def cmd_npe_stop(args: argparse.Namespace) -> int:
     """Stop NPE service."""
     from cnsc.haai.nsc.proposer_client import ProposerClient
-    
+
     try:
         client = ProposerClient(base_url=args.url, timeout=args.timeout)
-        
+
         # The NPE service doesn't have a stop endpoint, so we just report
         # In a real implementation, this might use a management endpoint
         print(f"NPE stop request sent to {args.url}")
@@ -1191,12 +1218,12 @@ def cmd_npe_stop(args: argparse.Namespace) -> int:
 def cmd_npe_status(args: argparse.Namespace) -> int:
     """Check NPE service status."""
     from cnsc.haai.nsc.proposer_client import ProposerClient
-    
+
     try:
         client = ProposerClient(base_url=args.url, timeout=5)
         is_healthy = client.health()
         client.close()
-        
+
         if is_healthy:
             print(f"NPE service at {args.url} is RUNNING")
             return 0
@@ -1211,12 +1238,12 @@ def cmd_npe_status(args: argparse.Namespace) -> int:
 def cmd_npe_health(args: argparse.Namespace) -> int:
     """Get detailed NPE health information."""
     from cnsc.haai.nsc.proposer_client import ProposerClient
-    
+
     try:
         client = ProposerClient(base_url=args.url, timeout=5)
         health_details = client.get_health_details()
         client.close()
-        
+
         if health_details:
             print(f"NPE Service Health Report ({args.url})")
             print("=" * 50)
@@ -1233,24 +1260,24 @@ def cmd_npe_health(args: argparse.Namespace) -> int:
 def cmd_npe_propose(args: argparse.Namespace) -> int:
     """Submit a proposal request to NPE."""
     from cnsc.haai.nsc.proposer_client import ProposerClient
-    
+
     try:
         client = ProposerClient(base_url=args.url, timeout=args.timeout)
-        
+
         budget = {
             "max_wall_ms": args.max_time,
             "max_candidates": args.max_candidates,
         }
-        
+
         response = client.propose(
             domain=args.domain,
             candidate_type=args.candidate_type,
             context={},
             budget=budget,
         )
-        
+
         client.close()
-        
+
         # Format output
         result = {
             "request_id": response.get("request_id", "N/A"),
@@ -1258,16 +1285,16 @@ def cmd_npe_propose(args: argparse.Namespace) -> int:
             "candidate_type": args.candidate_type,
             "candidates": response.get("candidates", []),
         }
-        
+
         output = json.dumps(result, indent=2)
-        
+
         if args.output:
             with open(args.output, "w") as f:
                 f.write(output)
             print(f"Results written to {args.output}")
         else:
             print(output)
-        
+
         return 0
     except Exception as e:
         print(f"Proposal request failed: {e}", file=sys.stderr)
@@ -1277,18 +1304,18 @@ def cmd_npe_propose(args: argparse.Namespace) -> int:
 def cmd_npe_repair(args: argparse.Namespace) -> int:
     """Submit a repair request to NPE."""
     from cnsc.haai.nsc.proposer_client import ProposerClient
-    
+
     try:
         client = ProposerClient(base_url=args.url, timeout=args.timeout)
-        
+
         response = client.repair(
             gate_name=args.gate_name,
             failure_reasons=args.failure_reasons,
             context={},
         )
-        
+
         client.close()
-        
+
         # Format output
         result = {
             "request_id": response.get("request_id", "N/A"),
@@ -1296,16 +1323,16 @@ def cmd_npe_repair(args: argparse.Namespace) -> int:
             "failure_reasons": args.failure_reasons,
             "candidates": response.get("candidates", []),
         }
-        
+
         output = json.dumps(result, indent=2)
-        
+
         if args.output:
             with open(args.output, "w") as f:
                 f.write(output)
             print(f"Results written to {args.output}")
         else:
             print(output)
-        
+
         return 0
     except Exception as e:
         print(f"Repair request failed: {e}", file=sys.stderr)

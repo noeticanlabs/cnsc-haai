@@ -66,7 +66,6 @@ __all__ = [
     "HadamardCodec",
     "create_hadamard_codec",
     "create_error_detector",
-    
     # Codebook
     "GlyphType",
     "SymbolCategory",
@@ -77,7 +76,6 @@ __all__ = [
     "create_codebook",
     "create_codebook_validator",
     "create_codebook_builder",
-    
     # Packetizer
     "PacketType",
     "PacketStatus",
@@ -88,7 +86,6 @@ __all__ = [
     "create_packetizer",
     "create_depacketizer",
     "create_sequence_tracker",
-    
     # Mapping
     "BindingType",
     "BindingStatus",

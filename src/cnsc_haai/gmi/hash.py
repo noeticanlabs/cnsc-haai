@@ -11,13 +11,13 @@ import hashlib
 def sha256_tagged(tag: str, payload: bytes) -> bytes:
     """
     Compute domain-separated SHA256 hash.
-    
+
     H(tag || 0x00 || payload)
-    
+
     Args:
         tag: Domain separation tag (e.g., "GMI_STATE_V1_5")
         payload: Data to hash
-        
+
     Returns:
         32-byte SHA256 digest
     """
@@ -36,11 +36,11 @@ def sha256_tagged_hex(tag: str, payload: bytes) -> str:
 def chain_hash(prev_chain: bytes, receipt_payload: bytes) -> bytes:
     """
     Compute chain hash: H(prev_chain || receipt_payload)
-    
+
     Args:
         prev_chain: Previous chain tip (32 bytes)
         receipt_payload: Canonical JSON bytes of receipt
-        
+
     Returns:
         New chain tip (32 bytes)
     """

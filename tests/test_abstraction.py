@@ -59,7 +59,7 @@ class TestAbstractionCreation:
             validity=validity,
             content=content,
             parent_id=parent_id,
-            metadata=metadata
+            metadata=metadata,
         )
 
         assert abstraction.type == AbstractionType.DESCRIPTIVE
@@ -75,11 +75,7 @@ class TestAbstractionCreation:
     def test_abstraction_with_minimal_fields(self):
         """Test creating an abstraction with minimal fields."""
         abstraction = Abstraction(
-            type=AbstractionType.MECHANISTIC,
-            evidence=set(),
-            scope=set(),
-            validity={},
-            content={}
+            type=AbstractionType.MECHANISTIC, evidence=set(), scope=set(), validity={}, content={}
         )
 
         assert abstraction.type == AbstractionType.MECHANISTIC
@@ -96,11 +92,7 @@ class TestAbstractionCreation:
     def test_abstraction_default_values(self):
         """Test that default values are set correctly."""
         abstraction = Abstraction(
-            type=AbstractionType.NORMATIVE,
-            evidence=set(),
-            scope=set(),
-            validity={},
-            content={}
+            type=AbstractionType.NORMATIVE, evidence=set(), scope=set(), validity={}, content={}
         )
 
         assert isinstance(abstraction.id, str)
@@ -112,18 +104,10 @@ class TestAbstractionCreation:
     def test_abstraction_unique_ids(self):
         """Test that each abstraction gets a unique ID."""
         abstraction1 = Abstraction(
-            type=AbstractionType.DESCRIPTIVE,
-            evidence=set(),
-            scope=set(),
-            validity={},
-            content={}
+            type=AbstractionType.DESCRIPTIVE, evidence=set(), scope=set(), validity={}, content={}
         )
         abstraction2 = Abstraction(
-            type=AbstractionType.DESCRIPTIVE,
-            evidence=set(),
-            scope=set(),
-            validity={},
-            content={}
+            type=AbstractionType.DESCRIPTIVE, evidence=set(), scope=set(), validity={}, content={}
         )
 
         assert abstraction1.id != abstraction2.id
@@ -144,7 +128,7 @@ class TestAbstractionSerialization:
             evidence=evidence,
             scope=scope,
             validity=validity,
-            content=content
+            content=content,
         )
 
         result = abstraction.to_dict()
@@ -172,7 +156,7 @@ class TestAbstractionSerialization:
             "timestamp": "2024-01-01T00:00:00",
             "parent_id": "parent-123",
             "children_ids": ["child1"],
-            "metadata": {"version": 1}
+            "metadata": {"version": 1},
         }
 
         abstraction = Abstraction.from_dict(data)
@@ -190,9 +174,7 @@ class TestAbstractionSerialization:
 
     def test_from_dict_defaults(self):
         """Test from_dict with missing optional fields."""
-        data = {
-            "type": "DESCRIPTIVE"
-        }
+        data = {"type": "DESCRIPTIVE"}
 
         abstraction = Abstraction.from_dict(data)
 
@@ -213,7 +195,7 @@ class TestAbstractionSerialization:
             scope={"ctx1"},
             validity={"v": 1},
             content={"c": "test"},
-            metadata={"m": "data"}
+            metadata={"m": "data"},
         )
 
         restored = Abstraction.from_dict(original.to_dict())
@@ -240,7 +222,7 @@ class TestAbstractionValidation:
             evidence=set(),
             scope={"context1", "context2"},
             validity={},
-            content={}
+            content={},
         )
 
         assert abstraction.is_valid_for_context("context1") is True
@@ -253,7 +235,7 @@ class TestAbstractionValidation:
             evidence=set(),
             scope={"context1"},
             validity={},
-            content={}
+            content={},
         )
 
         assert abstraction.is_valid_for_context("context2") is False
@@ -266,7 +248,7 @@ class TestAbstractionValidation:
             evidence=set(),
             scope={"scope1", "scope2"},
             validity={},
-            content={}
+            content={},
         )
 
         assert abstraction.is_valid_for_scope({"scope3", "scope1"}) is True
@@ -279,7 +261,7 @@ class TestAbstractionValidation:
             evidence=set(),
             scope={"scope1"},
             validity={},
-            content={}
+            content={},
         )
 
         assert abstraction.is_valid_for_scope({"scope2", "scope3"}) is False
@@ -291,7 +273,7 @@ class TestAbstractionValidation:
             evidence=set(),
             scope={"scope1"},
             validity={},
-            content={}
+            content={},
         )
 
         assert abstraction.is_valid_for_scope(set()) is False
@@ -299,11 +281,7 @@ class TestAbstractionValidation:
     def test_abstraction_with_empty_scope(self):
         """Test abstraction with empty scope."""
         abstraction = Abstraction(
-            type=AbstractionType.DESCRIPTIVE,
-            evidence=set(),
-            scope=set(),
-            validity={},
-            content={}
+            type=AbstractionType.DESCRIPTIVE, evidence=set(), scope=set(), validity={}, content={}
         )
 
         assert abstraction.is_valid_for_context("anything") is False
@@ -326,7 +304,7 @@ class TestAbstractionLayer:
             evidence={"ev1"},
             scope={"ctx1"},
             validity={},
-            content={"text": "test"}
+            content={"text": "test"},
         )
 
     def test_add_abstraction(self, layer, sample_abstraction):
@@ -366,21 +344,21 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         abs2 = Abstraction(
             type=AbstractionType.DESCRIPTIVE,
             evidence=set(),
             scope={"ctx2"},
             validity={},
-            content={}
+            content={},
         )
         abs3 = Abstraction(
             type=AbstractionType.MECHANISTIC,
             evidence=set(),
             scope={"ctx3"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abs1)
@@ -401,14 +379,14 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         abs2 = Abstraction(
             type=AbstractionType.MECHANISTIC,
             evidence=set(),
             scope={"ctx2"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abs1)
@@ -426,7 +404,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         child = Abstraction(
             type=AbstractionType.MECHANISTIC,
@@ -434,7 +412,7 @@ class TestAbstractionLayer:
             scope={"ctx2"},
             validity={},
             content={},
-            parent_id=root.id
+            parent_id=root.id,
         )
 
         layer.add(root)
@@ -453,7 +431,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         child1 = Abstraction(
             type=AbstractionType.MECHANISTIC,
@@ -461,7 +439,7 @@ class TestAbstractionLayer:
             scope={"ctx2"},
             validity={},
             content={},
-            parent_id=parent.id
+            parent_id=parent.id,
         )
         child2 = Abstraction(
             type=AbstractionType.NORMATIVE,
@@ -469,7 +447,7 @@ class TestAbstractionLayer:
             scope={"ctx3"},
             validity={},
             content={},
-            parent_id=parent.id
+            parent_id=parent.id,
         )
 
         layer.add(parent)
@@ -497,7 +475,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         child = Abstraction(
             type=AbstractionType.MECHANISTIC,
@@ -505,7 +483,7 @@ class TestAbstractionLayer:
             scope={"ctx2"},
             validity={},
             content={},
-            parent_id=root.id
+            parent_id=root.id,
         )
         grandchild = Abstraction(
             type=AbstractionType.NORMATIVE,
@@ -513,7 +491,7 @@ class TestAbstractionLayer:
             scope={"ctx3"},
             validity={},
             content={},
-            parent_id=child.id
+            parent_id=child.id,
         )
 
         layer.add(root)
@@ -529,25 +507,21 @@ class TestAbstractionLayer:
     def test_get_ancestors(self, layer):
         """Test retrieving all ancestors recursively."""
         leaf = Abstraction(
-            type=AbstractionType.NORMATIVE,
-            evidence=set(),
-            scope={"ctx3"},
-            validity={},
-            content={}
+            type=AbstractionType.NORMATIVE, evidence=set(), scope={"ctx3"}, validity={}, content={}
         )
         parent = Abstraction(
             type=AbstractionType.MECHANISTIC,
             evidence=set(),
             scope={"ctx2"},
             validity={},
-            content={}
+            content={},
         )
         grandparent = Abstraction(
             type=AbstractionType.DESCRIPTIVE,
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
 
         # Add in reverse order
@@ -581,7 +555,7 @@ class TestAbstractionLayer:
             scope={"ctx1"},
             validity={},
             content={},
-            parent_id="missing-parent-id"
+            parent_id="missing-parent-id",
         )
 
         layer.add(abstraction)
@@ -597,7 +571,7 @@ class TestAbstractionLayer:
             evidence={"ev1"},
             scope={"ctx1"},
             validity={"cond": "test"},
-            content={"text": "created abstraction"}
+            content={"text": "created abstraction"},
         )
 
         assert abstraction.type == AbstractionType.DESCRIPTIVE
@@ -612,7 +586,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         layer.add(parent)
 
@@ -622,7 +596,7 @@ class TestAbstractionLayer:
             scope={"ctx2"},
             validity={},
             content={},
-            parent_id=parent.id
+            parent_id=parent.id,
         )
 
         assert child.parent_id == parent.id
@@ -635,21 +609,21 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"scope1", "shared"},
             validity={},
-            content={}
+            content={},
         )
         abs2 = Abstraction(
             type=AbstractionType.MECHANISTIC,
             evidence=set(),
             scope={"scope2", "shared"},
             validity={},
-            content={}
+            content={},
         )
         abs3 = Abstraction(
             type=AbstractionType.NORMATIVE,
             evidence=set(),
             scope={"scope1", "scope2"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abs1)
@@ -659,12 +633,12 @@ class TestAbstractionLayer:
         # Why 2 abstractions here (D1):
         # The find_common_abstractions function returns abstractions that are valid for BOTH scope1 and scope2.
         # - abs1: scope={"scope1", "shared"} → valid for scope1, NOT scope2 → NOT included
-        # - abs2: scope={"scope2", "shared"} → valid for scope2, NOT scope1 → NOT included  
+        # - abs2: scope={"scope2", "shared"} → valid for scope2, NOT scope1 → NOT included
         # - abs3: scope={"scope1", "scope2"} → valid for BOTH scope1 AND scope2 → INCLUDED
         # Note: abs3 is the ONLY abstraction that contains BOTH scopes in its scope set.
         # The original test incorrectly expected 2 results and expected abs2 to be included.
         # abs2 is intentionally NOT included because it doesn't have "scope1" in its scope.
-        
+
         common = layer.find_common_abstractions("scope1", "scope2")
 
         # Correct assertion: only abs3 should be returned (1 abstraction with both scopes)
@@ -680,14 +654,14 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"scope1"},
             validity={},
-            content={}
+            content={},
         )
         abs2 = Abstraction(
             type=AbstractionType.MECHANISTIC,
             evidence=set(),
             scope={"scope2"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abs1)
@@ -704,7 +678,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         child = Abstraction(
             type=AbstractionType.MECHANISTIC,
@@ -712,7 +686,7 @@ class TestAbstractionLayer:
             scope={"ctx2"},
             validity={},
             content={},
-            parent_id=root.id
+            parent_id=root.id,
         )
 
         layer.add(root)
@@ -728,7 +702,7 @@ class TestAbstractionLayer:
             scope={"ctx1"},
             validity={},
             content={},
-            parent_id="missing-parent"
+            parent_id="missing-parent",
         )
 
         layer.add(abstraction)
@@ -738,7 +712,7 @@ class TestAbstractionLayer:
     def test_validate_hierarchy_max_depth(self, layer):
         """Test hierarchy validation with maximum depth exceeded."""
         layer = AbstractionLayer(max_levels=2)
-        
+
         # Create chain of depth 4 (exceeds max_levels=2)
         # depth for last element = 3 (root->child1->child2->child3)
         abstractions = []
@@ -748,7 +722,7 @@ class TestAbstractionLayer:
                 evidence=set(),
                 scope={f"ctx{i}"},
                 validity={},
-                content={}
+                content={},
             )
             if i > 0:
                 abstraction.parent_id = abstractions[i - 1].id
@@ -765,14 +739,14 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"ctx1"},
             validity={},
-            content={}
+            content={},
         )
         abs2 = Abstraction(
             type=AbstractionType.DESCRIPTIVE,
             evidence=set(),
             scope={"ctx2"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abs1)
@@ -788,7 +762,7 @@ class TestAbstractionLayer:
             evidence=set(),
             scope={"scope1", "scope2"},
             validity={},
-            content={}
+            content={},
         )
 
         layer.add(abstraction)

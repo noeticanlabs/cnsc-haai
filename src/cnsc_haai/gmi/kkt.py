@@ -19,25 +19,25 @@ from .params import GMIParams
 def _laplacian_norm(grid: List[List[int]]) -> int:
     """
     Compute discrete Laplacian norm: sum of squared Laplacian values.
-    
+
     Laplacian(grid)[i][j] = sum(neighbors) - cnt * grid[i][j]
-    
+
     Args:
         grid: 2D integer array
-        
+
     Returns:
         Sum of squared Laplacian values
     """
     n = len(grid)
     m = len(grid[0]) if n > 0 else 0
     s = 0
-    
+
     for i in range(n):
         for j in range(m):
             c = grid[i][j]
             acc = 0
             cnt = 0
-            
+
             # Count neighbors and sum their values
             if i > 0:
                 acc += grid[i - 1][j]
@@ -51,18 +51,18 @@ def _laplacian_norm(grid: List[List[int]]) -> int:
             if j + 1 < m:
                 acc += grid[i][j + 1]
                 cnt += 1
-            
+
             # Discrete Laplacian
             L = acc - cnt * c
             s += L * L
-    
+
     return s
 
 
 def kkt_residual_q(s: GMIState, p: GMIParams) -> Dict[str, int]:
     """
     Compute KKT residuals for state.
-    
+
     Returns:
         Dictionary with:
         - feas_rho_q: feasibility residual for rho bounds
@@ -77,18 +77,18 @@ def kkt_residual_q(s: GMIState, p: GMIParams) -> Dict[str, int]:
     for row in s.rho:
         for v in row:
             if v < 0:
-                feas_rho += (-v)
+                feas_rho += -v
             elif v > p.rho_max:
-                feas_rho += (v - p.rho_max)
-    
+                feas_rho += v - p.rho_max
+
     feas_C = 0
     for row in s.C:
         for v in row:
             if v < 0:
-                feas_C += (-v)
-    
+                feas_C += -v
+
     feas_b = 0 if s.b >= 0 else (-s.b)
-    
+
     # Complementarity residuals (proxy - v1.5 simplified)
     comp_low = 0
     comp_high = 0
@@ -98,10 +98,10 @@ def kkt_residual_q(s: GMIState, p: GMIParams) -> Dict[str, int]:
                 comp_low += 0  # Cannot compute multiplier; leave 0
             if v == p.rho_max:
                 comp_high += 0
-    
+
     # Stationarity proxy: Laplacian of theta
     stat_theta = _laplacian_norm(s.theta)
-    
+
     return {
         "feas_rho_q": int(feas_rho),
         "feas_C_q": int(feas_C),
@@ -115,17 +115,13 @@ def kkt_residual_q(s: GMIState, p: GMIParams) -> Dict[str, int]:
 def is_kkt_feasible(s: GMIState, p: GMIParams) -> bool:
     """
     Check if state is KKT-feasible (all residuals zero).
-    
+
     Args:
         s: GMI state
         p: GMI parameters
-        
+
     Returns:
         True if all KKT residuals are zero
     """
     r = kkt_residual_q(s, p)
-    return (
-        r["feas_rho_q"] == 0 and
-        r["feas_C_q"] == 0 and
-        r["feas_b_q"] == 0
-    )
+    return r["feas_rho_q"] == 0 and r["feas_C_q"] == 0 and r["feas_b_q"] == 0

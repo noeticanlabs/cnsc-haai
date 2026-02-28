@@ -14,7 +14,7 @@ import warnings
 warnings.warn(
     "cnhaai is deprecated. Use cnsc.haai for ATS/Governance components.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 __version__ = "1.0.0"
@@ -29,7 +29,7 @@ from .core.gates import (
     GateType,
     GateManager,
     EvidenceSufficiencyGate,
-    CoherenceCheckGate
+    CoherenceCheckGate,
 )
 from .core.receipts import (
     Receipt,
@@ -38,7 +38,7 @@ from .core.receipts import (
     ReceiptProvenance,
     ReceiptSignature,
     ReceiptStepType,
-    ReceiptSystem
+    ReceiptSystem,
 )
 from .core.phases import Phase, PhaseConfig, PhaseState, PhaseManager
 from .core.coherence import CoherenceBudget
@@ -47,12 +47,10 @@ from .kernel.minimal import MinimalKernel, EpisodeResult
 __all__ = [
     # Version
     "__version__",
-    
     # Abstraction
     "Abstraction",
     "AbstractionLayer",
     "AbstractionType",
-    
     # Gates
     "Gate",
     "GateDecision",
@@ -61,7 +59,6 @@ __all__ = [
     "GateManager",
     "EvidenceSufficiencyGate",
     "CoherenceCheckGate",
-    
     # Receipts
     "Receipt",
     "ReceiptContent",
@@ -70,17 +67,14 @@ __all__ = [
     "ReceiptSignature",
     "ReceiptStepType",
     "ReceiptSystem",
-    
     # Phases
     "Phase",
     "PhaseConfig",
     "PhaseState",
     "PhaseManager",
-    
     # Coherence
     "CoherenceBudget",
-    
     # Kernel
     "MinimalKernel",
-    "EpisodeResult"
+    "EpisodeResult",
 ]
