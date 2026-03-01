@@ -16,6 +16,7 @@ from cnsc_haai.learn.update_rule import (
     compute_param_hash,
     compute_delta_hash,
     compute_delta_norm,
+    compute_delta_norm_sq,
     compute_param_count,
     compute_update_cost,
     compute_prediction_loss_on_batch,
@@ -66,12 +67,15 @@ def trust_region_check(
     Returns:
         Tuple of (accepted, reason)
     """
-    # Compute delta norm
-    delta_norm = compute_delta_norm(old_params, new_params)
+    # Compute squared delta norm directly (no sqrt, no float)
+    delta_norm_sq = compute_delta_norm_sq(old_params, new_params)
     
     # Compute threshold: gamma * ||delta||^2
-    # Note: delta_norm is already sqrt of sum of squares, so we square it
-    threshold = gamma * (delta_norm // 1_000_000)
+    # gamma is in QFixed (100_000), delta_norm_sq is sum of squared diffs (QFixed^2)
+    # For proper scaling: threshold = gamma * delta_norm_sq / QFIXED_SCALE
+    # where QFIXED_SCALE = 1_000_000
+    QFIXED_SCALE = 1_000_000
+    threshold = (gamma * delta_norm_sq) // QFIXED_SCALE
     
     # Check improvement
     improvement = old_loss - new_loss
@@ -141,6 +145,7 @@ def acceptance_test(
     new_loss: int,
     budget: int,
     batch_size: int,
+    batch_root: Optional[bytes] = None,
     gamma: int = GAMMA,
     delta_max: int = DELTA_MAX,
     epsilon: int = EPSILON,
@@ -152,7 +157,7 @@ def acceptance_test(
     1. Trust region: improvement >= gamma * ||delta||^2
     2. Budget: cost <= available budget
     3. Delta bound: ||delta|| <= delta_max
-    4. Loss: new_loss <= old_loss + epsilon (allow small increase)
+    4. Loss: new_loss < old_loss (strict monotone descent)
     
     Args:
         old_params: Original parameters
@@ -161,9 +166,10 @@ def acceptance_test(
         new_loss: Loss after update
         budget: Remaining budget
         batch_size: Size of training batch
+        batch_root: Merkle root of batch (required for valid receipt)
         gamma: Trust region coefficient
         delta_max: Maximum delta
-        epsilon: Tolerance for loss increase
+        epsilon: (deprecated, kept for API compatibility)
     
     Returns:
         Tuple of (accepted, reason, receipt)
@@ -171,6 +177,14 @@ def acceptance_test(
     # Compute costs
     param_count = compute_param_count(old_params)
     update_cost = compute_update_cost(batch_size, param_count)
+    
+    # Determine batch_root to use (require for valid receipt)
+    if batch_root is None:
+        # For backward compatibility with direct calls, use placeholder
+        # but this should be phased out - callers should provide batch_root
+        effective_batch_root = hashlib.sha256(b"MISSING_BATCH_ROOT").digest()
+    else:
+        effective_batch_root = batch_root
     
     # Check budget first (fast check)
     budget_ok, budget_reason = budget_check(budget, update_cost)
@@ -187,7 +201,7 @@ def acceptance_test(
             new_loss=old_loss,
             accepted=False,
             rejection_reason=budget_reason,
-            batch_root=hashlib.sha256(b"EMPTY").digest(),
+            batch_root=effective_batch_root,
             update_cost=update_cost,
         )
         return False, budget_reason, receipt
@@ -207,7 +221,7 @@ def acceptance_test(
             new_loss=old_loss,
             accepted=False,
             rejection_reason=delta_reason,
-            batch_root=hashlib.sha256(b"EMPTY").digest(),
+            batch_root=effective_batch_root,
             update_cost=update_cost,
         )
         return False, delta_reason, receipt
@@ -217,16 +231,14 @@ def acceptance_test(
         old_params, new_params, old_loss, new_loss, gamma
     )
     
-    # Also allow if loss doesn't increase too much (within epsilon)
-    loss_ok = new_loss <= old_loss + epsilon
-    
-    # Accept if either trust region passes OR loss is acceptable
-    accepted = trust_ok or loss_ok
+    # Require strict monotone descent: loss must decrease
+    # This ensures we have "governed learning" - only accept improving updates
+    accepted = new_loss < old_loss
     
     if accepted:
         reason = None
     else:
-        reason = f"loss_increase_exceeds_epsilon: {new_loss - old_loss} > {epsilon}"
+        reason = f"loss_not_decreased: old={old_loss}, new={new_loss}"
     
     # Create receipt
     old_hash = compute_param_hash(old_params)
@@ -241,7 +253,7 @@ def acceptance_test(
         new_loss=new_loss,
         accepted=accepted,
         rejection_reason=reason,
-        batch_root=hashlib.sha256(b"BATCH").digest(),  # Would be actual batch root
+        batch_root=effective_batch_root,
         update_cost=update_cost,
     )
     
@@ -278,7 +290,7 @@ def governed_update(
     Returns:
         Tuple of (accepted_params, receipt)
     """
-    # Run acceptance test
+    # Run acceptance test with batch_root
     accepted, reason, receipt = acceptance_test(
         old_params=current_params,
         new_params=proposed_params,
@@ -286,19 +298,7 @@ def governed_update(
         new_loss=proposed_loss,
         budget=budget,
         batch_size=batch_size,
-    )
-    
-    # Update receipt with actual batch root
-    receipt = UpdateReceipt(
-        old_params_hash=receipt.old_params_hash,
-        new_params_hash=receipt.new_params_hash,
-        delta_hash=receipt.delta_hash,
-        old_loss=receipt.old_loss,
-        new_loss=receipt.new_loss,
-        accepted=receipt.accepted,
-        rejection_reason=receipt.rejection_reason,
         batch_root=batch_root,
-        update_cost=receipt.update_cost,
     )
     
     # Return either new params or old params

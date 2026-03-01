@@ -83,6 +83,32 @@ class UpdateReceipt:
 # Helper Functions
 # =============================================================================
 
+def _integer_sqrt(n: int) -> int:
+    """
+    Compute integer square root using binary search.
+    
+    Returns floor(sqrt(n)) as an integer.
+    """
+    if n < 0:
+        raise ValueError("Cannot compute square root of negative number")
+    if n < 2:
+        return n
+    
+    # Binary search for integer sqrt
+    left, right = 0, n
+    while left <= right:
+        mid = (left + right) // 2
+        mid_sq = mid * mid
+        if mid_sq == n:
+            return mid
+        elif mid_sq < n:
+            left = mid + 1
+            result = mid
+        else:
+            right = mid - 1
+    return result
+
+
 def compute_param_hash(params: ModelParams) -> bytes:
     """Compute deterministic hash of parameters."""
     data = {
@@ -106,12 +132,15 @@ def compute_delta_hash(old_params: ModelParams, new_params: ModelParams) -> byte
 
 def compute_param_count(params: ModelParams) -> int:
     """Count number of parameters."""
-    encoder_params = len(params.encoder.weights) * len(params.encoder.bias)
-    dynamics_params = (
-        len(params.dynamics.transition_matrix) * len(params.dynamics.transition_matrix[0]) +
-        len(params.dynamics.action_matrix) * len(params.dynamics.action_matrix[0]) +
-        len(params.dynamics.bias)
-    )
+    # Encoder: sum all weight entries + bias entries
+    encoder_params = sum(len(row) for row in params.encoder.weights) + len(params.encoder.bias)
+    
+    # Dynamics: A matrix + B matrix + bias
+    dynamics_a = sum(len(row) for row in params.dynamics.transition_matrix)
+    dynamics_b = sum(len(row) for row in params.dynamics.action_matrix)
+    dynamics_bias = len(params.dynamics.bias)
+    dynamics_params = dynamics_a + dynamics_b + dynamics_bias
+    
     return encoder_params + dynamics_params
 
 
@@ -146,9 +175,43 @@ def compute_delta_norm(old_params: ModelParams, new_params: ModelParams) -> int:
     for old_c, new_c in zip(old_params.dynamics.bias, new_params.dynamics.bias):
         total_diff += (old_c - new_c) ** 2
     
-    # Return sqrt (approximation for integers)
-    import math
-    return int(math.sqrt(total_diff))
+    # Return integer sqrt for deterministic computation
+    return _integer_sqrt(total_diff)
+
+
+def compute_delta_norm_sq(old_params: ModelParams, new_params: ModelParams) -> int:
+    """
+    Compute squared norm of parameter change (in QFixed).
+    
+    Returns sum of squared differences (no sqrt), useful for trust region
+    computation where we need ||delta||^2 directly.
+    """
+    total_diff = 0
+    
+    # Encoder weights
+    for old_row, new_row in zip(old_params.encoder.weights, new_params.encoder.weights):
+        for old_w, new_w in zip(old_row, new_row):
+            total_diff += (old_w - new_w) ** 2
+    
+    # Encoder bias
+    for old_b, new_b in zip(old_params.encoder.bias, new_params.encoder.bias):
+        total_diff += (old_b - new_b) ** 2
+    
+    # Dynamics A
+    for old_row, new_row in zip(old_params.dynamics.transition_matrix, new_params.dynamics.transition_matrix):
+        for old_a, new_a in zip(old_row, new_row):
+            total_diff += (old_a - new_a) ** 2
+    
+    # Dynamics B
+    for old_row, new_row in zip(old_params.dynamics.action_matrix, new_params.dynamics.action_matrix):
+        for old_b, new_b in zip(old_row, new_row):
+            total_diff += (old_b - new_b) ** 2
+    
+    # Dynamics bias
+    for old_c, new_c in zip(old_params.dynamics.bias, new_params.dynamics.bias):
+        total_diff += (old_c - new_c) ** 2
+    
+    return total_diff
 
 
 def compute_update_cost(batch_size: int, param_count: int) -> int:

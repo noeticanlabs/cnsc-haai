@@ -38,6 +38,7 @@ def select_batch_by_hash(
     buffer: ReplayBuffer,
     batch_size: int,
     step_index: int,
+    salt: Optional[bytes] = None,
 ) -> Tuple[List[Transition], List[int]]:
     """
     Select batch using hash-based indexing for receiptable selection.
@@ -48,6 +49,7 @@ def select_batch_by_hash(
         buffer: Replay buffer to sample from
         batch_size: Number of transitions to select
         step_index: Current step number (used in hash)
+        salt: Optional salt for deterministic variation
     
     Returns:
         Tuple of (transitions, indices)
@@ -59,9 +61,12 @@ def select_batch_by_hash(
     result = []
     buffer_root = buffer.get_root()
     
+    # Include salt in hash if provided
+    salt_str = f":{salt.hex()}" if salt else ""
+    
     for i in range(batch_size):
-        # Hash = f(buffer_root, step_index, i)
-        h_input = f"{buffer_root.hex()}:{step_index}:{i}".encode()
+        # Hash = f(buffer_root, step_index, i, salt)
+        h_input = f"{buffer_root.hex()}:{step_index}:{i}{salt_str}".encode()
         h = hashlib.sha256(h_input).digest()
         idx = int.from_bytes(h[:4], 'big') % len(buffer.buffer)
         indices.append(idx)
@@ -100,7 +105,9 @@ def select_batch_with_receipt(
     Select batch and compute receipt data.
     
     This combines hash-based selection (for receiptability) with
-    seed-based selection (for determinism).
+    seed-based selection (for determinism). The seed is used to
+    derive a salt that modifies the hash-based selection, ensuring
+    deterministic batch selection.
     
     Args:
         buffer: Replay buffer
@@ -111,8 +118,11 @@ def select_batch_with_receipt(
     Returns:
         Tuple of (transitions, batch_root, indices)
     """
-    # Use hash-based selection for receiptability
-    transitions, indices = select_batch_by_hash(buffer, batch_size, step_index)
+    # Use hash-based selection with seed-derived salt for determinism
+    # This makes the selection both receiptable and deterministic
+    transitions, indices = select_batch_by_hash(
+        buffer, batch_size, step_index, salt=seed.to_bytes(4, 'big')
+    )
     
     # Compute batch root for receipt
     batch_root = compute_batch_root(transitions)
