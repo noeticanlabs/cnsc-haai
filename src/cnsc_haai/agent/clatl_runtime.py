@@ -264,12 +264,23 @@ def run_clatl_episode(
         # === FIX 3: Build ProposalSet receipt BEFORE selection ===
         proposalset_root = build_proposalset_root(proposals)
         
-        # === Governor selects action (lexicographic) ===
+        # === Phase 1.5 Upgrade: Compute predicted GMI states for semantic gates ===
+        # This makes Gate 2 (admissibility) and Gate 3 (Lyapunov) truly semantic
+        predicted_gmi_states = []
+        for proposal in proposals:
+            # Translate gridworld action to GMI action
+            gmi_action = _translate_to_gmi_action(proposal.action)
+            # Simulate GMI step to get predicted next state
+            pred_gmi, _ = gmi_step(current_gmi, gmi_action, {}, gmi_params, chain)
+            predicted_gmi_states.append(pred_gmi)
+        
+        # === Governor selects action (lexicographic with semantic gates) ===
         decision = select_action(
             proposals=proposals,
             gridworld_state=current_gridworld,
             gmi_state=current_gmi,
             gmi_params=gmi_params,
+            predicted_gmi_states=predicted_gmi_states,  # Now semantic!
         )
         
         # === Execute step ===
