@@ -402,3 +402,152 @@ def create_standard_grid(
     
     else:
         raise ValueError(f"Unknown layout: {layout}")
+
+
+# =============================================================================
+# GridWorldEnv Wrapper Class (for compatibility)
+# =============================================================================
+
+class GridWorldEnv:
+    """
+    Wrapper class for gridworld environment.
+    
+    Provides a gym-like interface for the functional gridworld API.
+    """
+    
+    def __init__(
+        self,
+        width: int = 10,
+        height: int = 10,
+        start_x: int = 0,
+        start_y: int = 0,
+        goal_x: int = 9,
+        goal_y: int = 9,
+        hazard_x: int = 5,
+        hazard_y: int = 5,
+        walls: list = None,
+        hazards: list = None,
+        max_steps: int = 100,
+        seed: int = 42,
+        enable_goal_drift: bool = False,
+    ):
+        """
+        Initialize GridWorldEnv.
+        
+        Args:
+            width: Grid width
+            height: Grid height
+            start_x: Starting X position
+            start_y: Starting Y position
+            goal_x: Goal X position
+            goal_y: Goal Y position
+            hazard_x: Hazard X position
+            hazard_y: Hazard Y position
+            walls: List of (x, y) wall positions
+            hazards: List of (x, y) hazard positions
+            max_steps: Maximum steps per episode
+            seed: Random seed for determinism
+            enable_goal_drift: Whether goal drifts
+        """
+        self.width = width
+        self.height = height
+        self.max_steps = max_steps
+        self.seed = seed
+        self.enable_goal_drift = enable_goal_drift
+        
+        # Build walls and hazards
+        if walls is None:
+            walls = []
+        if hazards is None:
+            hazards = [(hazard_x, hazard_y)]
+        
+        # Create grid
+        self.grid = create_gridworld(width, height, walls=walls, hazards=hazards)
+        
+        # Create initial state
+        self.initial_state = create_initial_state(
+            grid=self.grid,
+            start=(start_x, start_y),
+            goal=(goal_x, goal_y),
+            drift_seed=seed,
+        )
+        
+        self._state = self.initial_state
+        self._step_count = 0
+    
+    def reset(self) -> GridWorldObs:
+        """Reset environment and return initial observation."""
+        self._state = self.initial_state
+        self._step_count = 0
+        return get_observation(self._state)
+    
+    def step(self, action: str) -> tuple:
+        """
+        Take a step in the environment.
+        
+        Args:
+            action: Action string ('north', 'south', 'east', 'west', 'stay')
+        
+        Returns:
+            Tuple of (observation, reward, done, info)
+        """
+        # Map action string to action
+        action_map = {
+            'north': 'N',
+            'south': 'S',
+            'east': 'E',
+            'west': 'W',
+            'stay': 'Stay',
+        }
+        mapped_action = action_map.get(action, action)
+        
+        # Take step (returns only state and reward)
+        next_state, reward = env_step(self._state, mapped_action)
+        
+        # Apply goal drift if enabled
+        if self.enable_goal_drift:
+            next_state = drift_goal(next_state, self._step_count)
+        
+        # Update state
+        self._state = next_state
+        self._step_count += 1
+        
+        # Check if done (goal reached)
+        done = (next_state.position == next_state.goal)
+        
+        # Also check max steps
+        if self._step_count >= self.max_steps:
+            done = True
+        
+        # Get observation
+        obs = get_observation(next_state)
+        
+        # Info
+        info = {
+            'state': next_state,
+            'position': next_state.position,
+            'goal': next_state.goal,
+            'step': self._step_count,
+        }
+        
+        return obs, reward, done, info
+    
+    @property
+    def agent_x(self) -> int:
+        """Get agent X position."""
+        return self._state.position[0]
+    
+    @property
+    def agent_y(self) -> int:
+        """Get agent Y position."""
+        return self._state.position[1]
+    
+    @property
+    def goal_x(self) -> int:
+        """Get goal X position."""
+        return self._state.goal[0]
+    
+    @property
+    def goal_y(self) -> int:
+        """Get goal Y position."""
+        return self._state.goal[1]

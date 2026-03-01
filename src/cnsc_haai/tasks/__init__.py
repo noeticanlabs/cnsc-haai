@@ -8,6 +8,7 @@ Includes deterministic environments and task loss functions.
 from .gridworld_env import (
     GridWorldState,
     GridWorldObs,
+    GridWorldEnv,
     CELL_EMPTY,
     CELL_WALL,
     CELL_HAZARD,

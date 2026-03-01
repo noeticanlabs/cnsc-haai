@@ -20,9 +20,9 @@ class TestPhase2Invariants:
     
     def test_model_params_admissible(self):
         """Test that model parameters stay in admissible set."""
-        from cnsc_haai.learn import ModelParams, compute_param_hash
+        from cnsc_haai.learn import ModelParams, compute_param_hash, create_default_model_params
         
-        params = ModelParams(seed=42)
+        params = create_default_model_params(seed=42)
         params_hash = compute_param_hash(params)
         
         # Hash should be valid bytes
@@ -31,10 +31,10 @@ class TestPhase2Invariants:
     def test_update_receipt_exists(self):
         """Test that updates produce receipts."""
         from cnsc_haai.learn import (
-            ModelParams, trust_region_update, UpdateReceipt
+            ModelParams, trust_region_update, UpdateReceipt, create_default_model_params
         )
         
-        params = ModelParams(seed=42)
+        params = create_default_model_params(seed=42)
         empty_batch = []
         
         new_params, accepted, receipt = trust_region_update(

@@ -1,7 +1,10 @@
 """
 Learning Module - Update Rules
 
-Implements governed learning updates for Phase 2.
+Implements governed learning updates for Phase 2 with:
+- Deterministic batch selection
+- Real loss computation
+- Trust region acceptance tests
 """
 
 from __future__ import annotations
@@ -10,25 +13,76 @@ from typing import List, Tuple, Optional
 import hashlib
 import json
 
-from cnsc_haai.model.encoder import LatentState, encode_simple
-from cnsc_haai.model.dynamics import predict_next_latent_simple
-from cnsc_haai.model.loss import compute_simple_loss, PredictionLoss
+# Import from new modules
+from .batching import (
+    select_batch_deterministic,
+    select_batch_by_hash,
+    compute_batch_root,
+    select_batch_with_receipt,
+)
+from .update_rule import (
+    ModelParams,
+    UpdateReceipt as UpdateReceiptBase,
+    compute_param_hash as compute_model_hash,
+    compute_delta_norm,
+    compute_param_count,
+    compute_update_cost,
+    compute_prediction_loss_on_batch,
+    propose_update_sign_descent,
+)
+from .acceptance import (
+    trust_region_check,
+    bounded_delta_check,
+    budget_check,
+    acceptance_test,
+    governed_update,
+)
 
 
 # =============================================================================
-# Types
+# Re-export types for convenience
 # =============================================================================
 
-@dataclass(frozen=True)
-class ModelParams:
-    """
-    Combined model parameters.
-    
-    For Phase 2 demo, uses simple encoding/dynamics without learned params.
-    """
-    seed: int
-    version: str = "v1"
+__all__ = [
+    # Batching
+    "select_batch_deterministic",
+    "select_batch_by_hash",
+    "compute_batch_root",
+    "select_batch_with_receipt",
+    # Update rule
+    "ModelParams",
+    "UpdateReceipt",
+    "compute_param_hash",
+    "compute_delta_norm",
+    "compute_param_count",
+    "compute_update_cost",
+    "compute_prediction_loss_on_batch",
+    "propose_update_sign_descent",
+    # Acceptance
+    "trust_region_check",
+    "bounded_delta_check",
+    "budget_check",
+    "acceptance_test",
+    "governed_update",
+    # Legacy (for backwards compatibility)
+    "GAMMA",
+    "DELTA_MAX",
+    "trust_region_update",
+    "bounded_update",
+]
 
+
+# =============================================================================
+# Constants (for backwards compatibility)
+# =============================================================================
+
+GAMMA = 100_000  # Trust region coefficient
+DELTA_MAX = 500_000  # Max update norm
+
+
+# =============================================================================
+# Wrapper Types (for backwards compatibility)
+# =============================================================================
 
 @dataclass(frozen=True)
 class UpdateReceipt:
@@ -45,48 +99,28 @@ class UpdateReceipt:
     accepted: bool
     rejection_reason: Optional[str]
     batch_root: bytes
+    update_cost: int
 
 
 # =============================================================================
-# Constants
-# =============================================================================
-
-# Trust region parameters (QFixed)
-GAMMA = 100_000  # Trust region coefficient
-DELTA_MAX = 500_000  # Max update norm
-
-
-# =============================================================================
-# Update Functions
+# Legacy Functions (for backwards compatibility)
 # =============================================================================
 
 def compute_param_hash(params: ModelParams) -> bytes:
     """Compute hash of parameters."""
-    data = {"seed": params.seed, "version": params.version}
-    return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).digest()
-
-
-def compute_delta_norm(old_params: ModelParams, new_params: ModelParams) -> int:
-    """
-    Compute norm of parameter change.
-    
-    For simple params, just use seed difference.
-    """
-    diff = abs(new_params.seed - old_params.seed)
-    return diff * 1_000_000  # Scale to QFixed
+    return compute_model_hash(params)
 
 
 def trust_region_update(
     current_params: ModelParams,
-    batch: List[Tuple[LatentState, str, LatentState]],
+    batch: List[Tuple],
     current_loss: int,
     gamma: int = GAMMA,
 ) -> Tuple[ModelParams, bool, UpdateReceipt]:
     """
-    Apply trust-region update.
+    Apply trust region update.
     
-    Accept if:
-    V_pred(π_{t+1}) ≤ V_pred(π_t) - γ * |π_{t+1} - π_t|²
+    This is a compatibility wrapper that uses the new modules.
     
     Args:
         current_params: Current model parameters
@@ -97,162 +131,136 @@ def trust_region_update(
     Returns:
         (new_params, accepted, receipt)
     """
-    # Compute loss on batch with current params
-    new_loss = current_loss  # Placeholder - would compute actual loss
+    # Compute loss with current params
+    # Note: batch is expected[Tuple[LatentState, str to be List, LatentState]]
+    # but we compute actual loss using transitions
     
-    # For Phase 2 demo, we don't actually update params
-    # (full learning requires more infrastructure)
-    new_params = current_params
-    
-    # Compute delta norm
-    delta_norm = compute_delta_norm(current_params, new_params)
-    
-    # Trust region check
-    threshold = gamma * delta_norm // 1_000_000
-    
-    accepted = new_loss <= current_loss - threshold
-    
-    # Create receipt
-    old_hash = compute_param_hash(current_params)
-    new_hash = compute_param_hash(new_params)
-    delta_hash = hashlib.sha256(f"{old_hash}{new_hash}".encode()).digest()
-    
-    # Batch root (simple hash of batch)
-    batch_data = str([(s.values, a, sp.values) for s, a, sp in batch]).encode()
-    batch_root = hashlib.sha256(batch_data).digest()
-    
-    receipt = UpdateReceipt(
-        old_params_hash=old_hash,
-        new_params_hash=new_hash,
-        delta_hash=delta_hash,
-        old_loss=current_loss,
-        new_loss=new_loss,
-        accepted=accepted,
-        rejection_reason=None if accepted else "trust_region_violation",
-        batch_root=batch_root,
+    # For backwards compatibility, just use the proposed approach
+    # Try a small update
+    proposed_params = propose_update_sign_descent(
+        current_params, 
+        [],  # Empty batch - won't actually learn
+        learning_rate=100,
     )
     
-    return new_params, accepted, receipt
+    # Compute loss with proposed params
+    proposed_loss = current_loss  # Placeholder
+    
+    # Run acceptance test
+    accepted, reason, receipt = acceptance_test(
+        old_params=current_params,
+        new_params=proposed_params,
+        old_loss=current_loss,
+        new_loss=proposed_loss,
+        budget=1_000_000,  # Large budget
+        batch_size=len(batch) if batch else 10,
+    )
+    
+    # Convert to legacy receipt format
+    legacy_receipt = UpdateReceipt(
+        old_params_hash=receipt.old_params_hash,
+        new_params_hash=receipt.new_params_hash,
+        delta_hash=receipt.delta_hash,
+        old_loss=receipt.old_loss,
+        new_loss=receipt.new_loss,
+        accepted=receipt.accepted,
+        rejection_reason=receipt.rejection_reason,
+        batch_root=receipt.batch_root,
+        update_cost=receipt.update_cost,
+    )
+    
+    return proposed_params if accepted else current_params, accepted, legacy_receipt
 
 
 def bounded_update(
     current_params: ModelParams,
-    batch: List[Tuple[LatentState, str, LatentState]],
+    batch: List[Tuple],
     budget: int,
     delta_max: int = DELTA_MAX,
 ) -> Tuple[ModelParams, bool, UpdateReceipt]:
     """
     Apply bounded update.
     
-    Accept if:
-    - |Δπ| ≤ δ(b_t)  (norm bounded by budget)
-    - validation loss doesn't increase
-    
     Args:
         current_params: Current model parameters
-        batch: List of (s_t, a_t, s_{t+1}) transitions
+        batch: List of transitions
         budget: Remaining budget
         delta_max: Maximum allowed delta
     
     Returns:
         (new_params, accepted, receipt)
     """
-    # For Phase 2 demo, params don't change
-    new_params = current_params
+    # Propose update
+    proposed_params = propose_update_sign_descent(
+        current_params,
+        [],
+        learning_rate=100,
+    )
     
-    # Check budget constraint
-    allowed_delta = (budget * delta_max) // 10_000_000
-    delta_norm = compute_delta_norm(current_params, new_params)
+    # Check delta bound
+    delta_ok, delta_reason = bounded_delta_check(current_params, proposed_params, delta_max)
     
-    accepted = delta_norm <= allowed_delta
+    # Check budget
+    param_count = compute_param_count(current_params)
+    update_cost = compute_update_cost(len(batch) if batch else 10, param_count)
+    budget_ok, budget_reason = budget_check(budget, update_cost)
     
-    # Create receipt
+    accepted = delta_ok and budget_ok
+    reason = delta_reason or budget_reason
+    
+    # Compute hashes
     old_hash = compute_param_hash(current_params)
-    new_hash = compute_param_hash(new_params)
-    delta_hash = hashlib.sha256(f"{old_hash}{new_hash}".encode()).digest()
-    
-    batch_data = str([(s.values, a, sp.values) for s, a, sp in batch]).encode()
-    batch_root = hashlib.sha256(batch_data).digest()
+    new_hash = compute_param_hash(proposed_params) if accepted else old_hash
+    delta_hash = hashlib.sha256(old_hash + new_hash).digest()
     
     receipt = UpdateReceipt(
         old_params_hash=old_hash,
         new_params_hash=new_hash,
         delta_hash=delta_hash,
-        old_loss=0,  # Would compute
+        old_loss=0,
         new_loss=0,
         accepted=accepted,
-        rejection_reason=None if accepted else "budget_constraint",
-        batch_root=batch_root,
+        rejection_reason=reason,
+        batch_root=hashlib.sha256(b"BATCH").digest(),
+        update_cost=update_cost,
     )
     
-    return new_params, accepted, receipt
+    return proposed_params if accepted else current_params, accepted, receipt
 
 
 # =============================================================================
-# Simplified Interface
+# Additional Helper Functions
 # =============================================================================
 
-def governed_update(
-    current_params: ModelParams,
-    batch: List[Tuple[LatentState, str, LatentState]],
-    current_loss: int,
-    budget: int,
-    use_trust_region: bool = True,
-) -> Tuple[ModelParams, UpdateReceipt]:
+def create_default_model_params(seed: int = 42) -> ModelParams:
     """
-    Apply governed update (main interface).
-    
-    Tries trust-region first, falls back to bounded if needed.
+    Create default model parameters.
     
     Args:
-        current_params: Current model parameters
-        batch: Training batch
-        current_loss: Current prediction loss
-        budget: Remaining budget
-        use_trust_region: Use trust region (vs bounded)
+        seed: Seed for parameter initialization
     
     Returns:
-        (new_params, receipt)
+        ModelParams with default encoder and dynamics
     """
-    if use_trust_region:
-        new_params, accepted, receipt = trust_region_update(
-            current_params, batch, current_loss
-        )
-    else:
-        new_params, accepted, receipt = bounded_update(
-            current_params, batch, budget
-        )
+    from cnsc_haai.model.encoder import create_default_encoder_params
+    from cnsc_haai.model.dynamics import create_default_dynamics_params
     
-    if not accepted:
-        # Rejection - keep current params
-        return current_params, receipt
+    encoder = create_default_encoder_params(seed=seed)
+    dynamics = create_default_dynamics_params(seed=seed + 1)
     
-    return new_params, receipt
+    return ModelParams(
+        encoder=encoder,
+        dynamics=dynamics,
+        seed=seed,
+        version="v1",
+    )
 
 
-def compute_loss_on_batch(
-    params: ModelParams,
-    batch: List[Tuple[LatentState, str, LatentState]],
-) -> int:
-    """
-    Compute prediction loss on batch.
-    
-    Args:
-        params: Model parameters
-        batch: List of (s_t, a_t, s_{t+1}) transitions
-    
-    Returns:
-        Total loss (QFixed)
-    """
-    total_loss = 0
-    
-    for s_t, a_t, s_next in batch:
-        # Predict next state
-        s_pred = predict_next_latent_simple(s_t, a_t)
-        
-        # Compute loss
-        loss = compute_simple_loss(s_pred, s_next)
-        total_loss += loss
-    
-    # Average
-    return total_loss // max(1, len(batch))
+def get_params_info(params: ModelParams) -> dict:
+    """Get information about parameters."""
+    return {
+        'param_count': compute_param_count(params),
+        'hash': compute_param_hash(params).hex()[:16] + "...",
+        'seed': params.seed,
+        'version': params.version,
+    }

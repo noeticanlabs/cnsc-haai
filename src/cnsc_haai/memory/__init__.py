@@ -12,34 +12,20 @@ import json
 
 from cnsc_haai.tasks.gridworld_env import GridWorldObs
 
+# Import from replay_buffer.py for backwards compatibility
+from .replay_buffer import (
+    Transition,
+    ReplayBuffer,
+    compute_transition_hash,
+    create_transition,
+)
+
 
 # =============================================================================
-# Types
+# Legacy ReplayBuffer (for backwards compatibility)
 # =============================================================================
 
-@dataclass(frozen=True)
-class Transition:
-    """
-    A receipted transition for training.
-    
-    Immutable for deterministic replay.
-    """
-    obs: GridWorldObs
-    action: str
-    next_obs: GridWorldObs
-    reward: int
-    hash: bytes  # For audit
-    
-    def to_dict(self) -> dict:
-        """Serialize to dict."""
-        return {
-            'action': self.action,
-            'reward': self.reward,
-            'hash': self.hash.hex(),
-        }
-
-
-class ReplayBuffer:
+class ReplayBufferLegacy:
     """
     Bounded replay buffer with deterministic retention.
     
