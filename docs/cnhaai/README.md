@@ -1,9 +1,45 @@
 # CNHAAI - Coherence Noetican Hierarchical Abstraction AI
 
+> **⚠️ DEPRECATED**: This documentation is for the legacy `cnhaai` package.
+> 
+> The canonical documentation is now at [`docs/ats/`](../ats/)
+> and the code is at [`cnsc.haai`](../../src/cnsc/haai/).
+> 
+> The `cnhaai` package has been redirected to import from `cnsc.haai`.
+> Please update your imports to use the new namespace.
+
+---
+
 **A governed reasoning system for deep, reliable AI**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](VERSION.md)
+
+## Migration Guide
+
+### Import Changes
+
+**Before (deprecated)**:
+```python
+from cnhaai import MinimalKernel, CoherenceBudget
+```
+
+**After (recommended)**:
+```python
+from cnsc.haai import MinimalKernel  # if needed
+from cnsc.haai.ats.coherence import CoherenceBudget
+```
+
+### Module Mapping
+
+| Old Import | New Import |
+|------------|------------|
+| `cnhaai.core.gates` | `cnsc.haai.nsc.gates` |
+| `cnhaai.core.receipts` | `cnsc.haai.gml.receipts` |
+| `cnhaai.core.coherence` | `cnsc.haai.ats.coherence` |
+| `cnhaai.core.phases` | `cnsc.haai.nsc.cfa`, `cnsc.haai.gml.phaseloom` |
+
+---
 
 ## What is CNHAAI?
 

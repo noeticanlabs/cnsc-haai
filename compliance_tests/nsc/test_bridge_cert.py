@@ -7,7 +7,7 @@ against the Lean 4 UFE formalization.
 
 import pytest
 from cnsc.haai.nsc.gates import BridgeCert, GateManager, Trajectory
-from cnhaai.core.coherence import CoherenceBudget, VectorResidual
+from cnsc.haai.ats.coherence import CoherenceBudget, VectorResidual
 from cnsc.haai.tgs.clock import AffineReparam, Clock
 
 

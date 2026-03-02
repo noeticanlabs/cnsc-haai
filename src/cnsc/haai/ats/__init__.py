@@ -15,6 +15,7 @@ Module Structure:
 - risk.py: Risk functional V implementation
 - budget.py: Budget law implementation
 - rv.py: Receipt Verifier (the heart)
+- coherence.py: UI heuristics (NON-CONSENSUS - for display only)
 
 Usage:
     from cnsc.haai.ats import ReceiptVerifier, State, QFixed
@@ -76,11 +77,18 @@ from .risk import RiskFunctional, compute_risk, compute_delta, compute_delta_plu
 from .budget import BudgetManager, create_budget_manager
 from .rv import ReceiptVerifier, verify_step, verify_trajectory
 
+# Non-consensus UI heuristics (for display purposes only)
+# NOTE: These modules use floats and are NOT deterministic
+from .coherence import CoherenceBudget, VectorResidual
+
 # Version
 __version__ = "1.0.0-draft"
 
 # Module exports
 __all__ = [
+    # Coherence (NON-CONSENSUS - UI heuristics only)
+    "CoherenceBudget",
+    "VectorResidual",
     # Numeric
     "QFixed",
     "QFixedOverflow",

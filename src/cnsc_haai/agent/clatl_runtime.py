@@ -200,6 +200,8 @@ def run_clatl_episode(
     drift_seed: int,
     gmi_params: GMIParams,
     proposer: Optional[TaskProposer] = None,
+    use_planner: bool = False,
+    planner_config: Optional[Any] = None,
 ) -> CLATLRunReceipt:
     """
     Execute one CLATL episode with full receipt.
@@ -214,12 +216,27 @@ def run_clatl_episode(
         drift_seed: Seed for deterministic goal drift
         gmi_params: GMI parameters
         proposer: Optional proposer (creates default if None)
+        use_planner: If True, use PlannerProposer for MPC planning (Phase 3)
+        planner_config: Optional PlannerConfig for planning mode
     
     Returns:
         CLATLRunReceipt with full audit trail
     """
-    # Initialize
-    proposer = proposer or TaskProposer(ExplorationParams())
+    # Initialize - support both reactive and planning modes
+    from cnsc_haai.planning import PlannerConfig
+    from cnsc_haai.agent.planner_proposer import create_planner_proposer
+    
+    if use_planner:
+        # Phase 3: Use MPC planning
+        planner_cfg = planner_config or PlannerConfig()
+        proposer = create_planner_proposer(
+            m_max=planner_cfg.m_max,
+            min_budget=planner_cfg.min_budget,
+        )
+    else:
+        # Phase 2: Use default TaskProposer
+        proposer = proposer or TaskProposer(ExplorationParams())
+    
     gmi_params = gmi_params or GMIParams()
     
     # Create run receipt

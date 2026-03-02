@@ -18,6 +18,13 @@ import hashlib
 # Import GMI types for action representation
 from cnsc_haai.gmi.types import GMIAction
 
+# Import options for skills integration (Phase 3: Planning + Skills)
+from cnsc_haai.options import (
+    execute_option_steps,
+    list_options,
+    get_option,
+)
+
 
 # =============================================================================
 # Action Constants (must match model/dynamics.py)
@@ -227,3 +234,86 @@ def compute_adaptive_params(
     m = min(m_max, 1 + budget // b_unit)
     H = min(H_max, 1 + budget // h_unit)
     return max(1, m), max(1, H)
+
+
+# =============================================================================
+# Options Integration (Phase 3: Planning + Skills)
+# =============================================================================
+
+def generate_option_plans(
+    state: GMIState,
+    goal_position: Tuple[int, int],
+    hazard_mask: Optional[List[List[int]]] = None,
+    horizon: int = 10,
+) -> List[Plan]:
+    """
+    Generate plans by unfolding options (skills) into primitive actions.
+    
+    This implements Option A from the Phase 3 spec:
+    - Options are unfolded at generation time into primitive plans
+    - Simpler receipts (primitive-only)
+    - Maintains replay determinism
+    
+    Args:
+        state: Current GMI state
+        goal_position: Target position
+        hazard_mask: Optional 2D hazard grid
+        horizon: Maximum plan length
+    
+    Returns:
+        List of plans derived from options
+    """
+    plans = []
+    
+    # Get available options
+    available_options = list_options()
+    
+    for option_id in available_options:
+        try:
+            # Execute option to get primitive action sequence
+            execution = execute_option_steps(
+                option_id=option_id,
+                state=state,
+                goal_position=goal_position,
+                hazards=_extract_hazard_positions(hazard_mask) if hazard_mask else None,
+                walls=None,
+                max_steps=horizon,
+            )
+            
+            # Convert execution to plan if successful
+            if execution.status.value in ("completed", "max_steps"):
+                # Extract GMIActions from execution
+                actions = tuple(execution.actions) if execution.actions else ()
+                
+                if actions:
+                    # Create plan from option-derived actions
+                    plan = Plan(
+                        actions=actions,
+                        horizon=len(actions),
+                        plan_hash=_hash_actions(actions, f"option_{option_id}"),
+                    )
+                    plans.append(plan)
+                    
+        except Exception:
+            # Skip options that fail to execute
+            continue
+    
+    return plans
+
+
+def _extract_hazard_positions(hazard_mask: List[List[int]]) -> List[Tuple[int, int]]:
+    """Extract hazard positions from 2D mask."""
+    positions = []
+    for r, row in enumerate(hazard_mask):
+        for c, val in enumerate(row):
+            if val == 1:
+                positions.append((r, c))
+    return positions
+
+
+def _hash_actions(actions: Tuple[GMIAction, ...], prefix: str) -> str:
+    """Compute hash for action sequence."""
+    data = prefix
+    for a in actions:
+        data += str(a.drho) + str(a.dtheta)
+    return hashlib.sha256(data.encode()).hexdigest()[:16]

@@ -141,15 +141,26 @@ class PlannerProposer:
             pos = (gmi_state.theta[0][0], gmi_state.theta[0][1] if len(gmi_state.theta[0]) > 1 else 0)
             V_task = abs(pos[0] - self._current_goal[0]) + abs(pos[1] - self._current_goal[1])
         
-        # Create proposal
+        # Compute expected next position based on action
+        row, col = gmi_state.theta[0][0], gmi_state.theta[0][1] if len(gmi_state.theta[0]) > 1 else 0
+        next_row, next_col = row, col
+        if action == "N":
+            next_row = max(0, row - 1)
+        elif action == "S":
+            next_row = row + 1
+        elif action == "E":
+            next_col = col + 1
+        elif action == "W":
+            next_col = max(0, col - 1)
+        # Stay: no change
+        
+        # Create proposal - use budget as task_score (higher budget = better)
         proposal = TaskProposal(
             action=action,
-            drift_score=0,
-            V_task_predicted=V_task,
-            risk_score=0,
-            coherence_score=gmi_state.b,  # Use budget as proxy
+            expected_next_position=(next_row, next_col),
+            V_task_proposal=V_task,
+            task_score=gmi_state.b,  # Use budget as task score
             exploration_bonus=0,
-            hash=result.receipts.decision_receipt.chosen_plan_hash.encode() if result.receipts else b"planner",
         )
         
         proposals.append(proposal)
@@ -157,12 +168,10 @@ class PlannerProposer:
         # Also add Stay as backup
         proposals.append(TaskProposal(
             action="Stay",
-            drift_score=0,
-            V_task_predicted=V_task,
-            risk_score=0,
-            coherence_score=budget_after,
+            expected_next_position=(row, col),
+            V_task_proposal=V_task,
+            task_score=budget_after,
             exploration_bonus=0,
-            hash=b"stay",
         ))
         
         return proposals
