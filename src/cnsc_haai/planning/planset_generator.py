@@ -60,6 +60,10 @@ class Plan:
     horizon: int
     plan_hash: str  # Deterministic hash for Merkle inclusion
     
+    # Option provenance (Phase 3: Planning + Skills)
+    option_id: Optional[str] = None  # If set, plan derived from this option
+    option_trace: Optional[Tuple[str, ...]] = None  # Unfold trace for audit
+    
     def __post_init__(self):
         """Validate plan structure."""
         if len(self.actions) != self.horizon:
@@ -281,16 +285,26 @@ def generate_option_plans(
             )
             
             # Convert execution to plan if successful
-            if execution.status.value in ("completed", "max_steps"):
+            # Accept both MAX_STEPS (ran to horizon) and TERMINATION_PREDICATE (goal reached)
+            if execution.status.value in ("MAX_STEPS", "TERMINATION_PREDICATE"):
                 # Extract GMIActions from execution
                 actions = tuple(execution.actions) if execution.actions else ()
                 
                 if actions:
-                    # Create plan from option-derived actions
+                    # Create option trace for provenance (Design B: unfold trace)
+                    # This records each step of the option execution
+                    option_trace = tuple(
+                        f"step_{i}:{action}" 
+                        for i, action in enumerate(execution.actions)
+                    )
+                    
+                    # Create plan from option-derived actions with provenance
                     plan = Plan(
                         actions=actions,
                         horizon=len(actions),
                         plan_hash=_hash_actions(actions, f"option_{option_id}"),
+                        option_id=option_id,  # Links to skill
+                        option_trace=option_trace,  # Unfold trace for audit
                     )
                     plans.append(plan)
                     

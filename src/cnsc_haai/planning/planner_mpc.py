@@ -79,6 +79,10 @@ class PlannerConfig:
     kappa_gate: int = 0          # Cost per gate check
     kappa_exec: int = 1           # Cost per execution
     
+    # Options/Skills integration (Phase 3)
+    use_options: bool = False     # Enable options in planning
+    option_horizon: int = 10     # Max steps for option-derived plans
+    
     def to_dict(self) -> Dict:
         """Convert to dict for hashing."""
         return {
@@ -98,6 +102,8 @@ class PlannerConfig:
             "kappa_plan": self.kappa_plan,
             "kappa_gate": self.kappa_gate,
             "kappa_exec": self.kappa_exec,
+            "use_options": self.use_options,
+            "option_horizon": self.option_horizon,
         }
     
     def hash(self) -> str:
